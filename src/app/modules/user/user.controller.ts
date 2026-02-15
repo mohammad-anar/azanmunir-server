@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync";
-import { UserSerivces } from "./user.service";
+import { UserServices } from "./user.service";
 
-const createPatient = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserSerivces.createPatient(req.body);
+const createUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.createUser(req.body);
   console.log({ result });
 });
 
 export const UserController = {
-  createPatient,
+  createUser,
 };

@@ -1,68 +1,43 @@
+// USERS
+
 model User {
-    id                 String     @id @default(uuid())
-    email              String     @unique
-    password           String
-    role               UserRole   @default(PATIENT)
-    needPasswordChange Boolean    @default(true)
-    status             UserStatus @default(ACTIVE)
-    createdAt          DateTime   @default(now())
-    updatedAt          DateTime   @updatedAt
-    admin              Admin?
-    doctor             Doctor?
-    patient            Patient?
+    id         String     @id @default(uuid())
+    name       String
+    email      String     @unique
+    phone      String
+    password   String
+    role       UserRole   @default(USER)
+    status     UserStatus @default(ACTIVE)
+    isVerified Boolean    @default(false)
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @updatedAt
 
-    @@map("users")
+    jobs     Job[]
+    offers   Offer[]
+    chats    Chat[]
+    workshop Workshop?
 }
 
-model Admin {
-    id            String   @id @default(uuid())
-    name          String
-    email         String   @unique
-    profilePhoto  String?
-    contactNumber String
-    isDeleted     Boolean  @default(false)
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt
+// WORKSHOPS
 
-    user User @relation(fields: [email], references: [email])
+model Workshop {
+    id        String         @id @default(uuid())
+    userId    String         @unique
+    lat       Float
+    lng       Float
+    isOnline  Boolean        @default(false)
+    status    WorkshopStatus @default(ACTIVE)
+    createdAt DateTime       @default(now())
+    updatedAt DateTime       @updatedAt
 
-    @@map("admins")
+    user User @relation(fields: [userId], references: [id])
+
+    offers   Offer[]
+    invoices Invoice[]
 }
 
-model Doctor {
-    id                  String   @id @default(uuid())
-    name                String
-    email               String   @unique
-    profilePhoto        String?
-    contactNumber       String
-    address             String
-    registrationNumber  String
-    experience          Int      @default(0)
-    gender              Gender
-    appointmentFee      Int
-    qualification       String
-    currentWorkingPlace String
-    designation         String
-    isDeleted           Boolean  @default(false)
-    createdAt           DateTime @default(now())
-    updatedAt           DateTime @updatedAt
 
-    user User @relation(fields: [email], references: [email])
 
-    @@map("doctors")
-}
 
-model Patient {
-    id           String   @id @default(uuid())
-    email        String   @unique
-    name         String
-    profilePhoto String?
-    address      String
-    isDeleted    Boolean  @default(false)
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
 
-    user User @relation(fields: [email], references: [email])
 
-    @@map("patients")
-}

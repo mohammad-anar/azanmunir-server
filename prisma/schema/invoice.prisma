@@ -1,0 +1,16 @@
+// INVOICE (Monthly per Workshop)
+model Invoice {
+    id         String @id @default(uuid())
+    workshopId String
+    amount     Float
+
+    billingPeriod DateTime
+
+    status   InvoiceStatus @default(PENDING)
+    issuedAt DateTime      @default(now())
+    paidAt   DateTime?
+
+    workshop Workshop @relation(fields: [workshopId], references: [id])
+
+    @@unique([workshopId, billingPeriod])
+}

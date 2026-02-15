@@ -1,16 +1,39 @@
+//////////////////////////
+// ENUMS
+//////////////////////////
 enum UserRole {
-    PATIENT
-    DOCTOR
-    ADMIN
+  ADMIN
+  USER
+  WORKSHOP
 }
 
 enum UserStatus {
-    ACTIVE
-    INACTIVE
-    DELETED
+  ACTIVE
+  BLOCKED
+  DELETED
 }
 
-enum Gender {
-    MALE
-    FEMALE
+enum WorkshopStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum JobStatus {
+  OPEN
+  ACCEPTED
+  COMPLETED
+  CANCELED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  CANCELED
 }
