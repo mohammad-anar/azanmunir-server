@@ -1,39 +1,51 @@
-//////////////////////////
-// ENUMS
-//////////////////////////
 enum UserRole {
-  ADMIN
   USER
-  WORKSHOP
-}
-
-enum UserStatus {
-  ACTIVE
-  BLOCKED
-  DELETED
+  ADMIN
+  WORKSHOP_OWNER
 }
 
 enum WorkshopStatus {
+  PENDING
   ACTIVE
-  SUSPENDED
-  DELETED
+  INACTIVE
+  BANNED
 }
 
 enum JobStatus {
-  OPEN
-  ACCEPTED
+  PENDING
+  IN_PROGRESS
   COMPLETED
-  CANCELED
+  CANCELLED
 }
 
 enum OfferStatus {
   PENDING
   ACCEPTED
   REJECTED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
 }
 
 enum InvoiceStatus {
   PENDING
   PAID
-  CANCELED
+  OVERDUE
+}
+
+enum PriceType {
+  FIXED
+  RANGE
 }
