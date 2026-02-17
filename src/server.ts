@@ -1,6 +1,7 @@
 import { Server } from "http";
 import app from "./app.js";
 import config from "./config/index.js";
+import { seedSuperAdmin } from "./db/seedSuperAdmin.js";
 
 let server: Server;
 
@@ -12,6 +13,9 @@ process.on("uncaughtException", (error) => {
 
 async function bootstrap() {
   try {
+    // seeding admin
+    await seedSuperAdmin();
+    //
     server = app.listen(config.port, () => {
       console.log(`🚀 Server running on http://localhost:${config.port}`);
     });

@@ -9,4 +9,11 @@ export default {
   database_url: process.env.DATABASE_URL,
   bcrypt_solt_round: Number(process.env.BCRYPT_SOLT_ROUND),
   cors_origin: process.env.CORS_ORIGIN,
+  admin: {
+    name: process.env.NAME,
+    email: process.env.EMAIL,
+    phone: process.env.PHONE,
+    password: process.env.PASSWORD,
+    avatar: process.env.AVATAR,
+  },
 };

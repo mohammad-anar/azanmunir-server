@@ -2,7 +2,7 @@ model User {
     id         String     @id @default(uuid())
     name       String
     email      String     @unique
-    phone      String?
+    phone      String?    @unique
     password   String
     role       Role       @default(USER)
     status     UserStatus @default(ACTIVE)
@@ -18,6 +18,9 @@ model User {
     reviews       Review[]
     workshop      Workshop?
     rooms         Room[]
+
+    @@index([role])
+    @@index([status])
 }
 
 model Workshop {
