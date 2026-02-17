@@ -1,14 +1,14 @@
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
-import globalErrorHandler from "./app/middlewares/globalErrorHandler";
-import notFound from "./app/middlewares/notFound";
-import router from "./app/routes";
-import config from "./config";
+import config from "./config/index.js";
+import router from "./app/routes/index.js";
+import globalErrorHandler from "./app/middlewares/globalErrorHandler.js";
+import notFound from "./app/middlewares/notFound.js";
 
 const app: Application = express();
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: config.cors_origin,
     credentials: true,
   })
 );

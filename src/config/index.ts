@@ -8,4 +8,5 @@ export default {
   port: process.env.PORT,
   database_url: process.env.DATABASE_URL,
   bcrypt_solt_round: Number(process.env.BCRYPT_SOLT_ROUND),
+  cors_origin: process.env.CORS_ORIGIN,
 };
