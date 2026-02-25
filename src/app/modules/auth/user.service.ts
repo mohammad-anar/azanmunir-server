@@ -52,7 +52,9 @@ const createUser = async (payload: IUser) => {
 };
 // get all users ===============================================
 const getAllUsers = async () => {
-  const result = await prisma.user.findMany({ where: { role: "USER" } });
+  const result = await prisma.user.findMany({
+    where: { role: { in: ["USER", "WORKSHOP"] } },
+  });
   return result;
 };
 
