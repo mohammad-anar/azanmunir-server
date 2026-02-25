@@ -26,6 +26,9 @@ const createUser = async (payload: IUser) => {
       avatar: true,
       address: true,
       role: true,
+      createdAt: true,
+      updatedAt: true,
+      isVerified: true,
     },
   });
 
@@ -58,8 +61,6 @@ const getUserById = async (id: string) => {
   const result = prisma.user.findUniqueOrThrow({ where: { id } });
   return result;
 };
-
-
 
 // update user =====================================================
 const updateUser = async (id: string, payload: Partial<IUser>) => {
@@ -114,12 +115,16 @@ const verifyUser = async ({ email, otp }: IVerifyEmail) => {
   const user = await prisma.user.findUnique({
     where: { email },
     select: {
+      name: true,
       email: true,
+      phone: true,
       isVerified: true,
       id: true,
-      name: true,
       role: true,
-      phone: true,
+      address: true,
+      avatar: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 
@@ -152,7 +157,7 @@ const verifyUser = async ({ email, otp }: IVerifyEmail) => {
     config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
   );
 
-  return { accessToken, refreshToken };
+  return { accessToken, refreshToken, user };
 };
 
 // resendOTP =========================================
