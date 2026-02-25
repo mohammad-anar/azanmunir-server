@@ -87,3 +87,13 @@ enum BikeType {
   CRUISER
   OTHER
 }
+
+enum WeekDay {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}

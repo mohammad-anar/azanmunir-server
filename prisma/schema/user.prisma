@@ -28,7 +28,9 @@ model User {
 model Workshop {
     id             String                 @id @default(uuid())
     userId         String                 @unique
-    owner          User                   @relation(fields: [userId], references: [id])
+    user           User                   @relation(fields: [userId], references: [id])
+    ownerName      String
+    cvrNumber      String
     description    String?
     address        String
     city           String
@@ -41,22 +43,30 @@ model Workshop {
     createdAt      DateTime               @default(now())
     updatedAt      DateTime               @updatedAt
 
-    categories    WorkshopCategory[]
-    bookings      Booking[]
-    jobs          JobOffer[]
-    invoices      Invoice[]
-    notifications Notification[]
-    rooms         Room[]
+    categories           WorkshopCategory[]
+    bookings             Booking[]
+    jobs                 JobOffer[]
+    invoices             Invoice[]
+    notifications        Notification[]
+    rooms                Room[]
+    workshopOpeningHours WorkshopOpeningHour[]
 }
 
-model Category {
-    id        String   @id @default(uuid())
-    name      String   @unique
+model WorkshopOpeningHour {
+    id String @id @default(uuid())
+
+    workshopId String
+    workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+    day       WeekDay
+    openTime  String?
+    closeTime String?
+    isClosed  Boolean @default(false)
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    jobs      Job[]
-    workshops WorkshopCategory[]
+    @@unique([workshopId, day])
 }
 
 model WorkshopCategory {
@@ -67,6 +77,16 @@ model WorkshopCategory {
     category   Category @relation(fields: [categoryId], references: [id])
 
     @@unique([workshopId, categoryId])
+}
+
+model Category {
+    id        String   @id @default(uuid())
+    name      String   @unique
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    jobs      Job[]
+    workshops WorkshopCategory[]
 }
 
 model Bike {
