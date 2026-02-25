@@ -5,6 +5,7 @@ import config from "src/config/index.js";
 import { UserService } from "./user.service.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import bcrypt from "bcryptjs";
+import pick from "src/helpers.ts/pick.js";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -32,7 +33,10 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserService.getAllUsers();
+  const filters = pick(req.query, ["role"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const result = await UserService.getAllUsers(filters, options);
 
   sendResponse(res, {
     success: true,

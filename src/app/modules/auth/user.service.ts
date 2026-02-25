@@ -1,14 +1,20 @@
-import { prisma } from "src/app/shared/prisma.js";
-import { ILogin, IUser, IVerifyEmail } from "./user.interface.js";
-import generateOTP from "src/helpers.ts/generateOTP.js";
-import { emailTemplate } from "src/app/shared/emailTemplate.js";
-import { emailHelper } from "src/helpers.ts/emailHelper.js";
-import { jwtHelper } from "src/helpers.ts/jwtHelper.js";
-import config from "src/config/index.js";
-import { Secret, SignOptions } from "jsonwebtoken";
-import ApiError from "src/errors/ApiError.js";
-import redisClient from "src/helpers.ts/redis.js";
 import bcrypt from "bcryptjs";
+import { Secret, SignOptions } from "jsonwebtoken";
+import { emailTemplate } from "src/app/shared/emailTemplate.js";
+import { prisma } from "src/app/shared/prisma.js";
+import config from "src/config/index.js";
+import ApiError from "src/errors/ApiError.js";
+import { emailHelper } from "src/helpers.ts/emailHelper.js";
+import generateOTP from "src/helpers.ts/generateOTP.js";
+import { jwtHelper } from "src/helpers.ts/jwtHelper.js";
+import redisClient from "src/helpers.ts/redis.js";
+import {
+  IPaginationOptions,
+  IUserFilterRequest,
+} from "src/types/pagination.js";
+import { ILogin, IUser, IVerifyEmail } from "./user.interface.js";
+import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
+import { Prisma } from "@prisma/client";
 
 // create users ================================
 const createUser = async (payload: IUser) => {
@@ -51,11 +57,68 @@ const createUser = async (payload: IUser) => {
   return result;
 };
 // get all users ===============================================
-const getAllUsers = async () => {
-  const result = await prisma.user.findMany({
-    where: { role: { in: ["USER", "WORKSHOP"] } },
+const getAllUsers = async (
+  params: IUserFilterRequest,
+  options: IPaginationOptions,
+) => {
+  const { page, limit, skip } = paginationHelper.calculatePagination(options);
+  const { searchTerm, ...filterData } = params;
+
+  const andConditions: Prisma.UserWhereInput[] = [];
+
+  //console.log(filterData);
+  if (params.searchTerm) {
+    andConditions.push({
+      OR: ["name", "email", "phone"].map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  if (Object.keys(filterData).length > 0) {
+    andConditions.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  andConditions.push({
+    isVerified: true,
   });
-  return result;
+  const whereConditions: Prisma.UserWhereInput = { AND: andConditions };
+
+  const result = await prisma.user.findMany({
+    where: whereConditions,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.user.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: result,
+  };
 };
 
 // get user by id ================================================
