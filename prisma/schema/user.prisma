@@ -9,6 +9,7 @@ model User {
     avatar     String?
     address    String?
     isVerified Boolean    @default(false)
+    isDeleted  Boolean    @default(false)
     createdAt  DateTime   @default(now())
     updatedAt  DateTime   @updatedAt
 
