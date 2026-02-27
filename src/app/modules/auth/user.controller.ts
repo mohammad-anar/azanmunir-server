@@ -4,26 +4,19 @@ import { getSingleFilePath } from "src/app/shared/getFilePath.js";
 import config from "src/config/index.js";
 import { UserService } from "./user.service.js";
 import sendResponse from "src/app/shared/sendResponse.js";
-import bcrypt from "bcryptjs";
 import pick from "src/helpers.ts/pick.js";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const image = getSingleFilePath(req.files, "image") as string;
   const url = `http://${config.ip_address}:${config.port}`.concat(image);
-  const hashedPassword = await bcrypt.hash(
-    payload.password,
-    config.bcrypt_salt_round,
-  );
 
   if (image) {
     payload.avatar = url;
   }
 
-  const result = await UserService.createUser({
-    ...payload,
-    password: hashedPassword,
-  });
+  // service will handle hashing of the plain password
+  const result = await UserService.createUser(payload);
 
   sendResponse(res, {
     success: true,
@@ -128,6 +121,22 @@ const forgetPassword = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.user;
+  const { newPassword, oldPassword } = req.body;
+  const result = await UserService.resetPassword(
+    email,
+    newPassword,
+    oldPassword,
+  );
+
+  sendResponse(res, {
+    success: true,
+    message: "Your password reset successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 
 export const UserController = {
   createUser,
@@ -139,4 +148,5 @@ export const UserController = {
   verifyUser,
   resendOTP,
   forgetPassword,
+  resetPassword,
 };

@@ -15,6 +15,7 @@ import {
 import { ILogin, IUser, IVerifyEmail } from "./user.interface.js";
 import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { Prisma } from "@prisma/client";
+import { isMainThread } from "worker_threads";
 
 // create users ================================
 const createUser = async (payload: IUser) => {
@@ -149,10 +150,13 @@ const login = async (payload: ILogin) => {
       email: true,
       phone: true,
       role: true,
+      password: true,
       isVerified: true,
       status: true,
     },
   });
+
+  const { password, ...userData } = isExist;
 
   if (!isExist.isVerified) {
     throw new ApiError(
@@ -160,18 +164,29 @@ const login = async (payload: ILogin) => {
       "You are not verifies. Please verify your account to login",
     );
   }
+
+  // check bcrypt password
+  const isPasswordMatched = await bcrypt.compare(
+    payload.password,
+    isExist.password,
+  );
+
+  if (!isPasswordMatched) {
+    throw new ApiError(400, "Invalid password");
+  }
+
   const accessToken = jwtHelper.createToken(
-    isExist,
+    userData,
     config.jwt.jwt_secret as Secret,
     config.jwt.jwt_expire_in as SignOptions["expiresIn"],
   );
   const refreshToken = jwtHelper.createToken(
-    isExist,
+    userData,
     config.jwt.jwt_refresh_secret as Secret,
     config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
   );
 
-  return { accessToken, refreshToken, user: isExist };
+  return { accessToken, refreshToken, user: userData };
 };
 
 // verify==============================================
@@ -258,7 +273,19 @@ const resendOTP = async (email: string) => {
 const forgetPassword = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, name: true, isVerified: true, isDeleted: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      isVerified: true,
+      isDeleted: true,
+      role: true,
+      phone: true,
+      address: true,
+      avatar: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   if (!user) throw new ApiError(404, "User not found");
   if (!user.isVerified || user.isDeleted) {
@@ -269,19 +296,51 @@ const forgetPassword = async (email: string) => {
   }
 
   const token = jwtHelper.createToken(
-    { email },
+    user,
     config.jwt.jwt_secret as Secret,
     "15m",
   );
-  const resetPasswordTemplate = await emailTemplate.forgetPassword({
+  const forgetPasswordTemplate = await emailTemplate.forgetPassword({
     email,
     token,
   });
 
   // 5. Send OTP email
-  await emailHelper.sendEmail(resetPasswordTemplate);
+  await emailHelper.sendEmail(forgetPasswordTemplate);
 
   return { status: "Reset password email sent" };
+};
+
+// reset password =================================================
+const resetPassword = async (
+  email: string,
+  newPassword: string,
+  oldPassword: string,
+) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  console.log(oldPassword, user.password);
+
+  const isPasswordMatched = await bcrypt.compare(oldPassword, user.password);
+
+  console.log(isPasswordMatched);
+  if (!isPasswordMatched) throw new ApiError(400, "Old password is incorrect");
+
+  const hashedPassword = await bcrypt.hash(
+    newPassword,
+    Number(config.bcrypt_salt_round),
+  );
+
+  await prisma.user.update({
+    where: { email },
+    data: { password: hashedPassword },
+  });
+
+  return { status: "Password reset successfully" };
 };
 
 export const UserService = {
@@ -294,4 +353,5 @@ export const UserService = {
   verifyUser,
   resendOTP,
   forgetPassword,
+  resetPassword,
 };
