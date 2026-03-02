@@ -21,6 +21,7 @@ const createWorkshop = async (payload: ICreateWorkshop) => {
         avatar,
         role: Role.WORKSHOP,
         password,
+        isVerified: true,
       },
     });
     const workshop = await tx.workshop.create({
@@ -82,6 +83,15 @@ const getAllWorkshops = async (
         : {
             createdAt: "desc",
           },
+
+    include: {
+      user: true,
+      bookings: true,
+      categories: true,
+      invoices: true,
+      jobs: true,
+      workshopOpeningHours: true,
+    },
   });
 
   const total = await prisma.workshop.count({
