@@ -21,6 +21,7 @@ model User {
     workshop      Workshop?
     rooms         Room[]
     bikes         Bike[]
+    blogs         Blog[]
 
     @@index([role])
     @@index([status])
@@ -253,4 +254,15 @@ model Invoice {
     updatedAt    DateTime      @updatedAt
 
     @@unique([workshopId, billingMonth])
+}
+
+model Blog {
+    id        String   @id @default(uuid())
+    title     String
+    content   String
+    images    String[]
+    authorId  String
+    author    User     @relation(fields: [authorId], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
