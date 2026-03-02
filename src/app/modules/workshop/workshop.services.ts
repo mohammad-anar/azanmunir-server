@@ -44,15 +44,17 @@ const getAllWorkshops = async (
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
   const { searchTerm, ...filterData } = params;
 
-  const andConditions: Prisma.UserWhereInput[] = [];
+  const andConditions: Prisma.WorkshopWhereInput[] = [];
   if (params.searchTerm) {
     andConditions.push({
-      OR: ["workshopName", "ownerName", "address"].map((field) => ({
-        [field]: {
-          contains: params.searchTerm,
-          mode: "insensitive",
-        },
-      })),
+      OR: ["workshopName", "ownerName", "address", "description"].map(
+        (field) => ({
+          [field]: {
+            contains: params.searchTerm,
+            mode: "insensitive",
+          },
+        }),
+      ),
     });
   }
 
@@ -66,12 +68,9 @@ const getAllWorkshops = async (
     });
   }
 
-  andConditions.push({
-    isVerified: true,
-  });
-  const whereConditions: Prisma.UserWhereInput = { AND: andConditions };
+  const whereConditions: Prisma.WorkshopWhereInput = { AND: andConditions };
 
-  const result = await prisma.user.findMany({
+  const result = await prisma.workshop.findMany({
     where: whereConditions,
     skip,
     take: limit,
@@ -85,7 +84,7 @@ const getAllWorkshops = async (
           },
   });
 
-  const total = await prisma.user.count({
+  const total = await prisma.workshop.count({
     where: whereConditions,
   });
 
