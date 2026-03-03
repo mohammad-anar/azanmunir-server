@@ -41,7 +41,162 @@ const getAllWorkshops = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const getWorkshopById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await WorkshopService.getWorkshopById(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Workshop retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const updateWorkshop = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const payload = req.body;
+
+  const image = getSingleFilePath(req.files, "image") as string;
+
+  if (image) {
+    const url = `http://${config.ip_address}:${config.port}${image}`;
+    payload.avatar = url; // 👈 using avatar field
+  }
+
+  const result = await WorkshopService.updateWorkshop(id, payload);
+
+  sendResponse(res, {
+    success: true,
+    message: "Workshop updated successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+
+
+const deleteWorkshop = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await WorkshopService.deleteWorkshop(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Workshop deleted successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+
+const loginWorkshop = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+  const result = await WorkshopService.loginWorkshop(payload);
+
+  sendResponse(res, {
+    success: true,
+    message: "Workshop logged in successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+
+const verifyWorkshop = catchAsync(async (req: Request, res: Response) => {
+  const payload = req.body;
+  const result = await WorkshopService.verifyWorkshop(payload);
+
+  sendResponse(res, {
+    success: true,
+    message: "Workshop verified successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+
+
+const resendWorkshopOTP = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const result = await WorkshopService.resendWorkshopOTP(email);
+
+  sendResponse(res, {
+    success: true,
+    message: "OTP resent successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+
+
+const forgetWorkshopPassword = catchAsync(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const result = await WorkshopService.forgetWorkshopPassword(email);
+
+    sendResponse(res, {
+      success: true,
+      message: "Password reset email sent successfully",
+      statusCode: 200,
+      data: result,
+    });
+  },
+);
+
+
+const resetWorkshopPassword = catchAsync(
+  async (req: Request, res: Response) => {
+    const { email } = req.user; // workshop JWT payload
+    const { password } = req.body;
+
+    const result = await WorkshopService.resetWorkshopPassword(email, password);
+
+    sendResponse(res, {
+      success: true,
+      message: "Password reset successfully",
+      statusCode: 200,
+      data: result,
+    });
+  },
+);
+
+
+const changeWorkshopPassword = catchAsync(
+  async (req: Request, res: Response) => {
+    const { email } = req.user;
+    const { oldPassword, newPassword } = req.body;
+
+    const result = await WorkshopService.changeWorkshopPassword(
+      email,
+      newPassword,
+      oldPassword,
+    );
+
+    sendResponse(res, {
+      success: true,
+      message: "Password changed successfully",
+      statusCode: 200,
+      data: result,
+    });
+  },
+);
+
+
+
+
+
 export const WorkshopController = {
   createWorkshop,
   getAllWorkshops,
+  getWorkshopById,
+  updateWorkshop,
+  deleteWorkshop,
+  loginWorkshop,
+  verifyWorkshop,
+  resendWorkshopOTP,
+  forgetWorkshopPassword,
+  resetWorkshopPassword,
+  changeWorkshopPassword,
 };

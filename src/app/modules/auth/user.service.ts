@@ -329,6 +329,8 @@ const resetPassword = async (email: string, password: string) => {
 
   return null;
 };
+
+// change password =================================================
 const changePassword = async (
   email: string,
   newPassword: string,

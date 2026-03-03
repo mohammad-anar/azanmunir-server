@@ -1,26 +1,46 @@
 import { z } from "zod";
 
+// Common reusable validations
+const emailSchema = z.string().email();
+const phoneSchema = z.string().optional();
+const stringOptional = z.string().optional();
+const floatOptional = z.number().optional();
+
+// Create Workshop Schema
 export const createWorkshopSchema = z.object({
-  workshopName: z
-    .string()
-    .min(2, "Workshop name must be at least 2 characters"),
-  email: z.email("Invalid email address"),
-  phone: z.string().min(6, "Phone number is required"),
-  address: z.string().min(3, "Address is required"),
-  avatar: z.string().optional(),
+  email: emailSchema,
   password: z.string().min(6, "Password must be at least 6 characters"),
-  description: z.string().optional(),
-  city: z.string().min(2, "City is required"),
-  cvrNumber: z.string().min(3, "CVR number is required"),
-  ownerName: z.string().min(2, "Owner name is required"),
-  postalCode: z.string().min(3, "Postal code is required"),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
+  phone: phoneSchema,
+  avatar: stringOptional,
+  workshopName: z.string().min(1, "Workshop name is required"),
+  ownerName: z.string().min(1, "Owner name is required"),
+  cvrNumber: z.string().min(1, "CVR number is required"),
+  description: stringOptional,
+  address: stringOptional,
+  country: stringOptional,
+  state: stringOptional,
+  city: z.string().min(1, "City is required"),
+  postalCode: z.string().min(1, "Postal code is required"),
+  latitude: floatOptional,
+  longitude: floatOptional,
 });
 
+// Update Workshop Schema (all fields optional)
 export const updateWorkshopSchema = z.object({
-  businessName: z.string().min(2).max(150).optional(),
-  address: z.string().min(5).optional(),
-  tradeLicenseNumber: z.string().min(3).max(100).optional(),
+  email: emailSchema.optional(),
+  password: z.string().min(6).optional(),
+  phone: phoneSchema,
+  avatar: stringOptional,
+  workshopName: z.string().min(1).optional(),
+  ownerName: z.string().min(1).optional(),
+  cvrNumber: z.string().min(1).optional(),
+  description: stringOptional,
+  address: stringOptional,
+  country: stringOptional,
+  state: stringOptional,
+  city: z.string().min(1).optional(),
+  postalCode: z.string().min(1).optional(),
+  latitude: floatOptional,
+  longitude: floatOptional,
   isVerified: z.boolean().optional(),
 });
