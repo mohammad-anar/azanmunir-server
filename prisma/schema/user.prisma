@@ -8,6 +8,10 @@ model User {
     status     UserStatus @default(ACTIVE)
     avatar     String?
     address    String?
+    country    String?
+    state      String?
+    city       String?
+    postalCode String?
     isVerified Boolean    @default(false)
     isDeleted  Boolean    @default(false)
     createdAt  DateTime   @default(now())

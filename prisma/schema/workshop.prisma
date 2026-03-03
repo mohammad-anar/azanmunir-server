@@ -8,7 +8,9 @@ model Workshop {
     ownerName    String
     cvrNumber    String
     description  String?
-    address      String
+    address      String?
+    country      String?
+    state        String?
     city         String
     postalCode   String
     latitude     Float?
