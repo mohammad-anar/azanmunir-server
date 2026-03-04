@@ -8,6 +8,7 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   SUSPENDED
+  BANNED
 }
 
 enum JobStatus {
@@ -33,7 +34,6 @@ enum BookingStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
-  NO_SHOW
 }
 
 enum PaymentStatus {
