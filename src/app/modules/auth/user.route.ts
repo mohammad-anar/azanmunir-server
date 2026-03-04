@@ -11,7 +11,11 @@ const router = express.Router();
 router.get("/users", UserController.getAllUsers);
 router.get("/user/me", auth(Role.USER, Role.ADMIN), UserController.getMe);
 // get jobs for user
-router.get("/me/jobs", auth(Role.USER, Role.ADMIN), UserController.getUserJobs);
+router.get(
+  "/user/me/jobs",
+  auth(Role.USER, Role.ADMIN),
+  UserController.getUserJobs,
+);
 router.post(
   "/register",
   fileUploadHandler(),
