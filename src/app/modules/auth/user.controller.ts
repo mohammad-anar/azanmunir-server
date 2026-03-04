@@ -199,6 +199,21 @@ const logout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getUserJobs = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const filters = pick(req.query, ["urgency", "status", "searchTerm"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const result = await UserService.getUserJobs(id, options, filters);
+
+  sendResponse(res, {
+    success: true,
+    message: "User jobs retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getAllUsers,
@@ -214,4 +229,5 @@ export const UserController = {
   changePassword,
   refreshToken,
   logout,
+  getUserJobs,
 };

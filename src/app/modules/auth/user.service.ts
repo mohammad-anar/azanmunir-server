@@ -60,18 +60,18 @@ const createUser = async (payload: Prisma.UserCreateInput) => {
 };
 // get all users ===============================================
 const getAllUsers = async (
-  params: IUserFilterRequest,
+  filter: IUserFilterRequest,
   options: IPaginationOptions,
 ) => {
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
-  const { searchTerm, ...filterData } = params;
+  const { searchTerm, ...filterData } = filter;
 
   const andConditions: Prisma.UserWhereInput[] = [];
-  if (params.searchTerm) {
+  if (filter.searchTerm) {
     andConditions.push({
       OR: ["name", "email", "phone"].map((field) => ({
         [field]: {
-          contains: params.searchTerm,
+          contains: filter.searchTerm,
           mode: "insensitive",
         },
       })),
@@ -277,11 +277,11 @@ const verifyUser = async ({ email, otp }: IVerifyEmail) => {
   const user = await prisma.user.findUnique({
     where: { email },
     select: {
+      id: true,
       name: true,
       email: true,
       phone: true,
       isVerified: true,
-      id: true,
       role: true,
       address: true,
       avatar: true,
@@ -501,6 +501,67 @@ const logout = async (res: Response) => {
   return null;
 };
 
+// get all jobs of a user =============================================== add filter and search like get all users
+const getUserJobs = async (
+  userId: string,
+  options: IPaginationOptions,
+  // write custom type for filter
+  filter: { urgency?: string; status?: string; searchTerm?: string },
+) => {
+  const { page, limit, skip } = paginationHelper.calculatePagination(options);
+  const { searchTerm, ...filterData } = filter;
+
+  const andConditions: Prisma.JobWhereInput[] = [];
+  if (filter.searchTerm) {
+    andConditions.push({
+      OR: ["title", "description"].map((field) => ({
+        [field]: {
+          contains: filter.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  if (Object.keys(filterData).length > 0) {
+    andConditions.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+
+  const whereConditions: Prisma.JobWhereInput = { AND: andConditions };
+
+  const result = await prisma.job.findMany({
+    where: {
+      userId,
+      ...whereConditions,
+    },
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? {
+            [options.sortBy]: options.sortOrder,
+          }
+        : {
+            createdAt: "desc",
+          },
+  });
+
+  const total = await prisma.job.count({
+    where: {
+      userId,
+      ...whereConditions,
+    },
+  });
+  const totalPage = Math.ceil(total / limit);
+  return { result, meta: { page, limit, total, totalPage } };
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
@@ -516,4 +577,5 @@ export const UserService = {
   changePassword,
   refreshToken,
   logout,
+  getUserJobs,
 };
