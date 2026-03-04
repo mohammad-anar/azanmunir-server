@@ -35,6 +35,11 @@ router.post(
   auth(Role.USER, Role.ADMIN, Role.WORKSHOP),
   UserController.refreshToken,
 );
+router.post(
+  "/logout",
+  auth(Role.USER, Role.ADMIN, Role.WORKSHOP),
+  UserController.logout,
+);
 router.get("/user/:id", auth(Role.ADMIN), UserController.getUserById);
 
 router.patch(

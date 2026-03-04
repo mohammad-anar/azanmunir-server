@@ -95,6 +95,20 @@ const login = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const result = await UserService.login(payload);
 
+  // set cookies on client side
+  res.cookie("accessToken", result.accessToken, {
+    httpOnly: true,
+    secure: config.node_env === "production",
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000, // 1 days
+  });
+  res.cookie("refreshToken", result.refreshToken, {
+    httpOnly: true,
+    secure: config.node_env === "production",
+    sameSite: "strict",
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+  });
+
   sendResponse(res, {
     success: true,
     message: "User logged in successfully",
@@ -174,6 +188,16 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const logout = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.logout(res);
+
+  sendResponse(res, {
+    success: true,
+    message: "You have been logged out successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 
 export const UserController = {
   createUser,
@@ -189,4 +213,5 @@ export const UserController = {
   resetPassword,
   changePassword,
   refreshToken,
+  logout,
 };

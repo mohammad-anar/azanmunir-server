@@ -16,6 +16,7 @@ import { ILogin, IUser, IVerifyEmail } from "./user.interface.js";
 import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { Prisma } from "@prisma/client";
 import { isMainThread } from "worker_threads";
+import { Response } from "express";
 
 // create users ================================
 const createUser = async (payload: Prisma.UserCreateInput) => {
@@ -492,6 +493,14 @@ const refreshToken = async (email: string) => {
   return { accessToken, refreshToken, user };
 };
 
+// logout =============================================== remove access and refresh token from client side cookies
+const logout = async (res: Response) => {
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  return null;
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
@@ -506,4 +515,5 @@ export const UserService = {
   resetPassword,
   changePassword,
   refreshToken,
+  logout,
 };
