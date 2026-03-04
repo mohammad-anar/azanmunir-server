@@ -163,6 +163,17 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const refreshToken = catchAsync(async (req: Request, res: Response) => {
+  const { email } = req.user;
+  const result = await UserService.refreshToken(email);
+
+  sendResponse(res, {
+    success: true,
+    message: "Your refresh token generated successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 
 export const UserController = {
   createUser,
@@ -177,4 +188,5 @@ export const UserController = {
   forgetPassword,
   resetPassword,
   changePassword,
+  refreshToken,
 };

@@ -30,6 +30,11 @@ router.post(
   auth(Role.USER, Role.ADMIN, Role.WORKSHOP),
   UserController.changePassword,
 );
+router.post(
+  "/refresh",
+  auth(Role.USER, Role.ADMIN, Role.WORKSHOP),
+  UserController.refreshToken,
+);
 router.get("/user/:id", auth(Role.ADMIN), UserController.getUserById);
 
 router.patch(

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { Secret, SignOptions } from "jsonwebtoken";
+import { JwtPayload, Secret, SignOptions } from "jsonwebtoken";
 import { emailTemplate } from "src/app/shared/emailTemplate.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 import config from "src/config/index.js";
@@ -263,7 +263,7 @@ const login = async (payload: ILogin) => {
   );
   const refreshToken = jwtHelper.createToken(
     userData,
-    config.jwt.jwt_refresh_secret as Secret,
+    config.jwt.jwt_secret as Secret,
     config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
   );
 
@@ -313,7 +313,7 @@ const verifyUser = async ({ email, otp }: IVerifyEmail) => {
   );
   const refreshToken = jwtHelper.createToken(
     user,
-    config.jwt.jwt_refresh_secret as Secret,
+    config.jwt.jwt_secret as Secret,
     config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
   );
 
@@ -442,6 +442,56 @@ const changePassword = async (
   return null;
 };
 
+// refresh token
+const refreshToken = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      role: true,
+      isVerified: true,
+      status: true,
+    },
+  });
+  const workshop = await prisma.workshop.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      workshopName: true,
+      email: true,
+      phone: true,
+      role: true,
+      isVerified: true,
+      approvalStatus: true,
+    },
+  });
+  if (!user && !workshop) throw new ApiError(404, "User not found");
+  if (user && !user.isVerified) {
+    throw new ApiError(403, "User is not verified");
+  }
+  if (workshop && !workshop.isVerified) {
+    throw new ApiError(403, "Workshop is not verified");
+  }
+
+  const payload = user || workshop;
+
+  const accessToken = jwtHelper.createToken(
+    payload as JwtPayload,
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_expire_in as SignOptions["expiresIn"],
+  );
+  const refreshToken = jwtHelper.createToken(
+    payload as JwtPayload,
+    config.jwt.jwt_secret as Secret,
+    config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
+  );
+
+  return { accessToken, refreshToken, user };
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
@@ -455,4 +505,5 @@ export const UserService = {
   forgetPassword,
   resetPassword,
   changePassword,
+  refreshToken,
 };

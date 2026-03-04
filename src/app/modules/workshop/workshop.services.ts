@@ -271,7 +271,7 @@ const loginWorkshop = async (payload: ILogin) => {
 
   const refreshToken = jwtHelper.createToken(
     workshopData,
-    config.jwt.jwt_refresh_secret as Secret,
+    config.jwt.jwt_secret as Secret,
     config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
   );
 
@@ -308,7 +308,7 @@ const verifyWorkshop = async ({ email, otp }: IVerifyEmail) => {
 
   const refreshToken = jwtHelper.createToken(
     workshopData,
-    config.jwt.jwt_refresh_secret as Secret,
+    config.jwt.jwt_secret as Secret,
     config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
   );
 
