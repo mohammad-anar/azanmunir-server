@@ -13,6 +13,7 @@ const router = express.Router();
 
 router.get("/", WorkshopController.getAllWorkshops);
 router.get("/me", auth(Role.WORKSHOP), WorkshopController.getMe);
+router.get("/me/jobs", auth(Role.WORKSHOP), WorkshopController.getNearbyJobs);
 
 router.post(
   "/register",

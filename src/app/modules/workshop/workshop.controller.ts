@@ -41,7 +41,6 @@ const getAllWorkshops = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 const getWorkshopById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await WorkshopService.getWorkshopById(id);
@@ -88,8 +87,6 @@ const updateWorkshop = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
-
 const deleteWorkshop = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await WorkshopService.deleteWorkshop(id);
@@ -101,7 +98,6 @@ const deleteWorkshop = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
 
 const loginWorkshop = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -115,7 +111,6 @@ const loginWorkshop = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 const verifyWorkshop = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const result = await WorkshopService.verifyWorkshop(payload);
@@ -128,8 +123,6 @@ const verifyWorkshop = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
-
 const resendWorkshopOTP = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
   const result = await WorkshopService.resendWorkshopOTP(email);
@@ -141,8 +134,6 @@ const resendWorkshopOTP = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
-
 
 const forgetWorkshopPassword = catchAsync(
   async (req: Request, res: Response) => {
@@ -157,7 +148,6 @@ const forgetWorkshopPassword = catchAsync(
     });
   },
 );
-
 
 const resetWorkshopPassword = catchAsync(
   async (req: Request, res: Response) => {
@@ -174,7 +164,6 @@ const resetWorkshopPassword = catchAsync(
     });
   },
 );
-
 
 const changeWorkshopPassword = catchAsync(
   async (req: Request, res: Response) => {
@@ -195,10 +184,18 @@ const changeWorkshopPassword = catchAsync(
     });
   },
 );
+const getNearbyJobs = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
 
+  const result = await WorkshopService.getNearbyJobs(id);
 
-
-
+  sendResponse(res, {
+    success: true,
+    message: "Nearby jobs retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 
 export const WorkshopController = {
   createWorkshop,
@@ -213,4 +210,5 @@ export const WorkshopController = {
   forgetWorkshopPassword,
   resetWorkshopPassword,
   changeWorkshopPassword,
+  getNearbyJobs,
 };

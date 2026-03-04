@@ -413,6 +413,27 @@ const changeWorkshopPassword = async (
   return null;
 };
 
+const getNearbyJobs = async (workshopId: string) => {
+  const workshop = await prisma.workshop.findUnique({
+    where: { id: workshopId },
+  });
+
+  if (!workshop?.latitude || !workshop?.longitude) {
+    throw new Error("Workshop location not set");
+  }
+
+  return prisma.$queryRaw`
+    SELECT *
+    FROM "Job"
+    WHERE status = 'OPEN'
+    AND ST_DWithin(
+      ST_SetSRID(ST_MakePoint("longitude", "latitude"), 4326)::geography,
+      ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
+      "radius" * 1000
+    )
+  `;
+};
+
 export const WorkshopService = {
   createWorkshop,
   getAllWorkshops,
@@ -426,4 +447,5 @@ export const WorkshopService = {
   forgetWorkshopPassword,
   resetWorkshopPassword,
   changeWorkshopPassword,
+  getNearbyJobs,
 };

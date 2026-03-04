@@ -74,6 +74,9 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.16.3
+      postgis:
+        specifier: ^1.0.6
+        version: 1.0.6
       redis:
         specifier: ^5.11.0
         version: 5.11.0
@@ -1166,6 +1169,9 @@ packages:
 
   pkg-types@2.3.0:
     resolution: {integrity: sha512-SIqCzDRg0s9npO5XQ3tNZioRY1uK06lA41ynBC1YmFTmnY6FjUjVt6s4LoADmwoig1qqD0oK8h1p/8mlMx8Oig==}
+
+  postgis@1.0.6:
+    resolution: {integrity: sha512-xYeRPekZfFW34nJOitzVCzPXpk4M++27y3MH9XzJIQcrMMB2xxSCRm+cHnvk1TAKrbY1W+9XB3h2fgJqIS4Lag==}
 
   postgres-array@2.0.0:
     resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
@@ -2558,6 +2564,8 @@ snapshots:
       confbox: 0.2.2
       exsolve: 1.0.7
       pathe: 2.0.3
+
+  postgis@1.0.6: {}
 
   postgres-array@2.0.0: {}
 
