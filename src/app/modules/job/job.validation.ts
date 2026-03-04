@@ -1,12 +1,11 @@
 import { BikeType, JobStatus, Urgency } from "@prisma/client";
 import { z } from "zod";
 
-// Enums
+
 export const UrgencyEnum = z.enum(Urgency);
 export const JobStatusEnum = z.enum(JobStatus);
 export const BikeTypeEnum = z.enum(BikeType);
 
-// ------------------- CREATE JOB SCHEMA WITH ERRORS -------------------
 export const CreateJobSchema = z.object({
   userId: z
     .string({ message: "User ID is required" })
@@ -40,9 +39,6 @@ export const CreateJobSchema = z.object({
     .min(1, "Bike name cannot be empty"),
   bikeType: BikeTypeEnum,
   bikeBrand: z.string().optional(),
-  photos: z.array(
-    z.string().url({ message: "Each photo must be a valid URL" }),
-  ),
   preferredTime: z.date({ message: "Preferred time is required" }),
   urgency: UrgencyEnum.default("MEDIUM"),
   status: JobStatusEnum.default("PENDING"),
@@ -83,14 +79,6 @@ export const UpdateJobSchema = z.object({
     .optional(),
   bikeType: BikeTypeEnum.optional(),
   bikeBrand: z.string({ message: "Bike brand must be a string" }).optional(),
-  photos: z
-    .array(
-      z
-        .string({ message: "Photo must be a string" })
-        .url({ message: "Each photo must be a valid URL" }),
-      { message: "Photos must be an array" },
-    )
-    .optional(),
   preferredTime: z
     .date({ message: "Preferred time must be a date" })
     .optional(),
