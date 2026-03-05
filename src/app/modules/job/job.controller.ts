@@ -42,8 +42,44 @@ const getAllJobs = catchAsync(async (req: Request, res: Response) => {
 
   sendResponse(res, {
     success: true,
-    message: "Job created successfully",
-    statusCode: 201,
+    message: "All jobs retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+const getJobById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await JobService.getJobById(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Job retrieved by id successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+const updateJobById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const payload = req.body;
+  const result = await JobService.updateJobById(id, payload);
+
+  sendResponse(res, {
+    success: true,
+    message: "Job updated by id successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+const deleteJobById = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await JobService.deleteJob(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Job deleted by id successfully",
+    statusCode: 200,
     data: result,
   });
 });
@@ -51,4 +87,7 @@ const getAllJobs = catchAsync(async (req: Request, res: Response) => {
 export const JobController = {
   createJob,
   getAllJobs,
+  getJobById,
+  updateJobById,
+  deleteJobById,
 };
