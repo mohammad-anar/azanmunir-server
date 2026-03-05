@@ -9,6 +9,7 @@ import fileUploadHandler from "src/app/middlewares/fileUploadHandler.js";
 
 const router = express.Router();
 
+router.get("/", auth(Role.ADMIN), JobController.createJob);
 router.post(
   "/",
   fileUploadHandler(),
