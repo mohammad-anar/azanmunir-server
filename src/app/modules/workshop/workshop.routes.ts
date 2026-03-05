@@ -38,7 +38,7 @@ router.post(
 );
 router.get(
   "/:id",
-  auth(Role.ADMIN, Role.WORKSHOP),
+  auth(Role.ADMIN, Role.WORKSHOP, Role.USER),
   WorkshopController.getWorkshopById,
 );
 router.patch(
