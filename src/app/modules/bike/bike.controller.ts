@@ -16,8 +16,9 @@ const createBike = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getBikeById = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
   const { id } = req.params;
-  const result = await BikeService.getBikeById(id);
+  const result = await BikeService.getBikeById(id, user.id);
 
   sendResponse(res, {
     success: true,
@@ -27,9 +28,10 @@ const getBikeById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const updateBike = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
   const payload = req.body;
   const { id } = req.params;
-  const result = await BikeService.updateBike(id, payload);
+  const result = await BikeService.updateBike(id, payload, user.id);
 
   sendResponse(res, {
     success: true,
@@ -39,8 +41,9 @@ const updateBike = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const deleteBike = catchAsync(async (req: Request, res: Response) => {
+  const user = req.user;
   const { id } = req.params;
-  const result = await BikeService.deleteBike(id);
+  const result = await BikeService.deleteBike(id, user.id);
 
   sendResponse(res, {
     success: true,
