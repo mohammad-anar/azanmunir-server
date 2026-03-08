@@ -115,6 +115,14 @@ const getBlogById = async (id: string) => {
 };
 
 /* ---------------- UPDATE BLOG ---------------- */
+const getBlogBySlug = async (slug: string) => {
+  return prisma.blog.findUnique({
+    where: { slug },
+    include: { contents: true, category: true, author: true },
+  });
+};
+
+/* ---------------- UPDATE BLOG ---------------- */
 
 const updateBlog = async (id: string, payload: Partial<BlogPayload>) => {
   let { title, contents, ...rest } = payload;
@@ -176,6 +184,7 @@ export const BlogService = {
   createBlog,
   getAllBlogs,
   getBlogById,
+  getBlogBySlug,
   updateBlog,
   deleteBlog,
 };
