@@ -159,6 +159,10 @@ const getJobById = async (id: string) => {
   const result = await prisma.job.findUniqueOrThrow({ where: { id } });
   return result;
 };
+const getOffersByJobId = async (jobId: string) => {
+  const result = await prisma.jobOffer.findMany({ where: { jobId } });
+  return result;
+};
 const updateJobById = async (id: string, payload: Prisma.JobUpdateInput) => {
   const result = await prisma.job.update({ where: { id }, data: payload });
   return result;
@@ -172,6 +176,7 @@ export const JobService = {
   createJob,
   getAllJobs,
   getJobById,
+  getOffersByJobId,
   updateJobById,
   deleteJob,
 };
