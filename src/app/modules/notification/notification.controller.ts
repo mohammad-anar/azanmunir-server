@@ -4,7 +4,6 @@ import sendResponse from "src/app/shared/sendResponse.js";
 import { NotificationService } from "./notification.services.js";
 
 /* ---------- CREATE ---------- */
-
 const createNotification = catchAsync(async (req: Request, res: Response) => {
   const result = await NotificationService.createNotification(req.body);
 
@@ -17,8 +16,7 @@ const createNotification = catchAsync(async (req: Request, res: Response) => {
 });
 
 /* ---------- GET ALL ---------- */
-
-const getAllNotifications = catchAsync(async (req: Request, res: Response) => {
+const getAllNotifications = catchAsync(async (_req: Request, res: Response) => {
   const result = await NotificationService.getAllNotifications();
 
   sendResponse(res, {
@@ -30,7 +28,6 @@ const getAllNotifications = catchAsync(async (req: Request, res: Response) => {
 });
 
 /* ---------- GET BY ID ---------- */
-
 const getNotificationById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -44,8 +41,57 @@ const getNotificationById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-/* ---------- MARK AS READ ---------- */
+/* ---------- GET BY USER ID ---------- */
+const getNotificationsByUserId = catchAsync(
+  async (req: Request, res: Response) => {
+    const { userId } = req.params;
 
+    const result = await NotificationService.getNotificationsByUserId(userId);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "User notifications retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+/* ---------- GET BY WORKSHOP ID ---------- */
+const getNotificationsByWorkshopId = catchAsync(
+  async (req: Request, res: Response) => {
+    const { workshopId } = req.params;
+
+    const result =
+      await NotificationService.getNotificationsByWorkshopId(workshopId);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Workshop notifications retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+/* ---------- GET BY BOOKING ID ---------- */
+const getNotificationsByBookingId = catchAsync(
+  async (req: Request, res: Response) => {
+    const { bookingId } = req.params;
+
+    const result =
+      await NotificationService.getNotificationsByBookingId(bookingId);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: 200,
+      message: "Booking notifications retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+/* ---------- MARK AS READ ---------- */
 const markAsRead = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -60,7 +106,6 @@ const markAsRead = catchAsync(async (req: Request, res: Response) => {
 });
 
 /* ---------- DELETE ---------- */
-
 const deleteNotification = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -78,6 +123,9 @@ export const NotificationController = {
   createNotification,
   getAllNotifications,
   getNotificationById,
+  getNotificationsByUserId,
+  getNotificationsByWorkshopId,
+  getNotificationsByBookingId,
   markAsRead,
   deleteNotification,
 };

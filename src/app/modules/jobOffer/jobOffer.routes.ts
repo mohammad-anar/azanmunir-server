@@ -16,6 +16,7 @@ router.post(
   validateRequest(CreateJobOfferSchema),
   JobOfferController.createJobOffer,
 );
+router.post("/:id/accept", auth(Role.USER), JobOfferController.acceptJobOffer);
 router.get(
   "/:id",
   auth(Role.WORKSHOP, Role.USER, Role.ADMIN),

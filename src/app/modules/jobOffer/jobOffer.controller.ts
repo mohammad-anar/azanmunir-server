@@ -40,6 +40,29 @@ const updateOfferById = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const acceptJobOffer = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await JobOfferServices.updateOfferById(id, {
+    status: "ACCEPTED",
+  });
+
+  if (!result) {
+    return sendResponse(res, {
+      success: false,
+      message: "Job offer not found",
+      statusCode: 404,
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    success: true,
+    message: "Job offer updated successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 const deleteOfferById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -55,6 +78,7 @@ const deleteOfferById = catchAsync(async (req: Request, res: Response) => {
 
 export const JobOfferController = {
   createJobOffer,
+  acceptJobOffer,
   getOfferById,
   updateOfferById,
   deleteOfferById,

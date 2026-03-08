@@ -9,6 +9,7 @@ import { WorkshopRouter } from "../modules/workshop/workshop.routes.js";
 import { BlogRouter } from "../modules/blog/blog.routes.js";
 import { BlogCategoryRouter } from "../modules/blogCategory/blogCategory.routes.js";
 import { NotificationRouter } from "../modules/notification/notification.routes.js";
+import { ChatNotificationRouter } from "../modules/chatNotification/chatNotification.routes.js";
 
 const router = express.Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/notification",
     route: NotificationRouter,
+  },
+  {
+    path: "/chat-notification",
+    route: ChatNotificationRouter,
   },
 ];
 

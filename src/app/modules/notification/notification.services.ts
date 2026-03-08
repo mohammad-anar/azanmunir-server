@@ -1,75 +1,72 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "src/helpers.ts/prisma.js";
 
 /* ---------- CREATE NOTIFICATION ---------- */
-
-const createNotification = async (payload: any) => {
-  const result = await prisma.notification.create({
+const createNotification = async (payload: Prisma.NotificationCreateInput) => {
+  return prisma.notification.create({
     data: payload,
   });
-
-  return result;
 };
 
 /* ---------- GET ALL NOTIFICATIONS ---------- */
-
 const getAllNotifications = async () => {
-  const result = await prisma.notification.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      booking: true,
-      job: true,
-      room: true,
-      workshop: true,
-    },
+  return prisma.notification.findMany({
+    orderBy: { createdAt: "desc" },
   });
+};
 
-  return result;
+/* ---------- GET NOTIFICATIONS BY USER ID ---------- */
+const getNotificationsByUserId = async (userId: string) => {
+  return prisma.notification.findMany({
+    where: { userIds: { has: userId } },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+/* ---------- GET NOTIFICATIONS BY WORKSHOP ID ---------- */
+const getNotificationsByWorkshopId = async (workshopId: string) => {
+  return prisma.notification.findMany({
+    where: { workshopIds: { has: workshopId } },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+/* ---------- GET NOTIFICATIONS BY BOOKING ID ---------- */
+const getNotificationsByBookingId = async (bookingId: string) => {
+  return prisma.notification.findMany({
+    where: { bookingId },
+    orderBy: { createdAt: "desc" },
+  });
 };
 
 /* ---------- GET NOTIFICATION BY ID ---------- */
-
 const getNotificationById = async (id: string) => {
-  const result = await prisma.notification.findUnique({
+  return prisma.notification.findUnique({
     where: { id },
-    include: {
-      booking: true,
-      job: true,
-      room: true,
-      workshop: true,
-    },
   });
-
-  return result;
 };
 
 /* ---------- MARK AS READ ---------- */
-
 const markAsRead = async (id: string) => {
-  const result = await prisma.notification.update({
+  return prisma.notification.update({
     where: { id },
-    data: {
-      isRead: true,
-    },
+    data: { isRead: true },
   });
-
-  return result;
 };
 
 /* ---------- DELETE NOTIFICATION ---------- */
-
 const deleteNotification = async (id: string) => {
-  const result = await prisma.notification.delete({
+  return prisma.notification.delete({
     where: { id },
   });
-
-  return result;
 };
 
 export const NotificationService = {
   createNotification,
   getAllNotifications,
+  getNotificationsByUserId,
+  getNotificationsByWorkshopId,
+  getNotificationsByBookingId,
   getNotificationById,
   markAsRead,
   deleteNotification,
