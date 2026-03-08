@@ -10,6 +10,7 @@ import { BlogRouter } from "../modules/blog/blog.routes.js";
 import { BlogCategoryRouter } from "../modules/blogCategory/blogCategory.routes.js";
 import { NotificationRouter } from "../modules/notification/notification.routes.js";
 import { ChatNotificationRouter } from "../modules/chatNotification/chatNotification.routes.js";
+import { ReviewRouter } from "../modules/review/review.route.js";
 
 const router = express.Router();
 
@@ -57,6 +58,10 @@ const moduleRoutes = [
   {
     path: "/chat-notification",
     route: ChatNotificationRouter,
+  },
+  {
+    path: "/review",
+    route: ReviewRouter,
   },
 ];
 
