@@ -50,6 +50,12 @@ router.patch(
   NotificationController.markAsRead,
 );
 
+router.patch(
+  "/mark-read",
+  auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
+  NotificationController.markMultipleAsRead,
+);
+
 /* ---------- DELETE ---------- */
 router.delete(
   "/:id",

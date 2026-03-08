@@ -105,6 +105,20 @@ const markAsRead = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const markMultipleAsRead = catchAsync(async (req: Request, res: Response) => {
+  const { notificationIds } = req.body; // expect array of notification IDs
+
+  const result =
+    await NotificationService.markNotificationsAsRead(notificationIds);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: 200,
+    message: `${result.count} notifications marked as read`,
+    data: result,
+  });
+});
+
 /* ---------- DELETE ---------- */
 const deleteNotification = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -127,5 +141,6 @@ export const NotificationController = {
   getNotificationsByWorkshopId,
   getNotificationsByBookingId,
   markAsRead,
+  markMultipleAsRead,
   deleteNotification,
 };

@@ -18,19 +18,26 @@ const getAllNotifications = async () => {
 /* ---------- GET NOTIFICATIONS BY USER ID ---------- */
 const getNotificationsByUserId = async (userId: string) => {
   return prisma.notification.findMany({
-    where: { userIds: { has: userId } },
-    orderBy: { createdAt: "desc" },
+    where: {
+      receiverUserId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 };
 
 /* ---------- GET NOTIFICATIONS BY WORKSHOP ID ---------- */
 const getNotificationsByWorkshopId = async (workshopId: string) => {
   return prisma.notification.findMany({
-    where: { workshopIds: { has: workshopId } },
-    orderBy: { createdAt: "desc" },
+    where: {
+      receiverWorkshopId: workshopId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 };
-
 /* ---------- GET NOTIFICATIONS BY BOOKING ID ---------- */
 const getNotificationsByBookingId = async (bookingId: string) => {
   return prisma.notification.findMany({
@@ -54,6 +61,20 @@ const markAsRead = async (id: string) => {
   });
 };
 
+/* ---------- MARK MULTIPLE AS READ ---------- */
+const markNotificationsAsRead = async (notificationIds: string[]) => {
+  const result = await prisma.notification.updateMany({
+    where: {
+      id: { in: notificationIds },
+    },
+    data: {
+      isRead: true,
+    },
+  });
+
+  return result;
+};
+
 /* ---------- DELETE NOTIFICATION ---------- */
 const deleteNotification = async (id: string) => {
   return prisma.notification.delete({
@@ -69,5 +90,6 @@ export const NotificationService = {
   getNotificationsByBookingId,
   getNotificationById,
   markAsRead,
+  markNotificationsAsRead,
   deleteNotification,
 };
