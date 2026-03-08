@@ -47,6 +47,11 @@ router.post(
   UserController.logout,
 );
 router.get("/user/:id", auth(Role.ADMIN), UserController.getUserById);
+router.get(
+  "/user/:id/bookings",
+  auth(Role.USER),
+  UserController.getBookingsByUserId,
+);
 
 router.patch(
   "/user/:id",

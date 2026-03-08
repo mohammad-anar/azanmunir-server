@@ -123,7 +123,6 @@ const getAllUsers = async (
       jobs: true,
       bookings: true,
       postalCode: true,
-      notifications: true,
       createdAt: true,
       updatedAt: true,
       _count: true,
@@ -166,7 +165,6 @@ const getUserById = async (id: string) => {
       jobs: true,
       bookings: true,
       postalCode: true,
-      notifications: true,
       createdAt: true,
       updatedAt: true,
       _count: true,
@@ -197,7 +195,6 @@ const getMe = async (email: string) => {
       jobs: true,
       bookings: true,
       postalCode: true,
-      notifications: true,
       blogs: true,
       messages: true,
       reviews: true,
@@ -562,6 +559,46 @@ const getUserJobs = async (
   return { result, meta: { page, limit, total, totalPage } };
 };
 
+
+const getBookingsByUserId = async (userId: string) => {
+  const result = await prisma.booking.findMany({
+    where: {
+      userId: userId,
+    },
+    include: {
+      job: true,
+      offer: true,
+      review: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatar: true,
+          phone: true,
+          role: true,
+        },
+      },
+      workshop: {
+        select: {
+          id: true,
+          ownerName: true,
+          email: true,
+          phone: true,
+          avatar: true,
+          role: true,
+          avgRating: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 export const UserService = {
   createUser,
   getAllUsers,
@@ -578,4 +615,5 @@ export const UserService = {
   refreshToken,
   logout,
   getUserJobs,
+  getBookingsByUserId,
 };

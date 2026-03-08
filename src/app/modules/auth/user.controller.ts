@@ -214,6 +214,18 @@ const getUserJobs = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const getBookingsByUserId = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.getBookingsByUserId(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Booking retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 export const UserController = {
   createUser,
   getAllUsers,
@@ -230,4 +242,5 @@ export const UserController = {
   refreshToken,
   logout,
   getUserJobs,
+  getBookingsByUserId,
 };
