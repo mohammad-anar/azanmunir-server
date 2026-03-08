@@ -2,11 +2,7 @@ import { Prisma } from "@prisma/client";
 import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 import { IPaginationOptions } from "src/types/pagination.js";
-
-interface BlogContentInput {
-  heading: string;
-  details: string;
-}
+import slugifyModule from "slugify";
 
 interface BlogPayload {
   title: string;
@@ -15,20 +11,28 @@ interface BlogPayload {
   images: string[];
   authorId: string;
   categoryId: string;
-  contents: BlogContentInput[];
+  contents: { heading: string; details: string }[];
 }
 
-/* ---------------- CREATE BLOG ---------------- */
+const slugify = slugifyModule.default || slugifyModule;
 
-const createBlog = async (payload: BlogPayload) => {
-  const { contents, ...blogData } = payload;
+const createBlog = async (payload: any) => {
+  const { title, contents, ...rest } = payload;
 
-  const result = await prisma.blog.create({
+  let slugBase = slugify(title, { lower: true, strict: true });
+  let slug = slugBase;
+  let counter = 1;
+
+  while (await prisma.blog.findUnique({ where: { slug } })) {
+    slug = `${slugBase}-${counter++}`;
+  }
+
+  return prisma.blog.create({
     data: {
-      ...blogData,
-      contents: {
-        create: contents,
-      },
+      ...rest,
+      title,
+      slug,
+      contents: { create: contents },
     },
     include: {
       contents: true,
@@ -36,8 +40,6 @@ const createBlog = async (payload: BlogPayload) => {
       author: true,
     },
   });
-
-  return result;
 };
 
 /* ---------------- GET ALL BLOGS ---------------- */
@@ -115,20 +117,33 @@ const getBlogById = async (id: string) => {
 /* ---------------- UPDATE BLOG ---------------- */
 
 const updateBlog = async (id: string, payload: Partial<BlogPayload>) => {
-  const { contents, ...blogData } = payload;
+  let { title, contents, ...rest } = payload;
+
+  const updateData: any = { ...rest };
+
+  if (title) {
+    const slugBase = slugify(title, { lower: true, strict: true });
+    let slug = slugBase;
+
+    let counter = 1;
+    while (await prisma.blog.findUnique({ where: { slug } })) {
+      slug = `${slugBase}-${counter++}`;
+    }
+
+    updateData.title = title;
+    updateData.slug = slug;
+  }
+
+  if (contents) {
+    updateData.contents = {
+      deleteMany: {},
+      create: contents,
+    };
+  }
 
   const result = await prisma.blog.update({
     where: { id },
-    data: {
-      ...blogData,
-
-      ...(contents && {
-        contents: {
-          deleteMany: {},
-          create: contents,
-        },
-      }),
-    },
+    data: updateData,
     include: {
       contents: true,
       category: true,
