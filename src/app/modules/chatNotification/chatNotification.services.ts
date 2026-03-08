@@ -21,13 +21,6 @@ const getAllChatNotifications = async () => {
   });
 };
 
-/* ---------- GET BY USER ID ---------- */
-const getChatNotificationsByUserId = async (userId: string) => {
-  return prisma.chatNotification.findMany({
-    where: { userIds: { has: userId } },
-    orderBy: { createdAt: "desc" },
-  });
-};
 
 /* ---------- GET BY CHAT ROOM ---------- */
 const getChatNotificationsByRoomId = async (chatRoomId: string) => {
@@ -55,7 +48,6 @@ const deleteChatNotification = async (id: string) => {
 export const ChatNotificationService = {
   createChatNotification,
   getAllChatNotifications,
-  getChatNotificationsByUserId,
   getChatNotificationsByRoomId,
   markChatNotificationAsRead,
   deleteChatNotification,

@@ -33,21 +33,6 @@ const getAllChatNotifications = catchAsync(
   },
 );
 
-/* ---------- GET BY USER ID ---------- */
-const getChatNotificationsByUserId = catchAsync(
-  async (req: Request, res: Response) => {
-    const { userId } = req.params;
-    const result =
-      await ChatNotificationService.getChatNotificationsByUserId(userId);
-
-    sendResponse(res, {
-      success: true,
-      statusCode: 200,
-      message: "Chat notifications retrieved for user",
-      data: result,
-    });
-  },
-);
 
 /* ---------- GET BY CHAT ROOM ID ---------- */
 const getChatNotificationsByRoomId = catchAsync(
@@ -96,7 +81,6 @@ const deleteChatNotification = catchAsync(
 export const ChatNotificationController = {
   createChatNotification,
   getAllChatNotifications,
-  getChatNotificationsByUserId,
   getChatNotificationsByRoomId,
   markAsRead,
   deleteChatNotification,

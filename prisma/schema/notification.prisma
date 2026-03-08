@@ -1,31 +1,31 @@
 model Notification {
-  id            String    @id @default(uuid())
-  title         String
-  body          String
-  isRead        Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+    id     String  @id @default(uuid())
+    title  String
+    body   String
+    isRead Boolean @default(false)
 
-  userIds       String[]  // recipients
-  workshopIds   String[]  // recipients
+    receiverUserId     String?
+    receiverWorkshopId String?
 
-  triggeredById String?   // actor (user, workshop, admin)
-  jobId         String?
-  bookingId     String?
-  invoiceId     String?   // optional if invoice
-  eventType     String     // "JOB_CREATED", "OFFER_SENT", "OFFER_ACCEPTED", etc.
+    triggeredById String?
+    jobId         String?
+    bookingId     String?
+    invoiceId     String?
+
+    eventType String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
-
 model ChatNotification {
-  id            String   @id @default(uuid())
-  userIds       String[] // recipients
-  chatRoomId    String
-  messageId     String
-  triggeredById String?  // sender
-  title         String?
-  body          String?
-  isRead        Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+    id            String   @id @default(uuid())
+    chatRoomId    String
+    messageId     String
+    triggeredById String? // sender
+    title         String?
+    body          String?
+    isRead        Boolean  @default(false)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
 }
