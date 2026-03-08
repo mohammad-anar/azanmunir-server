@@ -43,6 +43,19 @@ const getBookingById = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const getReviewByBookingId = async (req: Request, res: Response) => {
+  const { bookingId } = req.params;
+
+  const result = await BookingService.getReviewByBookingId(bookingId);
+
+  res.status(200).json({
+    success: true,
+    message: "Review retrieved successfully",
+    data: result,
+  });
+};
+
 const updateBookings = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const payload = req.body;
@@ -71,6 +84,7 @@ export const BookingController = {
   createBooking,
   getAllBookings,
   getBookingById,
+  getReviewByBookingId,
   updateBookings,
   deleteBookings,
 };

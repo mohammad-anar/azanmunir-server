@@ -19,6 +19,12 @@ router.get(
   auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
   BookingController.getBookingById,
 );
+router.get(
+  "/:id/reviews",
+  auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
+  BookingController.getReviewByBookingId,
+);
+
 router.patch("/:id", auth(Role.WORKSHOP), BookingController.updateBookings);
 router.delete("/:id", auth(Role.ADMIN), BookingController.deleteBookings);
 

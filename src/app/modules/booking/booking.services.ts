@@ -13,6 +13,20 @@ const getBookingsById = async (id: string) => {
   const result = await prisma.booking.findUniqueOrThrow({ where: { id } });
   return result;
 };
+
+const getReviewByBookingId = async (bookingId: string) => {
+  const result = await prisma.review.findUnique({
+    where: {
+      bookingId,
+    },
+    include: {
+      user: true,
+      booking: true,
+    },
+  });
+
+  return result;
+};
 const updateBooking = async (
   id: string,
   payload: Prisma.BookingUpdateInput,
@@ -25,12 +39,13 @@ const deleteBooking = async (id: string) => {
   return result;
 };
 
-// other services here 
+// other services here
 
 export const BookingService = {
   createBookings,
   getAllBookings,
   getBookingsById,
+  getReviewByBookingId,
   updateBooking,
   deleteBooking,
 };
