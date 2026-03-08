@@ -3,11 +3,26 @@ import catchAsync from "src/app/shared/catchAsync.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import { BlogService } from "./blog.services.js";
 import pick from "src/helpers.ts/pick.js";
+import { getMultipleFilesPath } from "src/app/shared/getFilePath.js";
+import config from "src/config/index.js";
 
 /* ---------------- CREATE BLOG ---------------- */
 
 const createBlog = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
+
+  const imagesData = (await getMultipleFilesPath(
+    req.files,
+    "image",
+  )) as string[];
+
+  const images = imagesData?.map((image) =>
+    `http://${config.ip_address}:${config.port}`.concat(image),
+  );
+
+  if (imagesData && images?.length > 0) {
+    payload.images = images;
+  }
 
   const result = await BlogService.createBlog(payload);
 
@@ -68,6 +83,19 @@ const updateBlog = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const payload = req.body;
 
+  // Handle uploaded images
+  const imagesData = (await getMultipleFilesPath(
+    req.files,
+    "image",
+  )) as string[];
+  if (imagesData?.length > 0) {
+    const images = imagesData.map((img) =>
+      `http://${config.ip_address}:${config.port}`.concat(img),
+    );
+    payload.images = images;
+  }
+
+  // Update the blog
   const result = await BlogService.updateBlog(id, payload);
 
   sendResponse(res, {
