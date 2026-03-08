@@ -1,10 +1,36 @@
 model Blog {
-    id        String   @id @default(uuid())
-    title     String
-    content   String
-    images    String[]
-    authorId  String
-    author    User     @relation(fields: [authorId], references: [id])
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id         String        @id @default(uuid())
+  title      String
+  subTitle   String
+  readTime   DateTime
+  images     String[]
+
+  authorId   String
+  categoryId String
+
+  author     User          @relation(fields: [authorId], references: [id])
+  category   BlogCategory  @relation(fields: [categoryId], references: [id])
+  contents   BlogContent[]
+
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model BlogContent {
+  id      String @id @default(uuid())
+  blogId  String
+  heading String
+  details String
+
+  blog    Blog   @relation(fields: [blogId], references: [id])
+}
+
+model BlogCategory {
+  id        String  @id @default(uuid())
+  name      String
+
+  blogs     Blog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
