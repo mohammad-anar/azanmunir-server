@@ -5,7 +5,7 @@ import config from "src/config/index.js";
 import { UserService } from "./user.service.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import pick from "src/helpers.ts/pick.js";
-import { Prisma } from "@prisma/client";
+import { Prisma, UserStatus } from "@prisma/client";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload: Prisma.UserCreateInput = req.body;
@@ -76,6 +76,32 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     success: true,
     message: "User updated successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+const banUser = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.updateUser(id, {
+    status: UserStatus.BANNED,
+  });
+
+  sendResponse(res, {
+    success: true,
+    message: "User banned successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+const unBanUser = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await UserService.updateUser(id, {
+    status: UserStatus.ACTIVE,
+  });
+
+  sendResponse(res, {
+    success: true,
+    message: "User banned successfully",
     statusCode: 200,
     data: result,
   });
@@ -214,7 +240,6 @@ const getUserJobs = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 const getBookingsByUserId = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await UserService.getBookingsByUserId(id);
@@ -232,6 +257,8 @@ export const UserController = {
   getUserById,
   getMe,
   updateUser,
+  banUser,
+  unBanUser,
   deleteUser,
   login,
   verifyUser,

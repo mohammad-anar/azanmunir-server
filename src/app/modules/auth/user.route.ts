@@ -55,11 +55,13 @@ router.get(
 
 router.patch(
   "/user/:id",
-  auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
+  auth(Role.ADMIN, Role.USER),
   fileUploadHandler(),
   validateRequest(UserValidation.updateUserZodSchema),
   UserController.updateUser,
 );
+router.patch("/user/:id/ban", auth(Role.ADMIN), UserController.banUser);
+router.patch("/user/:id/unban", auth(Role.ADMIN), UserController.unBanUser);
 router.delete("/user:id", UserController.deleteUser);
 
 export const UserRouter = router;

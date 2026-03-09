@@ -208,7 +208,7 @@ const getMe = async (email: string) => {
 };
 
 // update user =====================================================
-const updateUser = async (id: string, payload: Partial<IUser>) => {
+const updateUser = async (id: string, payload: Prisma.UserUpdateInput) => {
   const result = await prisma.user.update({ where: { id }, data: payload });
   return result;
 };
@@ -558,7 +558,6 @@ const getUserJobs = async (
   const totalPage = Math.ceil(total / limit);
   return { result, meta: { page, limit, total, totalPage } };
 };
-
 
 const getBookingsByUserId = async (userId: string) => {
   const result = await prisma.booking.findMany({
