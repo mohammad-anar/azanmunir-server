@@ -21,6 +21,19 @@ const getBikeById = async (id: string, userId: string) => {
   return result;
 };
 
+const getBikesByUserId = async (userId: string) => {
+  const result = await prisma.bike.findMany({
+    where: {
+      ownerId: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 const updateBike = async (
   id: string,
   payload: Prisma.BikeUpdateInput,
@@ -40,11 +53,17 @@ const deleteBike = async (id: string, userId: string) => {
   const bike = await prisma.bike.findUnique({
     where: { id, ownerId: userId },
   });
-   if (!bike) {
-     throw new ApiError(403, "You can't delete others bike!");
-   }
+  if (!bike) {
+    throw new ApiError(403, "You can't delete others bike!");
+  }
   const result = await prisma.bike.delete({ where: { id } });
   return result;
 };
 
-export const BikeService = { createBike, getBikeById, updateBike, deleteBike };
+export const BikeService = {
+  createBike,
+  getBikeById,
+  getBikesByUserId,
+  updateBike,
+  deleteBike,
+};
