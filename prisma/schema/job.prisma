@@ -32,8 +32,8 @@ model Job {
     bike   Bike?   @relation(fields: [bikeId], references: [id])
     bikeId String?
 
-    offers        JobOffer[]
-    bookings      Booking[]
+    offers   JobOffer[]
+    bookings Booking[]
 
     categories JobCategory[]
 }
@@ -42,12 +42,12 @@ model JobCategory {
     id String @id @default(uuid())
 
     jobId String
-    job   Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+    job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
     categoryId String
     category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-    description String   // user description for this category
+    description String // user description for this category
 
     createdAt DateTime @default(now())
 
@@ -68,4 +68,6 @@ model JobOffer {
     updatedAt     DateTime    @updatedAt
 
     booking Booking?
+
+    @@unique([jobId, workshopId])
 }

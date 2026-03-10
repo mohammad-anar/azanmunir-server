@@ -70,6 +70,22 @@ const getReviewsByWorkshopId = async (workshopId: string) => {
   return result;
 };
 
+const getReviewsByUserId = async (userId: string) => {
+  const result = await prisma.review.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      booking: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 export const ReviewService = {
   createReview,
   getAllReviews,
@@ -77,4 +93,5 @@ export const ReviewService = {
   updateReview,
   deleteReview,
   getReviewsByWorkshopId,
+  getReviewsByUserId,
 };

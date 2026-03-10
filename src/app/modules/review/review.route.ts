@@ -20,5 +20,6 @@ router.patch(
 router.delete("/:id", ReviewController.deleteReview);
 
 router.get("/workshop/:workshopId", ReviewController.getReviewsByWorkshopId);
+router.get("/user/:userId", ReviewController.getReviewsByUserId);
 
 export const ReviewRouter = router;

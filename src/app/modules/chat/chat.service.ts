@@ -3,9 +3,10 @@ import { StatusCodes } from "http-status-codes";
 import ApiError from "src/errors/ApiError.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 
-const createRoom = async (payload: { bookingId: string, userId: string, workshopId: string, name?: string }) => {
+const createRoom = async (payload: { bookingId: string, userId: string, workshopId: string, name?: string }, tx?: any) => {
+  const client = tx || prisma;
   // Check if room already exists for this booking
-  const existingRoom = await prisma.room.findUnique({
+  const existingRoom = await client.room.findUnique({
     where: { bookingId: payload.bookingId },
   });
 
@@ -13,7 +14,7 @@ const createRoom = async (payload: { bookingId: string, userId: string, workshop
     return existingRoom;
   }
 
-  const result = await prisma.room.create({
+  const result = await client.room.create({
     data: payload,
   });
 

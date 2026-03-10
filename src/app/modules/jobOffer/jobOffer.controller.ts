@@ -43,22 +43,11 @@ const updateOfferById = catchAsync(async (req: Request, res: Response) => {
 const acceptJobOffer = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const result = await JobOfferServices.updateOfferById(id, {
-    status: "ACCEPTED",
-  });
-
-  if (!result) {
-    return sendResponse(res, {
-      success: false,
-      message: "Job offer not found",
-      statusCode: 404,
-      data: null,
-    });
-  }
+  const result = await JobOfferServices.acceptOffer(id);
 
   sendResponse(res, {
     success: true,
-    message: "Job offer accepted successfully",
+    message: "Job offer accepted and booking created successfully",
     statusCode: 200,
     data: result,
   });

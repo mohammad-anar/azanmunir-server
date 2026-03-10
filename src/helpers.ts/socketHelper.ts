@@ -4,17 +4,6 @@ import { prisma } from "./prisma.js";
 import { Prisma } from "@prisma/client";
 import { ChatService } from "../app/modules/chat/chat.service.js";
 
-type NotificationData = {
-  userId?: string;
-  workshopIds?: string[]; // now an array
-  triggeredById?: string;
-  bookingId?: string;
-  jobId?: string;
-  roomId?: string;
-  title: string;
-  body: string;
-  eventType: string; // added eventType
-};
 
 let io: Server | null = null;
 
@@ -65,17 +54,19 @@ export const initSocket = (server: any) => {
         io!.to(data.roomId).emit("receive_message", message);
         
         // Broadcast notification to users to update their room lists if they are online
-        // Need to know the participants of the room
         const room = await ChatService.getRoomById(data.roomId);
         if (room) {
           const receiverId = room.userId === data.senderId ? room.workshopId : room.userId;
-          const receiverSockets = getSocketIds(receiverId);
           
-          receiverSockets.forEach((socketId) => {
-            io!.to(socketId).emit("new_message_notification", {
-              roomId: room.id,
-              message,
-            });
+          // Create and emit chat notification
+          await createAndEmitChatNotification({
+            chatRoomId: data.roomId,
+            messageId: message.id,
+            triggeredById: data.senderId,
+            title: "New Message",
+            body: data.content,
+            receiverId: receiverId,
+            message: message // Pass message for socket payload consistency
           });
         }
 
@@ -103,14 +94,24 @@ export const getSocketIds = (id: string) => {
 };
 
 // ---------------- Fixed createAndEmitNotification ----------------
+export interface NotificationData extends Prisma.NotificationCreateInput {
+  workshopIds?: string[];
+  userId?: string;
+}
+
 export const createAndEmitNotification = async (data: NotificationData) => {
   // Map our custom type to Prisma's NotificationCreateInput
   const prismaData: Prisma.NotificationCreateInput = {
     title: data.title,
     body: data.body,
-    jobId: data.jobId,
+    isRead: data.isRead,
+    receiverUserId: data.receiverUserId,
+    receiverWorkshopId: data.receiverWorkshopId,
     triggeredById: data.triggeredById,
-    eventType: data.eventType, // mapped eventType
+    jobId: data.jobId,
+    bookingId: data.bookingId,
+    invoiceId: data.invoiceId,
+    eventType: data.eventType,
   };
 
   // 1️⃣ Create notification in database
@@ -120,23 +121,62 @@ export const createAndEmitNotification = async (data: NotificationData) => {
 
   const io = getIO();
 
-  // 2️⃣ Emit to all workshop sockets
-  if (data.workshopIds?.length) {
-    data.workshopIds.forEach((workshopId) => {
-      const socketIds = getSocketIds(workshopId);
-      socketIds.forEach((socketId) => {
-        io.to(socketId).emit("notification", notification);
-      });
-    });
-  }
+  // 2️⃣ Collect all target IDs for emission
+  const workshopTargets = new Set<string>();
+  if (data.workshopIds) data.workshopIds.forEach(id => workshopTargets.add(id));
+  if (data.receiverWorkshopId) workshopTargets.add(data.receiverWorkshopId);
 
-  // 3️⃣ Emit to user socket
-  if (data.userId) {
-    const socketIds = getSocketIds(data.userId);
+  const userTargets = new Set<string>();
+  if (data.userId) userTargets.add(data.userId);
+  if (data.receiverUserId) userTargets.add(data.receiverUserId);
+
+  // 3️⃣ Emit to workshop sockets
+  workshopTargets.forEach((workshopId) => {
+    const socketIds = getSocketIds(workshopId);
     socketIds.forEach((socketId) => {
       io.to(socketId).emit("notification", notification);
     });
-  }
+  });
+
+  // 4️⃣ Emit to user sockets
+  userTargets.forEach((userId) => {
+    const socketIds = getSocketIds(userId);
+    socketIds.forEach((socketId) => {
+      io.to(socketId).emit("notification", notification);
+    });
+  });
+
+  return notification;
+};
+
+// ---------------- Chat Notification Helper ----------------
+export interface ChatNotificationData extends Prisma.ChatNotificationCreateInput {
+  receiverId: string; // Required for socket emission
+  message?: any; // Optional full message object for socket payload
+}
+
+export const createAndEmitChatNotification = async (data: ChatNotificationData) => {
+  const { receiverId, message, ...prismaPayload } = data;
+
+  // 1️⃣ Create chat notification in database
+  const notification = await prisma.chatNotification.create({
+    data: prismaPayload,
+  });
+
+  const io = getIO();
+
+  // 2️⃣ Emit to receiver sockets
+  const socketIds = getSocketIds(receiverId);
+  socketIds.forEach((socketId) => {
+    io.to(socketId).emit("chat_notification", notification);
+    
+    // Maintain backward compatibility for room list updates
+    io.to(socketId).emit("new_message_notification", {
+      roomId: notification.chatRoomId,
+      message: message || { id: notification.messageId, content: notification.body },
+      notification,
+    });
+  });
 
   return notification;
 };

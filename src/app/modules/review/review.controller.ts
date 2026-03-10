@@ -77,6 +77,19 @@ const getReviewsByWorkshopId = catchAsync(async (req: Request, res: Response) =>
   });
 });
 
+const getReviewsByUserId = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  const result = await ReviewService.getReviewsByUserId(userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "User reviews retrieved successfully",
+    data: result,
+  });
+});
+
 export const ReviewController = {
   createReview,
   getAllReviews,
@@ -84,4 +97,5 @@ export const ReviewController = {
   updateReview,
   deleteReview,
   getReviewsByWorkshopId,
+  getReviewsByUserId,
 };

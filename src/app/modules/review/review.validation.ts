@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const createReviewZodSchema = z.object({
-  body: z.object({
+
     bookingId: z.string({
       message: "Booking ID is required",
     }),
@@ -16,11 +16,10 @@ const createReviewZodSchema = z.object({
       .min(1)
       .max(5),
     comment: z.string().optional(),
-  }),
 });
 
 const updateReviewZodSchema = z.object({
-  body: z.object({
+
     rating: z
       .number()
       .int()
@@ -28,7 +27,7 @@ const updateReviewZodSchema = z.object({
       .max(5)
       .optional(),
     comment: z.string().optional(),
-  }),
+
 });
 
 export const ReviewValidation = {
