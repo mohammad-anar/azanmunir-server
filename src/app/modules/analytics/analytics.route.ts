@@ -8,5 +8,11 @@ const router = express.Router();
 router.get("/user", auth(Role.USER), AnalyticsController.getUserAnalytics);
 router.get("/workshop", auth(Role.WORKSHOP), AnalyticsController.getWorkshopAnalytics);
 router.get("/admin", auth(Role.ADMIN), AnalyticsController.getAdminAnalytics);
+router.get("/monthly-report", auth(Role.ADMIN), AnalyticsController.getMonthlyReport);
+
+router.get("/export/users", auth(Role.ADMIN), AnalyticsController.exportUsersCSV);
+router.get("/export/workshops", auth(Role.ADMIN), AnalyticsController.exportWorkshopsCSV);
+router.get("/export/jobs", auth(Role.ADMIN), AnalyticsController.exportJobsCSV);
+router.get("/export/bookings", auth(Role.ADMIN), AnalyticsController.exportBookingsCSV);
 
 export const AnalyticsRouter = router;
