@@ -24,8 +24,15 @@ router.get(
   auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
   BookingController.getReviewByBookingId,
 );
+// get room by booking id
+router.get(
+  "/:id/room",
+  auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
+  BookingController.getRoomByBookingId,
+);
 
 router.patch("/:id", auth(Role.WORKSHOP), BookingController.updateBookings);
+router.patch("/:id/completed", auth(Role.WORKSHOP), BookingController.completeBooking);
 router.delete("/:id", auth(Role.ADMIN), BookingController.deleteBookings);
 
 export const BookingRouter = router;

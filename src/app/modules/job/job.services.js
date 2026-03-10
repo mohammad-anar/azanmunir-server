@@ -2,48 +2,93 @@ import { JobStatus } from "@prisma/client";
 import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 import { createAndEmitNotification } from "src/helpers.ts/socketHelper.js";
+// const createJob = async (userId: string, payload: any) => {
+//   const { categories, ...jobData } = payload;
+//   // 1️⃣ Create Job
+//   const job = await prisma.job.create({
+//     data: {
+//       ...jobData,
+//       userId,
+//       status: JobStatus.OPEN,
+//     },
+//   });
+//   // 2️⃣ Create Job Categories
+//   if (categories && categories.length > 0) {
+//     await prisma.jobCategory.createMany({
+//       data: categories?.map((cat: any) => ({
+//         jobId: job.id,
+//         categoryId: cat.categoryId,
+//         description: cat.description,
+//       })),
+//     });
+//   }
+//   // 3️⃣ Find Nearby Workshops (PostGIS)
+//   const nearbyWorkshops = await prisma.$queryRaw<{ id: string }[]>`
+//     SELECT id FROM "Workshop"
+//     WHERE "approvalStatus" = 'APPROVED'
+//     AND ST_DWithin(
+//       ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
+//       ST_SetSRID(ST_MakePoint(${job.longitude}, ${job.latitude}), 4326)::geography,
+//       ${job.radius * 1000}
+//     )
+//   `;
+//   const workshopIds = nearbyWorkshops.map((w) => w.id);
+//   // 4️⃣ Send Notifications via Socket
+//   if (workshopIds.length > 0) {
+//     await createAndEmitNotification({
+//       workshopIds,
+//       jobId: job.id,
+//       title: "New Job Nearby",
+//       body: "A new bike service job is available in your area.",
+//       eventType: "NEW_JOB_POSTED",
+//     });
+//   }
+//   return job;
+// };
 const createJob = async (userId, payload) => {
     const { categories, ...jobData } = payload;
-    // 1️⃣ Create Job
-    const job = await prisma.job.create({
-        data: {
-            ...jobData,
-            userId,
-            status: JobStatus.OPEN,
-        },
-    });
-    // 2️⃣ Create Job Categories
-    if (categories && categories.length > 0) {
-        await prisma.jobCategory.createMany({
-            data: categories.map((cat) => ({
+    return await prisma.$transaction(async (tx) => {
+        // 1️⃣ Create Job
+        const job = await tx.job.create({
+            data: {
+                ...jobData,
+                userId,
+                status: JobStatus.OPEN,
+            },
+        });
+        // 2️⃣ Create Job Categories
+        if (categories && categories.length > 0) {
+            await tx.jobCategory.createMany({
+                data: categories.map((cat) => ({
+                    jobId: job.id,
+                    categoryId: cat.categoryId,
+                    description: cat.description,
+                })),
+            });
+        }
+        // 3️⃣ Find Nearby Workshops (PostGIS)
+        const nearbyWorkshops = await tx.$queryRaw `
+      SELECT id FROM "Workshop"
+      WHERE "approvalStatus" = 'APPROVED'
+      AND ST_DWithin(
+        ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
+        ST_SetSRID(ST_MakePoint(${job.longitude}, ${job.latitude}), 4326)::geography,
+        ${job.radius * 1000}
+      )
+    `;
+        const workshopIds = nearbyWorkshops.map((w) => w.id);
+        // 4️⃣ Send Notifications via Socket
+        if (workshopIds.length > 0) {
+            await createAndEmitNotification({
+                workshopIds,
                 jobId: job.id,
-                categoryId: cat.categoryId,
-                description: cat.description,
-            })),
-        });
-    }
-    // 3️⃣ Find Nearby Workshops (PostGIS)
-    const nearbyWorkshops = await prisma.$queryRaw `
-    SELECT id FROM "Workshop"
-    WHERE "approvalStatus" = 'APPROVED'
-    AND ST_DWithin(
-      ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
-      ST_SetSRID(ST_MakePoint(${job.longitude}, ${job.latitude}), 4326)::geography,
-      ${job.radius * 1000}
-    )
-  `;
-    const workshopIds = nearbyWorkshops.map((w) => w.id);
-    // 4️⃣ Send Notifications via Socket
-    if (workshopIds.length > 0) {
-        await createAndEmitNotification({
-            workshopIds,
-            jobId: job.id,
-            title: "New Job Nearby",
-            body: "A new bike service job is available in your area.",
-            eventType: "NEW_JOB_POSTED",
-        });
-    }
-    return job;
+                title: "New Job Nearby",
+                body: "A new bike service job is available in your area.",
+                eventType: "NEW_JOB_POSTED",
+            });
+        }
+        return job;
+    });
 };
 const getAllJobs = async (filter, options) => {
     const { page, limit, skip } = paginationHelper.calculatePagination(options);

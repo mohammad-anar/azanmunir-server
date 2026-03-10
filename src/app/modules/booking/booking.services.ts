@@ -6,7 +6,7 @@ const createBookings = async (payload: Prisma.BookingCreateInput) => {
   return result;
 };
 const getAllBookings = async () => {
-  const result = await prisma.booking.findMany();
+  const result = (await prisma.booking.findMany({include:{job:true, room:true, user:true, workshop:true, review:true,  offer:true}}));
   return result;
 };
 const getBookingsById = async (id: string) => {
@@ -39,7 +39,25 @@ const deleteBooking = async (id: string) => {
   return result;
 };
 
-// other services here
+
+// delete the room when call this api 
+const completeBooking = async (id: string) => {
+  const result = await prisma.booking.update({
+    where: { id },
+    data: { status: "COMPLETED" },
+  });
+  await prisma.room.delete({
+    where: { bookingId: id },
+  });
+  return result;
+};
+
+const getRoomByBookingId = async (bookingId: string) => {
+  const result = await prisma.room.findUnique({
+    where: { bookingId },
+  });
+  return result;
+};
 
 export const BookingService = {
   createBookings,
@@ -48,4 +66,6 @@ export const BookingService = {
   getReviewByBookingId,
   updateBooking,
   deleteBooking,
+  completeBooking,
+  getRoomByBookingId,
 };

@@ -3,7 +3,15 @@ import { StatusCodes } from "http-status-codes";
 import ApiError from "src/errors/ApiError.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 
-const createRoom = async (payload: { bookingId: string, userId: string, workshopId: string, name?: string }, tx?: any) => {
+const createRoom = async (
+  payload: {
+    bookingId: string;
+    userId: string;
+    workshopId: string;
+    name?: string;
+  },
+  tx?: any,
+) => {
   const client = tx || prisma;
   // Check if room already exists for this booking
   const existingRoom = await client.room.findUnique({
@@ -30,8 +38,8 @@ const getRoomById = async (id: string) => {
       booking: true,
       lastMessage: {
         include: {
-          sender: { select: { id: true, name: true, avatar: true } }
-        }
+          sender: { select: { id: true, name: true, avatar: true } },
+        },
       },
     },
   });
@@ -43,28 +51,31 @@ const getUserRooms = async (userId: string) => {
   const rooms = await prisma.room.findMany({
     where: { userId },
     include: {
-      workshop: { select: { id: true, workshopName: true, avatar: true } },
+      workshop: {
+        select: { id: true, workshopName: true, email: true, avatar: true },
+      },
+      user: { select: { id: true, name: true, email: true, avatar: true } },
       lastMessage: {
         include: {
-          sender: { select: { id: true, name: true, avatar: true } }
-        }
+          sender: { select: { id: true, name: true, avatar: true } },
+        },
       },
     },
-    orderBy: [
-      { updatedAt: 'desc' }
-    ],
+    orderBy: [{ updatedAt: "desc" }],
   });
 
-  const roomsWithUnreadCount = await Promise.all(rooms.map(async (room) => {
-    const unreadCount = await prisma.message.count({
-      where: {
-        roomId: room.id,
-        senderId: { not: userId },
-        isRead: false
-      }
-    });
-    return { ...room, unreadCount };
-  }));
+  const roomsWithUnreadCount = await Promise.all(
+    rooms.map(async (room) => {
+      const unreadCount = await prisma.message.count({
+        where: {
+          roomId: room.id,
+          senderId: { not: userId },
+          isRead: false,
+        },
+      });
+      return { ...room, unreadCount };
+    }),
+  );
 
   return roomsWithUnreadCount;
 };
@@ -76,25 +87,25 @@ const getWorkshopRooms = async (workshopId: string) => {
       user: { select: { id: true, name: true, avatar: true } },
       lastMessage: {
         include: {
-          sender: { select: { id: true, name: true, avatar: true } }
-        }
+          sender: { select: { id: true, name: true, avatar: true } },
+        },
       },
     },
-    orderBy: [
-      { updatedAt: 'desc' }
-    ],
+    orderBy: [{ updatedAt: "desc" }],
   });
 
-  const roomsWithUnreadCount = await Promise.all(rooms.map(async (room) => {
-    const unreadCount = await prisma.message.count({
-      where: {
-        roomId: room.id,
-        senderId: { not: workshopId },
-        isRead: false
-      }
-    });
-    return { ...room, unreadCount };
-  }));
+  const roomsWithUnreadCount = await Promise.all(
+    rooms.map(async (room) => {
+      const unreadCount = await prisma.message.count({
+        where: {
+          roomId: room.id,
+          senderId: { not: workshopId },
+          isRead: false,
+        },
+      });
+      return { ...room, unreadCount };
+    }),
+  );
 
   return roomsWithUnreadCount;
 };
@@ -102,16 +113,21 @@ const getWorkshopRooms = async (workshopId: string) => {
 const getRoomMessages = async (roomId: string) => {
   const result = await prisma.message.findMany({
     where: { roomId },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
     include: {
       sender: { select: { id: true, name: true, avatar: true } },
-    }
+    },
   });
 
   return result;
 };
 
-const saveMessage = async (payload: { roomId: string, senderId: string, content: string, type?: MessageType }) => {
+const saveMessage = async (payload: {
+  roomId: string;
+  senderId: string;
+  content: string;
+  type?: MessageType;
+}) => {
   const room = await prisma.room.findUnique({
     where: { id: payload.roomId },
   });
@@ -130,8 +146,8 @@ const saveMessage = async (payload: { roomId: string, senderId: string, content:
         type: payload.type || MessageType.TEXT,
       },
       include: {
-        sender: { select: { id: true, name: true, avatar: true } }
-      }
+        sender: { select: { id: true, name: true, avatar: true } },
+      },
     });
 
     await tx.room.update({
@@ -151,10 +167,10 @@ const saveMessage = async (payload: { roomId: string, senderId: string, content:
 const markMessagesAsRead = async (roomId: string, senderId: string) => {
   // Mark all messages in room sent by OTHERS as read
   const result = await prisma.message.updateMany({
-    where: { 
-      roomId, 
+    where: {
+      roomId,
       senderId: { not: senderId },
-      isRead: false 
+      isRead: false,
     },
     data: {
       isRead: true,

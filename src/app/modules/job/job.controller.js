@@ -13,10 +13,13 @@ const createJob = catchAsync(async (req, res) => {
     }
     payload.userId = id;
     const image = getMultipleFilesPath(req.files, "image");
-    const photos = image.map((img) => `http://${config.ip_address}:${config.port}`.concat(img));
-    if (photos.length > 0) {
-        payload.photos = photos;
+    if (image?.length > 0) {
+        const photos = image?.map((img) => `http://${config.ip_address}:${config.port}`.concat(img));
+        if (photos.length > 0) {
+            payload.photos = photos;
+        }
     }
+    // console.log(payload);
     const result = await JobService.createJob(id, payload);
     sendResponse(res, {
         success: true,

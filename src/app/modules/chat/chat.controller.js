@@ -1,6 +1,7 @@
 import catchAsync from "src/app/shared/catchAsync.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import { ChatService } from "./chat.service.js";
+import { Role } from "@prisma/client";
 const createRoom = catchAsync(async (req, res) => {
     const payload = req.body;
     const result = await ChatService.createRoom(payload);
@@ -24,10 +25,10 @@ const getRoomById = catchAsync(async (req, res) => {
 const getMyRooms = catchAsync(async (req, res) => {
     const { id, role } = req.user;
     let result;
-    if (role === "USER") {
+    if (role === Role.USER) {
         result = await ChatService.getUserRooms(id);
     }
-    else if (role === "WORKSHOP") {
+    else if (role === Role.WORKSHOP) {
         result = await ChatService.getWorkshopRooms(id);
     }
     else {

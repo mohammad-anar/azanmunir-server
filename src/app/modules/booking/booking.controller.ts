@@ -80,6 +80,30 @@ const deleteBookings = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const completeBooking = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.completeBooking(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Booking completed successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const getRoomByBookingId = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.getRoomByBookingId(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Room retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
 export const BookingController = {
   createBooking,
   getAllBookings,
@@ -87,4 +111,6 @@ export const BookingController = {
   getReviewByBookingId,
   updateBookings,
   deleteBookings,
+  completeBooking,
+  getRoomByBookingId,
 };

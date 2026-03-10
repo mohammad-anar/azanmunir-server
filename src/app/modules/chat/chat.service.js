@@ -2,15 +2,16 @@ import { MessageType } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
 import ApiError from "src/errors/ApiError.js";
 import { prisma } from "src/helpers.ts/prisma.js";
-const createRoom = async (payload) => {
+const createRoom = async (payload, tx) => {
+    const client = tx || prisma;
     // Check if room already exists for this booking
-    const existingRoom = await prisma.room.findUnique({
+    const existingRoom = await client.room.findUnique({
         where: { bookingId: payload.bookingId },
     });
     if (existingRoom) {
         return existingRoom;
     }
-    const result = await prisma.room.create({
+    const result = await client.room.create({
         data: payload,
     });
     return result;

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { InvoiceStatus } from "@prisma/client";
 
 const createInvoiceZodSchema = z.object({
-  body: z.object({
+
     workshopId: z.string({
       message: "Workshop ID is required",
     }),
@@ -23,11 +23,11 @@ const createInvoiceZodSchema = z.object({
     dueDate: z.coerce.date({
       message: "Due date is required",
     }),
-  }),
+ 
 });
 
 const updateInvoiceZodSchema = z.object({
-  body: z.object({
+
     billingMonth: z.coerce.date().optional(),
     totalJobs: z.number().int().min(0).optional(),
     totalAmount: z.number().min(0).optional(),
@@ -39,7 +39,7 @@ const updateInvoiceZodSchema = z.object({
       InvoiceStatus.CANCELLED,
     ]).optional(),
     dueDate: z.coerce.date().optional(),
-  }),
+ 
 });
 
 export const InvoiceValidation = {

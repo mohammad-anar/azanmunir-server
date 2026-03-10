@@ -43,16 +43,18 @@ export const initSocket = (server) => {
                 // Broadcast to everyone in the room
                 io.to(data.roomId).emit("receive_message", message);
                 // Broadcast notification to users to update their room lists if they are online
-                // Need to know the participants of the room
                 const room = await ChatService.getRoomById(data.roomId);
                 if (room) {
                     const receiverId = room.userId === data.senderId ? room.workshopId : room.userId;
-                    const receiverSockets = getSocketIds(receiverId);
-                    receiverSockets.forEach((socketId) => {
-                        io.to(socketId).emit("new_message_notification", {
-                            roomId: room.id,
-                            message,
-                        });
+                    // Create and emit chat notification
+                    await createAndEmitChatNotification({
+                        chatRoomId: data.roomId,
+                        messageId: message.id,
+                        triggeredById: data.senderId,
+                        title: "New Message",
+                        body: data.content,
+                        receiverId: receiverId,
+                        message: message // Pass message for socket payload consistency
                     });
                 }
             }
@@ -74,36 +76,69 @@ export const getIO = () => {
 export const getSocketIds = (id) => {
     return Array.from(socketMap.get(id) || []);
 };
-// ---------------- Fixed createAndEmitNotification ----------------
 export const createAndEmitNotification = async (data) => {
     // Map our custom type to Prisma's NotificationCreateInput
     const prismaData = {
         title: data.title,
         body: data.body,
-        jobId: data.jobId,
+        isRead: data.isRead,
+        receiverUserId: data.receiverUserId,
+        receiverWorkshopId: data.receiverWorkshopId,
         triggeredById: data.triggeredById,
-        eventType: data.eventType, // mapped eventType
+        jobId: data.jobId,
+        bookingId: data.bookingId,
+        invoiceId: data.invoiceId,
+        eventType: data.eventType,
     };
     // 1️⃣ Create notification in database
     const notification = await prisma.notification.create({
         data: prismaData,
     });
     const io = getIO();
-    // 2️⃣ Emit to all workshop sockets
-    if (data.workshopIds?.length) {
-        data.workshopIds.forEach((workshopId) => {
-            const socketIds = getSocketIds(workshopId);
-            socketIds.forEach((socketId) => {
-                io.to(socketId).emit("notification", notification);
-            });
-        });
-    }
-    // 3️⃣ Emit to user socket
-    if (data.userId) {
-        const socketIds = getSocketIds(data.userId);
+    // 2️⃣ Collect all target IDs for emission
+    const workshopTargets = new Set();
+    if (data.workshopIds)
+        data.workshopIds.forEach(id => workshopTargets.add(id));
+    if (data.receiverWorkshopId)
+        workshopTargets.add(data.receiverWorkshopId);
+    const userTargets = new Set();
+    if (data.userId)
+        userTargets.add(data.userId);
+    if (data.receiverUserId)
+        userTargets.add(data.receiverUserId);
+    // 3️⃣ Emit to workshop sockets
+    workshopTargets.forEach((workshopId) => {
+        const socketIds = getSocketIds(workshopId);
         socketIds.forEach((socketId) => {
             io.to(socketId).emit("notification", notification);
         });
-    }
+    });
+    // 4️⃣ Emit to user sockets
+    userTargets.forEach((userId) => {
+        const socketIds = getSocketIds(userId);
+        socketIds.forEach((socketId) => {
+            io.to(socketId).emit("notification", notification);
+        });
+    });
+    return notification;
+};
+export const createAndEmitChatNotification = async (data) => {
+    const { receiverId, message, ...prismaPayload } = data;
+    // 1️⃣ Create chat notification in database
+    const notification = await prisma.chatNotification.create({
+        data: prismaPayload,
+    });
+    const io = getIO();
+    // 2️⃣ Emit to receiver sockets
+    const socketIds = getSocketIds(receiverId);
+    socketIds.forEach((socketId) => {
+        io.to(socketId).emit("chat_notification", notification);
+        // Maintain backward compatibility for room list updates
+        io.to(socketId).emit("new_message_notification", {
+            roomId: notification.chatRoomId,
+            message: message || { id: notification.messageId, content: notification.body },
+            notification,
+        });
+    });
     return notification;
 };

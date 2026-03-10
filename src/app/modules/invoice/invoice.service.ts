@@ -54,7 +54,7 @@ const getInvoicesByWorkshopId = async (workshopId: string) => {
   const result = await prisma.invoice.findMany({
     where: { workshopId },
     include: {
-      workshop: true,
+      workshop: {select:{ownerName:true, email:true, phone:true, address:true, role:true, id:true}}
     },
     orderBy: {
       createdAt: "desc",
