@@ -65,7 +65,7 @@ const getAllBookings = async (
   };
 };
 const getBookingsById = async (id: string) => {
-  const result = await prisma.booking.findUniqueOrThrow({ where: { id } });
+  const result = await prisma.booking.findUniqueOrThrow({ where: { id }, include: { job: true, offer: true, review: true, workshop: true , user:true} });
   return result;
 };
 
