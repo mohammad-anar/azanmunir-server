@@ -69,6 +69,11 @@ router.patch(
   auth(Role.ADMIN),
   WorkshopController.suspendWorkshop,
 );
+router.patch(
+  "/:id/unsuspend",
+  auth(Role.ADMIN),
+  WorkshopController.unsuspendWorkshop,
+);
 router.delete("/:id", WorkshopController.deleteWorkshop);
 
 export const WorkshopRouter = router;

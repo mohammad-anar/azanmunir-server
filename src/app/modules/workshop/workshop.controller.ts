@@ -134,6 +134,21 @@ const suspendWorkshop = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const unsuspendWorkshop = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await WorkshopService.updateWorkshop(id, {
+    approvalStatus: "APPROVED",
+  });
+
+  sendResponse(res, {
+    success: true,
+    message: "Workshop unsuspend successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
 const deleteWorkshop = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await WorkshopService.deleteWorkshop(id);
@@ -282,6 +297,7 @@ export const WorkshopController = {
   approveWorkshop,
   rejectWorkshop,
   suspendWorkshop,
+  unsuspendWorkshop,
   deleteWorkshop,
   loginWorkshop,
   verifyWorkshop,
