@@ -1,1 +1,1 @@
-# prisma-starter
+# prisma-project
