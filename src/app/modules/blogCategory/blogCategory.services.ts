@@ -48,11 +48,14 @@ const getAllCategories = async (
     where: whereConditions,
   });
 
+  const totalPage = Math.ceil(total / limit);
+
   return {
     meta: {
       page,
       limit,
       total,
+      totalPage,
     },
     data: result,
   };

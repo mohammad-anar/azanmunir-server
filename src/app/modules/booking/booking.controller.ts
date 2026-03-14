@@ -3,6 +3,7 @@ import catchAsync from "src/app/shared/catchAsync.js";
 import { BookingService } from "./booking.services.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import ApiError from "src/errors/ApiError.js";
+import pick from "src/helpers.ts/pick.js";
 
 const createBooking = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -23,7 +24,9 @@ const createBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllBookings = catchAsync(async (req: Request, res: Response) => {
-  const result = await BookingService.getAllBookings();
+  const filters = pick(req.query, ["status", "paymentStatus"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+  const result = await BookingService.getAllBookings(filters, options);
 
   sendResponse(res, {
     success: true,
