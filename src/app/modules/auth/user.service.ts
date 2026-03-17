@@ -25,10 +25,13 @@ const createUser = async (payload: Prisma.UserCreateInput) => {
     config.bcrypt_salt_round,
   );
 
-  const isExist = prisma.user.findUnique({ where: { email: payload.email } });
+  const isExist = await prisma.user.findUnique({
+    where: { email: payload.email },
+  });
+  console.log({ isExist });
 
   if (!!isExist) {
-    throw new ApiError(404, "User already  exist with this email!");
+    throw new ApiError(409, "User already exist with this email!");
   }
 
   const result = await prisma.user.create({
@@ -106,9 +109,9 @@ const getAllUsers = async (
     },
   });
 
-  andConditions.push({
-    isDeleted: false,
-  });
+  // andConditions.push({
+  //   isDeleted: false,
+  // });
 
   const whereConditions: Prisma.UserWhereInput = { AND: andConditions };
 
@@ -139,8 +142,6 @@ const getAllUsers = async (
       isDeleted: true,
       isVerified: true,
       status: true,
-      jobs: true,
-      bookings: true,
       postalCode: true,
       createdAt: true,
       updatedAt: true,
@@ -184,24 +185,6 @@ const getUserById = async (id: string) => {
       isDeleted: true,
       isVerified: true,
       status: true,
-      jobs: true,
-      reviews: true,
-      bookings: {
-        include: {
-          job: true,
-          offer: true,
-          workshop: {
-            select: {
-              id: true,
-              ownerName: true,
-              workshopName: true,
-              avatar: true,
-              avgRating: true,
-              address: true,
-            },
-          },
-        },
-      },
       postalCode: true,
       createdAt: true,
       updatedAt: true,
@@ -230,13 +213,7 @@ const getMe = async (email: string) => {
       isDeleted: true,
       isVerified: true,
       status: true,
-      jobs: true,
-      bookings: true,
       postalCode: true,
-      blogs: true,
-      messages: true,
-      reviews: true,
-      rooms: true,
       createdAt: true,
       updatedAt: true,
       _count: true,
@@ -246,8 +223,13 @@ const getMe = async (email: string) => {
 };
 
 // update user =====================================================
-const updateUser = async (id: string, payload: Prisma.UserUpdateInput) => {
-  const result = await prisma.user.update({ where: { id }, data: payload });
+const updateUser = async (email: string, payload: Prisma.UserUpdateInput) => {
+  const isExist = await prisma.user.findUnique({ where: { email } });
+  if (!isExist) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const result = await prisma.user.update({ where: { email }, data: payload });
   return result;
 };
 
@@ -269,12 +251,28 @@ const login = async (payload: ILogin) => {
       role: true,
       password: true,
       isVerified: true,
+      isDeleted: true,
       status: true,
     },
   });
 
   if (!isExist?.email) {
     throw new ApiError(404, "User does not exist!");
+  }
+  if (!(isExist?.status === "ACTIVE")) {
+    throw new ApiError(
+      403,
+      `User is ${isExist?.status}. Please contact with Admin`,
+    );
+  }
+  if (!isExist?.isVerified) {
+    throw new ApiError(
+      403,
+      "User is not verified! Please verify your account.",
+    );
+  }
+  if (isExist?.isDeleted) {
+    throw new ApiError(403, "User is deleted. Please contact with Admin.");
   }
 
   const { password, ...userData } = isExist;
