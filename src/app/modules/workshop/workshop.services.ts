@@ -195,14 +195,9 @@ const getMe = async (email: string) => {
       createdAt: true,
       updatedAt: true,
       state: true,
-      bookings: true,
       categories: true,
       workshopOpeningHours: true,
       postalCode: true,
-      invoices: true,
-      jobs: true,
-      reviewsCount: true,
-      rooms: true,
       _count: true,
     },
   });
@@ -231,10 +226,9 @@ const deleteWorkshop = async (id: string) => {
 };
 
 const loginWorkshop = async (payload: ILogin) => {
-  const isExist = await prisma.workshop.findFirstOrThrow({
+  const isExist = await prisma.workshop.findUnique({
     where: {
       email: payload.email,
-      // approvalStatus: "APPROVED", // optional check
     },
     select: {
       id: true,
@@ -248,8 +242,20 @@ const loginWorkshop = async (payload: ILogin) => {
     },
   });
 
-  if (!isExist.isVerified) {
-    throw new ApiError(403, "Workshop is not verified. Please verify first.");
+  if (!isExist?.email) {
+    throw new ApiError(404, "User does not exist!");
+  }
+  if (!(isExist?.approvalStatus === "APPROVED")) {
+    throw new ApiError(
+      403,
+      `Your approval status is ${isExist?.approvalStatus}. Please contact with Admin`,
+    );
+  }
+  if (!isExist?.isVerified) {
+    throw new ApiError(
+      403,
+      "User is not verified! Please verify your account.",
+    );
   }
 
   const isPasswordMatched = await bcrypt.compare(
@@ -300,19 +306,19 @@ const verifyWorkshop = async ({ email, otp }: IVerifyEmail) => {
 
   const { password, ...workshopData } = workshop;
 
-  const accessToken = jwtHelper.createToken(
-    workshopData,
-    config.jwt.jwt_secret as Secret,
-    config.jwt.jwt_expire_in as SignOptions["expiresIn"],
-  );
+  // const accessToken = jwtHelper.createToken(
+  //   workshopData,
+  //   config.jwt.jwt_secret as Secret,
+  //   config.jwt.jwt_expire_in as SignOptions["expiresIn"],
+  // );
 
-  const refreshToken = jwtHelper.createToken(
-    workshopData,
-    config.jwt.jwt_secret as Secret,
-    config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
-  );
+  // const refreshToken = jwtHelper.createToken(
+  //   workshopData,
+  //   config.jwt.jwt_secret as Secret,
+  //   config.jwt.jwt_refresh_expire_in as SignOptions["expiresIn"],
+  // );
 
-  return { accessToken, refreshToken, workshop: workshopData };
+  return { workshop: workshopData };
 };
 
 const resendWorkshopOTP = async (email: string) => {
