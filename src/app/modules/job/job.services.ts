@@ -16,7 +16,6 @@ import { IPaginationOptions } from "src/types/pagination.js";
 //     },
 //   });
 
-
 //   // 2️⃣ Create Job Categories
 //   if (categories && categories.length > 0) {
 //     await prisma.jobCategory.createMany({
@@ -199,11 +198,14 @@ const getAllJobs = async (
     where: whereConditions,
   });
 
+  const totalPage = Math.ceil(total / limit);
+
   return {
     meta: {
       page,
       limit,
       total,
+      totalPage,
     },
     data: result,
   };
