@@ -17,6 +17,10 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
   payload.userId = id;
 
   const image = getMultipleFilesPath(req.files, "image") as string[];
+  console.log(image);
+  if (!image || (image && image?.length < 0)) {
+    throw new ApiError(404, "Photos not uploaded.");
+  }
   if (image?.length > 0) {
     const photos = image?.map((img) =>
       `http://${config.ip_address}:${config.port}`.concat(img),
