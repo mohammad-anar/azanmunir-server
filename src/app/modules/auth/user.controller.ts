@@ -27,7 +27,13 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const filters = pick(req.query, ["role", "status", "isVerified", "isDeleted", "searchTerm"]);
+  const filters = pick(req.query, [
+    "role",
+    "status",
+    "isVerified",
+    "isDeleted",
+    "searchTerm",
+  ]);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
 
   const result = await UserService.getAllUsers(filters, options);
@@ -64,14 +70,14 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const updateUser = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { email } = req.user;
   const payload = req.body;
   const image = getSingleFilePath(req.files, "image") as string;
   const url = `http://${config.ip_address}:${config.port}`.concat(image);
   if (image) {
-    payload.profilePhoto = url;
+    payload.avatar = url;
   }
-  const result = await UserService.updateUser(id, payload);
+  const result = await UserService.updateUser(email, payload);
 
   sendResponse(res, {
     success: true,
@@ -219,7 +225,7 @@ const logout = catchAsync(async (req: Request, res: Response) => {
 
   sendResponse(res, {
     success: true,
-    message: "You have been logged out successfully",
+    message: "You have logged out successfully",
     statusCode: 200,
     data: result,
   });
