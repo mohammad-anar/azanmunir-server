@@ -24,6 +24,13 @@ const createUser = async (payload: Prisma.UserCreateInput) => {
     payload.password,
     config.bcrypt_salt_round,
   );
+
+  const isExist = prisma.user.findUnique({ where: { email: payload.email } });
+
+  if (!!isExist) {
+    throw new ApiError(404, "User already  exist with this email!");
+  }
+
   const result = await prisma.user.create({
     data: { ...payload, password: hashedPassword },
     select: {
@@ -252,7 +259,7 @@ const deleteUser = async (id: string) => {
 
 // login ===============================================
 const login = async (payload: ILogin) => {
-  const isExist = await prisma.user.findFirstOrThrow({
+  const isExist = await prisma.user.findUnique({
     where: { email: payload.email, status: "ACTIVE" },
     select: {
       id: true,
@@ -266,9 +273,13 @@ const login = async (payload: ILogin) => {
     },
   });
 
+  if (!isExist?.email) {
+    throw new ApiError(404, "User does not exist!");
+  }
+
   const { password, ...userData } = isExist;
 
-  if (!isExist.isVerified) {
+  if (!isExist?.isVerified) {
     throw new ApiError(
       403,
       "You are not verifies. Please verify your account to login",
