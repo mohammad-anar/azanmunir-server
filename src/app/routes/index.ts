@@ -18,6 +18,7 @@ import { NewsletterRouter } from "../modules/newsletter/newsletter.routes.js";
 import { PlatformDataRouter } from "../modules/platformData/platformData.routes.js";
 import { ServiceCategoryRouter } from "../modules/serviceCategory/serviceCategory.routes.js";
 import { ContactRouter } from "../modules/contact/contact.routes.js";
+import { WorkshopCategoryRouter } from "../modules/workshopCategory/workshopCategory.routes.js";
 
 const router = express.Router();
 
@@ -97,6 +98,10 @@ const moduleRoutes = [
   {
     path: "/contact",
     route: ContactRouter,
+  },
+  {
+    path: "/workshop-category",
+    route: WorkshopCategoryRouter,
   },
 ];
 
