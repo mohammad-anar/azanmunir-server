@@ -87,6 +87,9 @@ const completeBooking = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const result = await BookingService.completeBooking(id);
 
+  // room should be deleted
+  
+
   sendResponse(res, {
     success: true,
     message: "Booking completed successfully",
@@ -107,6 +110,42 @@ const getRoomByBookingId = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const rescheduleBooking = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.rescheduleBooking(id, req.body);
+
+  sendResponse(res, {
+    success: true,
+    message: "Booking rescheduled successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const markPaymentStatusPaid = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.markPaymentStatusPaid(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Payment status marked as PAID successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const cancelBooking = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.cancelBooking(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Booking cancelled and payment status set to REFUNDED successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
 export const BookingController = {
   createBooking,
   getAllBookings,
@@ -116,4 +155,7 @@ export const BookingController = {
   deleteBookings,
   completeBooking,
   getRoomByBookingId,
+  rescheduleBooking,
+  markPaymentStatusPaid,
+  cancelBooking,
 };
