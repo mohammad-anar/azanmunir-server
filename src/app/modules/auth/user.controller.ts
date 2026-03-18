@@ -247,7 +247,7 @@ const getUserJobs = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getBookingsByUserId = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.user;
   const result = await UserService.getBookingsByUserId(id);
 
   sendResponse(res, {
