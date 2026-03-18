@@ -11,6 +11,8 @@ const getBookingsById = async (id) => {
     const result = await prisma.booking.findUniqueOrThrow({ where: { id } });
     return result;
 };
+
+ 
 const getReviewByBookingId = async (bookingId) => {
     const result = await prisma.review.findUnique({
         where: {
@@ -39,4 +41,5 @@ export const BookingService = {
     getReviewByBookingId,
     updateBooking,
     deleteBooking,
+    
 };

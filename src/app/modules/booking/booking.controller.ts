@@ -47,6 +47,30 @@ const getBookingById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getBookingsByUserId = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.getBookingsByUserId(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Bookings retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const getBookingsByWorkshopId = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await BookingService.getBookingsByWorkshopId(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Bookings retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+}); 
+
 const getReviewByBookingId = async (req: Request, res: Response) => {
   const { bookingId } = req.params;
 
@@ -158,4 +182,6 @@ export const BookingController = {
   rescheduleBooking,
   markPaymentStatusPaid,
   cancelBooking,
+  getBookingsByUserId,
+    getBookingsByWorkshopId,
 };

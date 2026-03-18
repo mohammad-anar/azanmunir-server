@@ -69,6 +69,18 @@ const getBookingsById = async (id: string) => {
   return result;
 };
 
+// get all bookings by user id 
+const getBookingsByUserId = async (userId:string) => {
+    const result = await prisma.booking.findMany({ where: { userId } });
+    return result;
+};
+
+// get all bookings by workshop id 
+const getBookingsByWorkshopId = async (workshopId:string) => {
+    const result = await prisma.booking.findMany({ where: { workshopId } });
+    return result;
+}; 
+
 const getReviewByBookingId = async (bookingId: string) => {
   const result = await prisma.review.findUnique({
     where: {
@@ -182,4 +194,6 @@ export const BookingService = {
   rescheduleBooking,
   markPaymentStatusPaid,
   cancelBooking,
+  getBookingsByUserId,
+    getBookingsByWorkshopId,
 };

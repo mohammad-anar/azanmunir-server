@@ -19,6 +19,21 @@ router.get(
   auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
   BookingController.getBookingById,
 );
+
+// get all bookings by user id 
+router.get(
+  "/user/:id",
+  auth(Role.ADMIN, Role.USER),
+  BookingController.getBookingsByUserId,
+);
+
+// get all bookings by workshop id 
+router.get(
+  "/workshop/:id",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  BookingController.getBookingsByWorkshopId,
+); 
+
 router.get(
   "/:id/reviews",
   auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
