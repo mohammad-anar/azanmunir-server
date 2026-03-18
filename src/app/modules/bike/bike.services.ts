@@ -34,6 +34,8 @@ const getBikesByUserId = async (userId: string) => {
   return result;
 };
 
+
+
 const updateBike = async (
   id: string,
   payload: Prisma.BikeUpdateInput,

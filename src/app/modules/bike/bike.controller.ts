@@ -39,6 +39,17 @@ const getMyBikes = async (req: Request, res: Response) => {
     data: result,
   });
 };
+const getBikeByUserId = async (req: Request, res: Response) => {
+  const userId = req.params.id;
+
+  const result = await BikeService.getBikesByUserId(userId);
+
+  res.status(200).json({
+    success: true,
+    message: "Bikes retrieved successfully",
+    data: result,
+  });
+};
 
 const updateBike = catchAsync(async (req: Request, res: Response) => {
   const user = req.user;
@@ -72,4 +83,5 @@ export const BikeController = {
   getMyBikes,
   updateBike,
   deleteBike,
+  getBikeByUserId
 };
