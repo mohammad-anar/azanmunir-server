@@ -23,7 +23,7 @@ router.patch(
 );
 router.delete("/:id", auth(Role.ADMIN, Role.USER), ReviewController.deleteReview);
 
-router.get("/workshop/:workshopId", ReviewController.getReviewsByWorkshopId);
-router.get("/user/:userId", ReviewController.getReviewsByUserId);
+router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), ReviewController.getReviewsByWorkshopId);
+router.get("/user/:userId", auth(Role.ADMIN, Role.USER), ReviewController.getReviewsByUserId);
 
 export const ReviewRouter = router;
