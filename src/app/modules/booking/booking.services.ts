@@ -96,13 +96,24 @@ const deleteBooking = async (id: string) => {
 
 // delete the room when call this api
 const completeBooking = async (id: string) => {
-  const result = await prisma.booking.update({
-    where: { id },
-    data: { status: "COMPLETED" },
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Update booking status and payment status
+    const updatedBooking = await tx.booking.update({
+      where: { id },
+      data: {
+        status: "COMPLETED",
+        paymentStatus: "PAID",
+      },
+    });
+
+    // 2. Delete the room if it exists (using deleteMany to avoid error if not found)
+    await tx.room.deleteMany({
+      where: { bookingId: id },
+    });
+
+    return updatedBooking;
   });
-  await prisma.room.delete({
-    where: { bookingId: id },
-  });
+
   return result;
 };
 
@@ -110,6 +121,52 @@ const getRoomByBookingId = async (bookingId: string) => {
   const result = await prisma.room.findUnique({
     where: { bookingId },
   });
+  return result;
+};
+
+const rescheduleBooking = async (
+  id: string,
+  payload: { scheduleStart: Date; scheduleEnd: Date },
+) => {
+  const result = await prisma.booking.update({
+    where: { id },
+    data: {
+      scheduleStart: payload.scheduleStart,
+      scheduleEnd: payload.scheduleEnd,
+    },
+  });
+  return result;
+};
+
+const markPaymentStatusPaid = async (id: string) => {
+  const result = await prisma.booking.update({
+    where: { id },
+    data: {
+      paymentStatus: "PAID",
+    },
+  });
+  return result;
+};
+
+const cancelBooking = async (id: string) => {
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Update booking status and payment status
+    const updatedBooking = await tx.booking.update({
+      where: { id },
+      data: {
+        status: "CANCELLED",
+        paymentStatus: "REFUNDED",
+      },
+    });
+
+    // 2. Delete the room if it exists
+    await tx.room.deleteMany({
+      where: { bookingId: id },
+    });
+
+    return updatedBooking;
+  });
+
   return result;
 };
 
@@ -122,4 +179,7 @@ export const BookingService = {
   deleteBooking,
   completeBooking,
   getRoomByBookingId,
+  rescheduleBooking,
+  markPaymentStatusPaid,
+  cancelBooking,
 };

@@ -17,3 +17,14 @@ export const UpdateBookingSchema = z.object({
   status: z.enum(BookingStatus).optional(),
   paymentStatus: z.enum(PaymentStatus).optional(),
 });
+
+export const RescheduleBookingSchema = z.object({
+
+    scheduleStart: z.coerce.date({
+      message: "Schedule start is required",
+    }),
+    scheduleEnd: z.coerce.date({
+      message: "Schedule end is required",
+    }),
+ 
+});
