@@ -1,5 +1,5 @@
 import config from "src/config/index.js";
-import { ICreateAccount, IResetPassword } from "src/types/emailTamplate.js";
+import { IContact, IWorkshopContact, ICreateAccount, IResetPassword } from "src/types/emailTamplate.js";
 
 const PRIMARY_COLOR = "#00C6CF";
 
@@ -186,8 +186,91 @@ const forgetPassword = (values: { email: string; token: string }) => {
   };
 };
 
+// ==========================
+// 📧 CONTACT ADMIN TEMPLATE
+// ==========================
+const contactAdmin = (values: IContact) => {
+  const content = `
+    <h2 style="margin:0 0 20px 0; font-size:20px; color:#222;">
+      New Contact Form Submission
+    </h2>
+
+    <div style="background:#f9f9f9; padding:20px; border-radius:8px; border-left:4px solid ${PRIMARY_COLOR};">
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Full Name:</strong> ${values.fullName}
+      </p>
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Address:</strong> ${values.address}
+      </p>
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Email:</strong> ${values.email}
+      </p>
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Phone Number:</strong> ${values.phoneNumber}
+      </p>
+      <p style="margin:0; font-size:14px; color:#555;">
+        <strong>Message:</strong><br>
+        <span style="display:inline-block; margin-top:5px; line-height:1.6;">
+          ${values.message}
+        </span>
+      </p>
+    </div>
+
+    <p style="font-size:13px; color:#999; margin-top:25px;">
+      This email was sent from the website contact form.
+    </p>
+  `;
+
+  return {
+    to: config.email.user, // Sent to admin
+    subject: `New Contact Message from ${values.fullName}`,
+    html: baseTemplate(content),
+  };
+};
+
+// ==========================
+// 📧 WORKSHOP CONTACT TEMPLATE
+// ==========================
+const workshopContactAdmin = (values: IWorkshopContact) => {
+  const content = `
+    <h2 style="margin:0 0 20px 0; font-size:20px; color:#222;">
+      New Workshop Contact Submission
+    </h2>
+
+    <div style="background:#f9f9f9; padding:20px; border-radius:8px; border-left:4px solid ${PRIMARY_COLOR};">
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Company Name:</strong> ${values.companyName}
+      </p>
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Full Name:</strong> ${values.fullName}
+      </p>
+      <p style="margin:0 0 10px 0; font-size:14px; color:#555;">
+        <strong>Phone:</strong> ${values.phone}
+      </p>
+      <p style="margin:0; font-size:14px; color:#555;">
+        <strong>Additional Information:</strong><br>
+        <span style="display:inline-block; margin-top:5px; line-height:1.6;">
+          ${values.additionalInfo || "N/A"}
+        </span>
+      </p>
+    </div>
+
+    <p style="font-size:13px; color:#999; margin-top:25px;">
+      This email was sent from the workshop contact form.
+    </p>
+  `;
+
+  return {
+    to: config.email.user, // Sent to admin
+    subject: `New Workshop Contact from ${values.companyName}`,
+    html: baseTemplate(content),
+  };
+};
+
 export const emailTemplate = {
   createAccount,
   resetPassword,
   forgetPassword,
+  contactAdmin,
+  workshopContactAdmin,
 };
