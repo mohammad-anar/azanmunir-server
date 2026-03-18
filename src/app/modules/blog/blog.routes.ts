@@ -16,8 +16,8 @@ router.post(
   validateRequest(CreateBlogSchema),
   BlogController.createBlog,
 );
+router.get("/:slug/slug", BlogController.getBlogBySlug);
 router.get("/:id", BlogController.getBlogById);
-router.get("/:slug", BlogController.getBlogBySlug);
 router.patch(
   "/:id",
   fileUploadHandler(),
