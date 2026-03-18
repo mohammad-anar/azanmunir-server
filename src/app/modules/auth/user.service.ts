@@ -1,22 +1,18 @@
-import bcrypt from "bcryptjs";
-import { JwtPayload, Secret, SignOptions } from "jsonwebtoken";
-import { emailTemplate } from "src/app/shared/emailTemplate.js";
-import { prisma } from "src/helpers.ts/prisma.js";
-import config from "src/config/index.js";
-import ApiError from "src/errors/ApiError.js";
-import { emailHelper } from "src/helpers.ts/emailHelper.js";
-import generateOTP from "src/helpers.ts/generateOTP.js";
-import { jwtHelper } from "src/helpers.ts/jwtHelper.js";
-import redisClient from "src/helpers.ts/redis.js";
-import {
-  IPaginationOptions,
-  IUserFilterRequest,
-} from "src/types/pagination.js";
-import { ILogin, IUser, IVerifyEmail } from "./user.interface.js";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { Prisma } from "@prisma/client";
-import { isMainThread } from "worker_threads";
+import bcrypt from "bcryptjs";
 import { Response } from "express";
+import { JwtPayload, Secret, SignOptions } from "jsonwebtoken";
+import { ILogin, IVerifyEmail } from "./user.interface.js";
+import config from "../../../config/index.js";
+import { prisma } from "../../../helpers.ts/prisma.js";
+import ApiError from "../../../errors/ApiError.js";
+import { emailTemplate } from "../../shared/emailTemplate.js";
+import { emailHelper } from "../../../helpers.ts/emailHelper.js";
+import { IPaginationOptions, IUserFilterRequest } from "../../../types/pagination.js";
+import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import { jwtHelper } from "../../../helpers.ts/jwtHelper.js";
+import redisClient from "../../../helpers.ts/redis.js";
+import generateOTP from "../../../helpers.ts/generateOTP.js";
 
 // create users ================================
 const createUser = async (payload: Prisma.UserCreateInput) => {

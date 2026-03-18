@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 import { InvoiceService } from "./invoice.service.js";
-import pick from "src/helpers.ts/pick.js";
+import pick from "../../../helpers.ts/pick.js";
 
 const createInvoice = catchAsync(async (req: Request, res: Response) => {
   const result = await InvoiceService.createInvoice(req.body);

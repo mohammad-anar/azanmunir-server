@@ -1,21 +1,20 @@
 import { Prisma } from "@prisma/client";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
-import { prisma } from "src/helpers.ts/prisma.js";
-import {
-  IPaginationOptions,
-  IUserFilterRequest,
-} from "src/types/pagination.js";
-import { ICreateWorkshop } from "./workshop.interfaces.js";
-import { jwtHelper } from "src/helpers.ts/jwtHelper.js";
-import ApiError from "src/errors/ApiError.js";
+
+
+import { ICreateWorkshop } from "./workshop.interfaces.js"  ;
 import bcrypt from "bcryptjs";
 import { Secret, SignOptions } from "jsonwebtoken";
-import config from "src/config/index.js";
 import { ILogin, IVerifyEmail } from "../auth/user.interface.js";
-import redisClient from "src/helpers.ts/redis.js";
-import generateOTP from "src/helpers.ts/generateOTP.js";
-import { emailTemplate } from "src/app/shared/emailTemplate.js";
-import { emailHelper } from "src/helpers.ts/emailHelper.js";
+import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import { prisma } from "../../../helpers.ts/prisma.js";
+import ApiError from "../../../errors/ApiError.js";
+import { jwtHelper } from "../../../helpers.ts/jwtHelper.js";
+import config from "../../../config/index.js";
+import redisClient from "../../../helpers.ts/redis.js";
+import generateOTP from "../../../helpers.ts/generateOTP.js";
+import { emailTemplate } from "../../shared/emailTemplate.js";
+import { emailHelper } from "../../../helpers.ts/emailHelper.js";
+import { IPaginationOptions, IUserFilterRequest } from "../../../types/pagination.js";
 
 // create workshop ================================
 const createWorkshop = async (payload: Prisma.WorkshopCreateInput) => {

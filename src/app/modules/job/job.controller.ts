@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import catchAsync from "src/app/shared/catchAsync.js";
-import sendResponse from "src/app/shared/sendResponse.js";
 import { JobService } from "./job.services.js";
-import { getMultipleFilesPath } from "src/app/shared/getFilePath.js";
-import config from "src/config/index.js";
-import ApiError from "src/errors/ApiError.js";
-import pick from "src/helpers.ts/pick.js";
+import catchAsync from "../../shared/catchAsync.js";
+import ApiError from "../../../errors/ApiError.js";
+import { getMultipleFilesPath } from "../../shared/getFilePath.js";
+import config from "../../../config/index.js";
+import sendResponse from "../../shared/sendResponse.js";
+import pick from "../../../helpers.ts/pick.js";
 
 const createJob = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;

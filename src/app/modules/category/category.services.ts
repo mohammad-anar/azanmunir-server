@@ -1,11 +1,8 @@
 import { Prisma } from "@prisma/client";
-import ApiError from "src/errors/ApiError.js";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
-import { prisma } from "src/helpers.ts/prisma.js";
-import {
-  IPaginationOptions,
-  IUserFilterRequest,
-} from "src/types/pagination.js";
+import { prisma } from "../../../helpers.ts/prisma.js";
+import { IPaginationOptions } from "../../../types/pagination.js";
+import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import ApiError from "../../../errors/ApiError.js";
 
 const createCategory = async (payload: Prisma.CategoryCreateInput) => {
   const result = await prisma.category.create({

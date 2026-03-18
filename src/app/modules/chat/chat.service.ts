@@ -1,7 +1,7 @@
 import { MessageType } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
-import ApiError from "src/errors/ApiError.js";
-import { prisma } from "src/helpers.ts/prisma.js";
+import { prisma } from "../../../helpers.ts/prisma.js";
+import ApiError from "../../../errors/ApiError.js";
 
 const createRoom = async (
   payload: {

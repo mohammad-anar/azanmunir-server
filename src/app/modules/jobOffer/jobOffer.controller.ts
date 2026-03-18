@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import catchAsync from "src/app/shared/catchAsync.js";
 import { JobOfferServices } from "./jobOffer.services.js";
-import sendResponse from "src/app/shared/sendResponse.js";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
 
 const createJobOffer = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;

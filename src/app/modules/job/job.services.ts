@@ -1,8 +1,8 @@
 import { JobStatus, Prisma, Urgency } from "@prisma/client";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
-import { prisma } from "src/helpers.ts/prisma.js";
-import { createAndEmitNotification } from "src/helpers.ts/socketHelper.js";
-import { IPaginationOptions } from "src/types/pagination.js";
+import { prisma } from "../../../helpers.ts/prisma.js";
+import { createAndEmitNotification } from "../../../helpers.ts/socketHelper.js";
+import { IPaginationOptions } from "../../../types/pagination.js";
+import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
 
 // const createJob = async (userId: string, payload: any) => {
 //   const { categories, ...jobData } = payload;

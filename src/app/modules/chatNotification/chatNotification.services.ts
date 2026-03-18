@@ -1,4 +1,5 @@
-import { prisma } from "src/helpers.ts/prisma.js";
+import { prisma } from "../../../helpers.ts/prisma.js";
+
 
 /* ---------- CREATE ---------- */
 const createChatNotification = async (payload: {
