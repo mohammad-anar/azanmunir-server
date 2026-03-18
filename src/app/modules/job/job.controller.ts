@@ -68,8 +68,9 @@ const getJobById = catchAsync(async (req: Request, res: Response) => {
 });
 const getOffersByJobId = catchAsync(async (req: Request, res: Response) => {
   const { jobId } = req.params;
+  const { id:userId} = req.user;
 
-  const result = await JobService.getOffersByJobId(jobId);
+  const result = await JobService.getOffersByJobId(jobId,userId);
 
   sendResponse(res, {
     success: true,
@@ -80,8 +81,9 @@ const getOffersByJobId = catchAsync(async (req: Request, res: Response) => {
 });
 const updateJobById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { id:userId} = req.user;
   const payload = req.body;
-  const result = await JobService.updateJobById(id, payload);
+  const result = await JobService.updateJobById(id,userId, payload);
 
   sendResponse(res, {
     success: true,
@@ -92,8 +94,9 @@ const updateJobById = catchAsync(async (req: Request, res: Response) => {
 });
 const deleteJobById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const {id:userId} = req.user;
 
-  const result = await JobService.deleteJob(id);
+  const result = await JobService.deleteJob(id,userId);
 
   sendResponse(res, {
     success: true,

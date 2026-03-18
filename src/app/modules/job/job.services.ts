@@ -212,19 +212,19 @@ const getAllJobs = async (
 };
 
 const getJobById = async (id: string) => {
-  const result = await prisma.job.findUniqueOrThrow({ where: { id } });
+  const result = await prisma.job.findUniqueOrThrow({ where: { id }, include: { user: true, categories: true, offers: true, bookings: true, bike:true} });
   return result;
 };
-const getOffersByJobId = async (jobId: string) => {
-  const result = await prisma.jobOffer.findMany({ where: { jobId } });
+const getOffersByJobId = async (jobId: string, userId:string) => {
+  const result = await prisma.jobOffer.findMany({ where: { jobId,job:{userId:userId} } });
   return result;
 };
-const updateJobById = async (id: string, payload: Prisma.JobUpdateInput) => {
-  const result = await prisma.job.update({ where: { id }, data: payload });
+const updateJobById = async (id: string, userId:string, payload: Prisma.JobUpdateInput) => {
+  const result = await prisma.job.update({ where: { id,userId }, data: payload });
   return result;
 };
-const deleteJob = async (id: string) => {
-  const result = await prisma.job.delete({ where: { id } });
+const deleteJob = async (id: string, userId:string) => {
+  const result = await prisma.job.delete({ where: { id,userId } });
   return result;
 };
 
