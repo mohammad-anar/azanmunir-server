@@ -25,16 +25,32 @@ const deleteOffer = async (id: string) => {
   return result;
 };
 
-const acceptOffer = async (id: string) => {
+const acceptOffer = async (id: string, userId:string) => {
   // 1. Fetch offer and verify job status
   const offer = await prisma.jobOffer.findUniqueOrThrow({
     where: { id },
     include: { job: true, workshop: true }
   });
 
+  // if have accepted offer then return 
+  const acceptedOffer = await prisma.jobOffer.findFirst({
+    where: { jobId: offer.jobId, status: "ACCEPTED"},
+  });
+  if(acceptedOffer){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "This job already has an accepted offer");
+  }
+
+
+
+
+
+  if(offer.job.userId !== userId){
+    throw new ApiError(StatusCodes.BAD_REQUEST, "You are not authorized to accept this offer");
+  }
+
   const allowedStatuses: JobStatus[] = ["PENDING", "OPEN"];
   if (!allowedStatuses.includes(offer.job.status as JobStatus)) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This job already has an accepted offer or is no longer pending");
+    throw new ApiError(StatusCodes.BAD_REQUEST, "This job already has an accepted offer or is no longer pending or open");
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -43,6 +59,13 @@ const acceptOffer = async (id: string) => {
       where: { id },
       data: { status: "ACCEPTED" },
     });
+
+    
+  // need to reject other offers
+  await tx.jobOffer.updateMany({
+    where: { jobId: offer.jobId, status: "PENDING"},
+    data: { status: "REJECTED" },
+  });
 
     // 3. Update Job status
     await tx.job.update({

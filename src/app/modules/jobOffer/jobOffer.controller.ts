@@ -42,8 +42,9 @@ const updateOfferById = catchAsync(async (req: Request, res: Response) => {
 });
 const acceptJobOffer = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const {id:userId} = req.user;
 
-  const result = await JobOfferServices.acceptOffer(id);
+  const result = await JobOfferServices.acceptOffer(id,userId);
 
   sendResponse(res, {
     success: true,
