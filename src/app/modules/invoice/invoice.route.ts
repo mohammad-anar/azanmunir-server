@@ -13,8 +13,8 @@ router.post(
   validateRequest(InvoiceValidation.createInvoiceZodSchema),
   InvoiceController.createInvoice
 );
-router.get("/", auth(Role .ADMIN),InvoiceController.getAllInvoices);
-router.get("/:id", auth(Role.ADMIN, Role.USER, Role.WORKSHOP), InvoiceController.getInvoiceById);
+router.get("/", auth(Role.ADMIN),InvoiceController.getAllInvoices);
+router.get("/:id", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.getInvoiceById);
 router.patch(
   "/:id",
   auth(Role.ADMIN),
@@ -23,7 +23,7 @@ router.patch(
 );
 router.delete("/:id", auth(Role.ADMIN), InvoiceController.deleteInvoice);
 router.post("/generate-monthly", auth(Role.ADMIN), InvoiceController.generateMonthlyInvoices);
-router.patch("/:id/mark-paid", auth(Role.ADMIN), InvoiceController.markInvoiceAsPaid);
+router.patch("/:id/mark-paid", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.markInvoiceAsPaid);
 
 router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.getInvoicesByWorkshopId);
 

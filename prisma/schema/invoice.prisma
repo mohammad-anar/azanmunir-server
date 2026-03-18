@@ -1,6 +1,7 @@
 
 model Invoice {
     id           String        @id @default(uuid())
+    title        String
     workshopId   String
     workshop     Workshop      @relation(fields: [workshopId], references: [id])
     billingMonth DateTime

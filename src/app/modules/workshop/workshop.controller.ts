@@ -91,6 +91,21 @@ const updateWorkshop = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
+const updatePlatformFees = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { platformFees } = req.body;
+
+  const result = await WorkshopService.updatePlatformFees(id, platformFees);
+
+  sendResponse(res, {
+    success: true,
+    message: "Platform fees updated successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
 const approveWorkshop = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -308,4 +323,5 @@ export const WorkshopController = {
   getNearbyJobs,
   getReviewsByWorkshopId,
   getBookingsByWorkshopId,
+  updatePlatformFees
 };

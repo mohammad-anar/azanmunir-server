@@ -11,6 +11,9 @@ const createInvoice = async (payload: Prisma.InvoiceCreateInput) => {
   return result;
 };
 
+
+
+
 const getAllInvoices = async (
   filter: { searchTerm?: string },
   options: IPaginationOptions,
@@ -112,6 +115,8 @@ const updateInvoice = async (
 
   return result;
 };
+
+
 
 const deleteInvoice = async (id: string) => {
   const result = await prisma.invoice.delete({

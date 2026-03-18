@@ -216,6 +216,16 @@ const updateWorkshop = async (
   return result;
 };
 
+const updatePlatformFees = async (id:string, platformFees:number) => {
+    const result = await prisma.workshop.update({
+        where: { id },
+        data: {
+            platformFees: platformFees,
+        },
+    });
+    return result;
+};
+
 const deleteWorkshop = async (id: string) => {
   const result = await prisma.workshop.delete({
     where: { id },
@@ -517,4 +527,5 @@ export const WorkshopService = {
   getNearbyJobs,
   getReviewsByWorkshopId,
   getBookingsByWorkshopId,
+  updatePlatformFees
 };

@@ -54,6 +54,13 @@ router.patch(
   validateRequest(updateWorkshopSchema),
   WorkshopController.updateWorkshop,
 );
+
+router.patch(
+  "/:id/platform-fees",
+  auth(Role.ADMIN),
+  WorkshopController.updatePlatformFees,
+);
+
 router.patch(
   "/:id/approve",
   auth(Role.ADMIN),
