@@ -23,6 +23,11 @@ router.get(
   JobController.getJobById,
 );
 router.get(
+  "/user/:id",
+  auth(Role.ADMIN, Role.USER),
+  JobController.getJobsByUserId,
+);
+router.get(
   "/:jobId/offers",
   auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
   JobController.getOffersByJobId,

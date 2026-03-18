@@ -215,6 +215,11 @@ const getJobById = async (id: string) => {
   const result = await prisma.job.findUniqueOrThrow({ where: { id }, include: { user: true, categories: true, offers: true, bookings: true, bike:true} });
   return result;
 };
+// get jobs by user id
+const getJobsByUserId = async (userId: string) => {
+  const result = await prisma.job.findMany({ where: { userId }, include: { user: true, categories: true, offers: true, bookings: true, bike:true} });
+  return result;
+};
 const getOffersByJobId = async (jobId: string, userId:string) => {
   const result = await prisma.jobOffer.findMany({ where: { jobId,job:{userId:userId} } });
   return result;
@@ -235,4 +240,5 @@ export const JobService = {
   getOffersByJobId,
   updateJobById,
   deleteJob,
+  getJobsByUserId,
 };

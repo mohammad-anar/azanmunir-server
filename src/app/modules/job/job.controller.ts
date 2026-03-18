@@ -66,6 +66,18 @@ const getJobById = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getJobsByUserId = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const result = await JobService.getJobsByUserId(id);
+
+  sendResponse(res, {
+    success: true,
+    message: "Job retrieved by user id successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
 const getOffersByJobId = catchAsync(async (req: Request, res: Response) => {
   const { jobId } = req.params;
   const { id:userId} = req.user;
@@ -113,4 +125,5 @@ export const JobController = {
   updateJobById,
   deleteJobById,
   getOffersByJobId,
+  getJobsByUserId,
 };
