@@ -19,6 +19,7 @@ import { PlatformDataRouter } from "../modules/platformData/platformData.routes.
 import { ServiceCategoryRouter } from "../modules/serviceCategory/serviceCategory.routes.js";
 import { ContactRouter } from "../modules/contact/contact.routes.js";
 import { WorkshopCategoryRouter } from "../modules/workshopCategory/workshopCategory.routes.js";
+import { WorkshopOpeningHourRouter } from "../modules/workshopOpeningHours/workshopOpeningHours.routes.js";
 
 const router = express.Router();
 
@@ -102,6 +103,10 @@ const moduleRoutes = [
   {
     path: "/workshop-category",
     route: WorkshopCategoryRouter,
+  },
+  {
+    path: "/workshop-opening-hour",
+    route: WorkshopOpeningHourRouter,
   },
 ];
 
