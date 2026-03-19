@@ -1,8 +1,8 @@
 model Room {
   id            String   @id @default(uuid())
 
-  bookingId     String   @unique
-  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId     String?  @unique
+  booking       Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   userId        String
   user          User     @relation("UserRooms", fields: [userId], references: [id], onDelete: Cascade)
@@ -23,10 +23,12 @@ model Room {
   messages      Message[]
 
   @@index([userId])
+
   @@index([workshopId])
   @@index([lastMessageAt])
   @@map("rooms")
 }
+
 
 
 model Message {
