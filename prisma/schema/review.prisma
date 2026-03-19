@@ -1,4 +1,3 @@
-
 model Review {
     id        String   @id @default(uuid())
     bookingId String   @unique
@@ -7,6 +6,8 @@ model Review {
     user      User     @relation(fields: [userId], references: [id])
     rating    Int
     comment   String?
+    isFlagged Boolean  @default(false)
+    isHidden  Boolean  @default(false)
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
