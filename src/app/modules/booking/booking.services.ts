@@ -118,7 +118,15 @@ const completeBooking = async (id: string) => {
       },
     });
 
-    // 2. Delete the room if it exists (using deleteMany to avoid error if not found)
+    // 2. Update job status to COMPLETED
+    await tx.job.update({
+      where: { id: updatedBooking.jobId },
+      data: {
+        status: "COMPLETED",
+      },
+    });
+
+    // 3. Delete the room if it exists (using deleteMany to avoid error if not found)
     await tx.room.deleteMany({
       where: { bookingId: id },
     });
