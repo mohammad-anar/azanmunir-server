@@ -214,6 +214,14 @@ const generateMonthlyInvoices = async () => {
   // Set due date to x days from now? Let's say 15th of current month
   const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
 
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const billingMonthName = monthNames[startOfPreviousMonth.getMonth()];
+  const billingYear = startOfPreviousMonth.getFullYear();
+  const title = `Invoice for ${billingMonthName} ${billingYear}`;
+
   for (const workshopId in workshopInvoiceData) {
     const data = workshopInvoiceData[workshopId];
 
@@ -231,8 +239,8 @@ const generateMonthlyInvoices = async () => {
         dueDate: dueDate,
       },
       create: {
+        title,
         workshopId,
-        title: "Monthly Invoice",
         billingMonth: startOfPreviousMonth,
         totalJobs: data.totalJobs,
         totalAmount: data.totalAmount,
