@@ -4,7 +4,6 @@ import { prisma } from "./prisma.js";
 import { Prisma } from "@prisma/client";
 import { ChatService } from "../app/modules/chat/chat.service.js";
 
-
 let io: Server | null = null;
 
 // Store multiple sockets per user/workshop
@@ -19,14 +18,20 @@ export const initSocket = (server: any) => {
   io.on("connection", (socket: Socket) => {
     console.log(colors.green("A user connected"));
 
+    // ================= REGISTER =================
     socket.on("register", (id: string) => {
+      if (!id) return;
+
       if (!socketMap.has(id)) socketMap.set(id, new Set());
       socketMap.get(id)!.add(socket.id);
+
       console.log(colors.blue(`Registered socket ${socket.id} for ID ${id}`));
     });
 
+    // ================= DISCONNECT =================
     socket.on("disconnect", () => {
       console.log(colors.red(`Socket disconnected: ${socket.id}`));
+
       for (const [id, sockets] of socketMap.entries()) {
         if (sockets.has(socket.id)) {
           sockets.delete(socket.id);
@@ -35,71 +40,138 @@ export const initSocket = (server: any) => {
       }
     });
 
-    // Chat Events
+    // ================= JOIN ROOM =================
     socket.on("join_room", (roomId: string) => {
+      if (!roomId) return;
       socket.join(roomId);
       console.log(colors.blue(`Socket ${socket.id} joined room ${roomId}`));
     });
 
+    // ================= LEAVE ROOM =================
     socket.on("leave_room", (roomId: string) => {
+      if (!roomId) return;
       socket.leave(roomId);
       console.log(colors.gray(`Socket ${socket.id} left room ${roomId}`));
     });
 
-    socket.on("send_message", async (data: { roomId: string, senderId: string, content: string, type?:any }) => {
+    // ================= SEND MESSAGE =================
+    socket.on("send_message", async (payload: any) => {
       try {
-        const message = await ChatService.saveMessage(data);
-        
-        // Broadcast to everyone in the room
-        io!.to(data.roomId).emit("receive_message", message);
-        
-        // Broadcast notification to users to update their room lists if they are online
-        const room = await ChatService.getRoomById(data.roomId);
-        if (room) {
-          const receiverId = room.userId === data.senderId ? room.workshopId : room.userId;
-          
-          // Create and emit chat notification
+        // 🔥 Ensure JSON object
+        let data = payload;
+        if (typeof payload === "string") {
+          data = JSON.parse(payload);
+        }
+
+        console.log("Incoming data:", data);
+
+        const { roomId, senderId, content, type } = data;
+
+        // ✅ Validation
+        if (!roomId || !senderId) {
+          return socket.emit("error", {
+            message: "roomId and senderId are required",
+          });
+        }
+
+        // ✅ Check room exists
+        const room = await prisma.room.findUnique({
+          where: { id: roomId },
+        });
+
+        if (!room) {
+          return socket.emit("error", {
+            message: "Room not found",
+          });
+        }
+
+        // ✅ Save message
+        const message = await prisma.message.create({
+          data: {
+            roomId,
+            senderId,
+            content,
+            type: type || "TEXT",
+          },
+        });
+
+        // ✅ Broadcast message
+        io!.to(roomId).emit("receive_message", message);
+
+        // ================= NOTIFICATION =================
+        const receiverId =
+          room.userId === senderId ? room.workshopId : room.userId;
+
+        if (receiverId) {
           await createAndEmitChatNotification({
-            chatRoomId: data.roomId,
+            chatRoomId: roomId,
             messageId: message.id,
-            triggeredById: data.senderId,
+            triggeredById: senderId,
             title: "New Message",
-            body: data.content,
-            receiverId: receiverId,
-            message: message // Pass message for socket payload consistency
+            body: content || "",
+            receiverId,
+            message,
           });
         }
 
       } catch (error) {
-        console.error("Error saving message", error);
+        console.error("❌ Error saving message:", error);
+
+        socket.emit("error", {
+          message: "Failed to send message",
+        });
       }
     });
 
-    socket.on("create_room", async (data: { workshopId: string, userId: string, bookingId?: string, name?: string }) => {
-      try {
-        const room = await ChatService.createRoom(data);
-        socket.join(room.id);
-        socket.emit("room_created", room);
-        console.log(colors.blue(`Room created/retrieved: ${room.id} for user ${data.userId} and workshop ${data.workshopId}`));
-      } catch (error) {
-        console.error("Error creating room", error);
-        socket.emit("error", { message: "Failed to create room" });
+    // ================= CREATE ROOM =================
+    socket.on(
+      "create_room",
+      async (data: {
+        workshopId: string;
+        userId: string;
+        bookingId?: string;
+        name?: string;
+      }) => {
+        try {
+          if (!data.workshopId || !data.userId) {
+            return socket.emit("error", {
+              message: "workshopId and userId required",
+            });
+          }
+
+          const room = await ChatService.createRoom(data);
+
+          socket.join(room.id);
+          socket.emit("room_created", room);
+
+          console.log(
+            colors.blue(
+              `Room created: ${room.id} (user: ${data.userId}, workshop: ${data.workshopId})`
+            )
+          );
+        } catch (error) {
+          console.error("Error creating room", error);
+
+          socket.emit("error", {
+            message: "Failed to create room",
+          });
+        }
       }
-    });
+    );
 
-    socket.on("typing", (data: { roomId: string, senderId: string, isTyping: boolean }) => {
-      socket.to(data.roomId).emit("user_typing", data);
-    });
-
+    // ================= TYPING =================
+    socket.on(
+      "typing",
+      (data: { roomId: string; senderId: string; isTyping: boolean }) => {
+        socket.to(data.roomId).emit("user_typing", data);
+      }
+    );
   });
 
   return io;
 };
 
-export const createRoom = async (data: { workshopId: string, userId: string, bookingId?: string, name?: string }) => {
-  return await ChatService.createRoom(data);
-};
-
+// ================= HELPERS =================
 
 export const getIO = () => {
   if (!io) throw new Error("Socket.io not initialized!");
@@ -110,87 +182,61 @@ export const getSocketIds = (id: string) => {
   return Array.from(socketMap.get(id) || []);
 };
 
-// ---------------- Fixed createAndEmitNotification ----------------
-export interface NotificationData extends Prisma.NotificationCreateInput {
-  workshopIds?: string[];
-  userId?: string;
-}
+// ================= CHAT NOTIFICATION =================
 
-export const createAndEmitNotification = async (data: NotificationData) => {
-  // Map our custom type to Prisma's NotificationCreateInput
-  const prismaData: Prisma.NotificationCreateInput = {
-    title: data.title,
-    body: data.body,
-    isRead: data.isRead,
-    receiverUserId: data.receiverUserId,
-    receiverWorkshopId: data.receiverWorkshopId,
-    triggeredById: data.triggeredById,
-    jobId: data.jobId,
-    bookingId: data.bookingId,
-    invoiceId: data.invoiceId,
-    eventType: data.eventType,
-  };
-
-  // 1️⃣ Create notification in database
+export const createAndEmitNotification = async (data: Prisma.NotificationCreateInput) => {
   const notification = await prisma.notification.create({
-    data: prismaData,
+    data,
   });
 
   const io = getIO();
 
-  // 2️⃣ Collect all target IDs for emission
-  const workshopTargets = new Set<string>();
-  if (data.workshopIds) data.workshopIds.forEach(id => workshopTargets.add(id));
-  if (data.receiverWorkshopId) workshopTargets.add(data.receiverWorkshopId);
-
-  const userTargets = new Set<string>();
-  if (data.userId) userTargets.add(data.userId);
-  if (data.receiverUserId) userTargets.add(data.receiverUserId);
-
-  // 3️⃣ Emit to workshop sockets
-  workshopTargets.forEach((workshopId) => {
-    const socketIds = getSocketIds(workshopId);
-    socketIds.forEach((socketId) => {
-      io.to(socketId).emit("notification", notification);
+  if (data.receiverUserId) {
+    const sockets = getSocketIds(data.receiverUserId);
+    sockets.forEach((id) => {
+      io.to(id).emit("notification", notification);
     });
-  });
+  }
 
-  // 4️⃣ Emit to user sockets
-  userTargets.forEach((userId) => {
-    const socketIds = getSocketIds(userId);
-    socketIds.forEach((socketId) => {
-      io.to(socketId).emit("notification", notification);
+  if (data.receiverWorkshopId) {
+    const sockets = getSocketIds(data.receiverWorkshopId);
+    sockets.forEach((id) => {
+      io.to(id).emit("notification", notification);
     });
-  });
+  }
 
   return notification;
 };
 
-// ---------------- Chat Notification Helper ----------------
-export interface ChatNotificationData extends Prisma.ChatNotificationCreateInput {
-  receiverId: string; // Required for socket emission
-  message?: any; // Optional full message object for socket payload
+export interface ChatNotificationData
+  extends Prisma.ChatNotificationCreateInput {
+  receiverId: string;
+  message?: any;
 }
 
-export const createAndEmitChatNotification = async (data: ChatNotificationData) => {
+export const createAndEmitChatNotification = async (
+  data: ChatNotificationData
+) => {
   const { receiverId, message, ...prismaPayload } = data;
 
-  // 1️⃣ Create chat notification in database
   const notification = await prisma.chatNotification.create({
     data: prismaPayload,
   });
 
   const io = getIO();
 
-  // 2️⃣ Emit to receiver sockets
   const socketIds = getSocketIds(receiverId);
+
   socketIds.forEach((socketId) => {
     io.to(socketId).emit("chat_notification", notification);
-    
-    // Maintain backward compatibility for room list updates
+
     io.to(socketId).emit("new_message_notification", {
       roomId: notification.chatRoomId,
-      message: message || { id: notification.messageId, content: notification.body },
+      message:
+        message || {
+          id: notification.messageId,
+          content: notification.body,
+        },
       notification,
     });
   });

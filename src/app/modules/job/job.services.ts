@@ -3,6 +3,7 @@ import { prisma } from "../../../helpers.ts/prisma.js";
 import { createAndEmitNotification } from "../../../helpers.ts/socketHelper.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import unlinkFile, { extractPathFromUrl } from "../../shared/unlinkFile.js";
 
 // const createJob = async (userId: string, payload: any) => {
 //   const { categories, ...jobData } = payload;
@@ -56,8 +57,9 @@ import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
 
 const createJob = async (userId: string, payload: any) => {
   const { categories, ...jobData } = payload;
+  let workshopIds: string[] = [];
 
-  return await prisma.$transaction(async (tx) => {
+  const job = await prisma.$transaction(async (tx) => {
     // 1️⃣ Create Job
     const job = await tx.job.create({
       data: {
@@ -89,21 +91,29 @@ const createJob = async (userId: string, payload: any) => {
       )
     `;
 
-    const workshopIds = nearbyWorkshops.map((w) => w.id);
-
-    // 4️⃣ Send Notifications via Socket
-    if (workshopIds.length > 0) {
-      await createAndEmitNotification({
-        workshopIds,
-        jobId: job.id,
-        title: "New Job Nearby",
-        body: "A new bike service job is available in your area.",
-        eventType: "NEW_JOB_POSTED",
-      });
-    }
+    workshopIds = nearbyWorkshops.map((w) => w.id);
 
     return job;
   });
+
+  // 4️⃣ Send Notifications via Socket (Moved outside transaction)
+  if (workshopIds.length > 0) {
+    Promise.all(
+      workshopIds.map((workshopId: string) =>
+        createAndEmitNotification({
+          receiverWorkshopId: workshopId,
+          jobId: job.id,
+          title: "New Job Nearby",
+          body: "A new bike service job is available in your area.",
+          eventType: "NEW_JOB_POSTED",
+        }),
+      ),
+    ).catch((error) => {
+      console.error("Failed to send notifications:", error);
+    });
+  }
+
+  return job;
 };
 
 const getAllJobs = async (
@@ -228,8 +238,27 @@ const updateJobById = async (id: string, userId:string, payload: Prisma.JobUpdat
   const result = await prisma.job.update({ where: { id,userId }, data: payload });
   return result;
 };
-const deleteJob = async (id: string, userId:string) => {
-  const result = await prisma.job.delete({ where: { id,userId } });
+const deleteJob = async (id: string, userId: string) => {
+  // 1. Fetch the job to get the photos
+  const job = await prisma.job.findUnique({
+    where: { id, userId },
+    select: { photos: true },
+  });
+
+  if (job && job.photos && job.photos.length > 0) {
+    // 2. Unlink each photo
+    job.photos.forEach((photoUrl: string) => {
+      try {
+        const path = extractPathFromUrl(photoUrl);
+        unlinkFile(path);
+      } catch (error) {
+        console.error(`Failed to unlink file: ${photoUrl}`, error);
+      }
+    });
+  }
+
+  // 3. Delete the job from database
+  const result = await prisma.job.delete({ where: { id, userId } });
   return result;
 };
 
