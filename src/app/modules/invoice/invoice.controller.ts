@@ -16,7 +16,7 @@ const createInvoice = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllInvoices = catchAsync(async (req: Request, res: Response) => {
-  const filters = pick(req.query, ["status"]);
+  const filters = pick(req.query, ["status", "month", "searchTerm"]);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
   const result = await InvoiceService.getAllInvoices(filters, options);
 
@@ -84,7 +84,8 @@ const getInvoicesByWorkshopId = catchAsync(
 
 const generateMonthlyInvoices = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await InvoiceService.generateMonthlyInvoices();
+    const { month } = req.body;
+    const result = await InvoiceService.generateMonthlyInvoices(month);
 
     sendResponse(res, {
       statusCode: 201,
