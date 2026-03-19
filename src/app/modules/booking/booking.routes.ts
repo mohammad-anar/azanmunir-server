@@ -35,6 +35,24 @@ router.get(
 ); 
 
 router.get(
+  "/weekly/workshop/:workshopId",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  BookingController.getWeeklyBookings,
+);
+
+router.get(
+  "/monthly/workshop/:workshopId",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  BookingController.getMonthlyBookings,
+);
+
+router.get(
+  "/daily/workshop/:workshopId",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  BookingController.getDailyBookings,
+);
+
+router.get(
   "/:id/reviews",
   auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
   BookingController.getReviewByBookingId,

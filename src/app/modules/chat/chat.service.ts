@@ -5,7 +5,7 @@ import ApiError from "../../../errors/ApiError.js";
 
 const createRoom = async (
   payload: {
-    bookingId: string;
+    bookingId?: string;
     userId: string;
     workshopId: string;
     name?: string;
@@ -13,21 +13,38 @@ const createRoom = async (
   tx?: any,
 ) => {
   const client = tx || prisma;
-  // Check if room already exists for this booking
-  const existingRoom = await client.room.findUnique({
-    where: { bookingId: payload.bookingId },
-  });
 
-  if (existingRoom) {
-    return existingRoom;
+  if (payload.bookingId) {
+    // Check if room already exists for this booking
+    const existingRoom = await client.room.findUnique({
+      where: { bookingId: payload.bookingId },
+    });
+
+    if (existingRoom) {
+      return existingRoom;
+    }
+  } else {
+    // Check if room already exists for this user-workshop pair without a booking
+    const existingRoom = await client.room.findFirst({
+      where: {
+        userId: payload.userId,
+        workshopId: payload.workshopId,
+        bookingId: null,
+      },
+    });
+
+    if (existingRoom) {
+      return existingRoom;
+    }
   }
 
   const result = await client.room.create({
-    data: payload,
+    data: payload as any,
   });
 
   return result;
 };
+
 
 const getRoomById = async (id: string) => {
   const result = await prisma.room.findUniqueOrThrow({
@@ -180,12 +197,32 @@ const markMessagesAsRead = async (roomId: string, senderId: string) => {
   return result;
 };
 
+const getRoomByBookingId = async (bookingId: string) => {
+  const result = await prisma.room.findUnique({
+    where: { bookingId },
+    include: {
+      user: { select: { id: true, name: true, avatar: true } },
+      workshop: { select: { id: true, workshopName: true, avatar: true } },
+      booking: true,
+      lastMessage: {
+        include: {
+          sender: { select: { id: true, name: true, avatar: true } },
+        },
+      },
+    },
+  });
+
+  return result;
+};
+
 export const ChatService = {
   createRoom,
   getRoomById,
+  getRoomByBookingId,
   getUserRooms,
   getWorkshopRooms,
   getRoomMessages,
   saveMessage,
   markMessagesAsRead,
 };
+

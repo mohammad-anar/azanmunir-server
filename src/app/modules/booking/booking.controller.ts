@@ -170,6 +170,45 @@ const cancelBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getWeeklyBookings = catchAsync(async (req: Request, res: Response) => {
+  const { workshopId } = req.params;
+  const { date, filterBy } = req.query as { date: string; filterBy: "scheduleStart" | "createdAt" };
+  const result = await BookingService.getWeeklyBookings(workshopId, date, filterBy);
+
+  sendResponse(res, {
+    success: true,
+    message: "Weekly bookings retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const getMonthlyBookings = catchAsync(async (req: Request, res: Response) => {
+  const { workshopId } = req.params;
+  const { date, filterBy } = req.query as { date: string; filterBy: "scheduleStart" | "createdAt" };
+  const result = await BookingService.getMonthlyBookings(workshopId, date, filterBy);
+
+  sendResponse(res, {
+    success: true,
+    message: "Monthly bookings retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
+const getDailyBookings = catchAsync(async (req: Request, res: Response) => {
+  const { workshopId } = req.params;
+  const { date, filterBy } = req.query as { date: string; filterBy: "scheduleStart" | "createdAt" };
+  const result = await BookingService.getDailyBookings(workshopId, date, filterBy);
+
+  sendResponse(res, {
+    success: true,
+    message: "Daily bookings retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+
 export const BookingController = {
   createBooking,
   getAllBookings,
@@ -183,5 +222,8 @@ export const BookingController = {
   markPaymentStatusPaid,
   cancelBooking,
   getBookingsByUserId,
-    getBookingsByWorkshopId,
+  getBookingsByWorkshopId,
+  getWeeklyBookings,
+  getMonthlyBookings,
+  getDailyBookings,
 };

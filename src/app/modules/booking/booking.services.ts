@@ -182,6 +182,106 @@ const cancelBooking = async (id: string) => {
   return result;
 };
 
+const getWeeklyBookings = async (
+  workshopId: string,
+  date?: string,
+  filterBy: "scheduleStart" | "createdAt" = "scheduleStart",
+) => {
+  const targetDate = date ? new Date(date) : new Date();
+
+  // Find Monday of the week
+  const day = targetDate.getDay(); // 0 (Sun) to 6 (Sat)
+  const diff = targetDate.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+  const startOfWeek = new Date(targetDate.setDate(diff));
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 7);
+
+  const result = await prisma.booking.findMany({
+    where: {
+      workshopId,
+      [filterBy]: {
+        gte: startOfWeek,
+        lt: endOfWeek,
+      },
+    },
+    include: {
+      job: true,
+      offer: true,
+      user: true,
+    },
+    orderBy: {
+      [filterBy]: "asc",
+    },
+  });
+
+  return result;
+};
+
+const getMonthlyBookings = async (
+  workshopId: string,
+  date?: string,
+  filterBy: "scheduleStart" | "createdAt" = "scheduleStart",
+) => {
+  const targetDate = date ? new Date(date) : new Date();
+  const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+  const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+
+  const result = await prisma.booking.findMany({
+    where: {
+      workshopId,
+      [filterBy]: {
+        gte: startOfMonth,
+        lt: endOfMonth,
+      },
+    },
+    include: {
+      job: true,
+      offer: true,
+      user: true,
+    },
+    orderBy: {
+      [filterBy]: "asc",
+    },
+  });
+
+  return result;
+};
+
+const getDailyBookings = async (
+  workshopId: string,
+  date?: string,
+  filterBy: "scheduleStart" | "createdAt" = "scheduleStart",
+) => {
+  const targetDate = date ? new Date(date) : new Date();
+  const startOfDay = new Date(targetDate);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(startOfDay.getDate() + 1);
+
+  const result = await prisma.booking.findMany({
+    where: {
+      workshopId,
+      [filterBy]: {
+        gte: startOfDay,
+        lt: endOfDay,
+      },
+    },
+    include: {
+      job: true,
+      offer: true,
+      user: true,
+    },
+    orderBy: {
+      [filterBy]: "asc",
+    },
+  });
+
+  return result;
+};
+
 export const BookingService = {
   createBookings,
   getAllBookings,
@@ -195,5 +295,8 @@ export const BookingService = {
   markPaymentStatusPaid,
   cancelBooking,
   getBookingsByUserId,
-    getBookingsByWorkshopId,
+  getBookingsByWorkshopId,
+  getWeeklyBookings,
+  getMonthlyBookings,
+  getDailyBookings,
 };

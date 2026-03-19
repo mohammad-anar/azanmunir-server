@@ -16,7 +16,7 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllReviews = catchAsync(async (req: Request, res: Response) => {
-  const filters = pick(req.query, ["searchTerm"]);
+  const filters = pick(req.query, ["searchTerm", "isFlagged", "isHidden", "rating", "workshopId"]);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
   const result = await ReviewService.getAllReviews(filters, options);
 
@@ -93,6 +93,32 @@ const getReviewsByUserId = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const flagReview = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { isFlagged } = req.body;
+  const result = await ReviewService.flagReview(id, isFlagged);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Review flagged status updated",
+    data: result,
+  });
+});
+
+const hideReview = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { isHidden } = req.body;
+  const result = await ReviewService.hideReview(id, isHidden);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Review hidden status updated",
+    data: result,
+  });
+});
+
 export const ReviewController = {
   createReview,
   getAllReviews,
@@ -101,4 +127,6 @@ export const ReviewController = {
   deleteReview,
   getReviewsByWorkshopId,
   getReviewsByUserId,
+  flagReview,
+  hideReview,
 };

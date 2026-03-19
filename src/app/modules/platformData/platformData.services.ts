@@ -1,24 +1,30 @@
 import { prisma } from "src/helpers.ts/prisma.js";
 import { IPlatformDataUpdatePayload } from "./platformData.interface.js";
+import { Prisma } from "@prisma/client";
 
-// Ensures only one PlatformData record exists (singleton pattern)
-const getPlatformData = async () => {
-  let platformData = await prisma.platformData.findFirst();
-
-  if (!platformData) {
-    platformData = await prisma.platformData.create({
-      data: {
-        platformFee: 0,
-        maximumJobRadius: 0,
-      },
-    });
+const createPlatformData = async (payload: { platformFee: number; maximumJobRadius: number }) => {
+  const existing = await prisma.platformData.findFirst();
+  if (existing) {
+    throw new Error("Platform data already exists");
   }
 
+  const result = await prisma.platformData.create({
+    data: payload,
+  });
+
+  return result;
+};
+
+const getPlatformData = async () => {
+  const platformData = await prisma.platformData.findFirst();
   return platformData;
 };
 
 const updatePlatformData = async (payload: IPlatformDataUpdatePayload) => {
   const existing = await getPlatformData();
+  if (!existing) {
+    throw new Error("Platform data not found");
+  }
 
   const result = await prisma.platformData.update({
     where: { id: existing.id },
@@ -29,6 +35,7 @@ const updatePlatformData = async (payload: IPlatformDataUpdatePayload) => {
 };
 
 export const PlatformDataService = {
+  createPlatformData,
   getPlatformData,
   updatePlatformData,
 };

@@ -12,7 +12,13 @@ const createReview = async (payload: Prisma.ReviewCreateInput) => {
 };
 
 const getAllReviews = async (
-  filter: { searchTerm?: string },
+  filter: { 
+    searchTerm?: string; 
+    isFlagged?: boolean; 
+    isHidden?: boolean; 
+    rating?: number;
+    workshopId?: string;
+  },
   options: IPaginationOptions,
 ) => {
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
@@ -21,12 +27,42 @@ const getAllReviews = async (
 
   if (filter.searchTerm) {
     andConditions.push({
-      OR: ["title", "subTitle"].map((field) => ({
-        [field]: {
-          contains: filter.searchTerm,
-          mode: "insensitive",
+      OR: [
+        {
+          comment: {
+            contains: filter.searchTerm,
+            mode: "insensitive",
+          },
         },
-      })),
+        {
+          user: {
+            name: {
+              contains: filter.searchTerm,
+              mode: "insensitive",
+            },
+          },
+        },
+      ],
+    });
+  }
+
+  if (filter.isFlagged !== undefined) {
+    andConditions.push({ isFlagged: filter.isFlagged });
+  }
+
+  if (filter.isHidden !== undefined) {
+    andConditions.push({ isHidden: filter.isHidden });
+  }
+
+  if (filter.rating !== undefined) {
+    andConditions.push({ rating: Number(filter.rating) });
+  }
+
+  if (filter.workshopId) {
+    andConditions.push({
+      booking: {
+        workshopId: filter.workshopId,
+      },
     });
   }
 
@@ -130,6 +166,7 @@ const getReviewsByUserId = async (userId: string) => {
   const result = await prisma.review.findMany({
     where: {
       userId,
+      isHidden: false, // Don't show hidden reviews to users
     },
     include: {
       booking: true,
@@ -142,6 +179,22 @@ const getReviewsByUserId = async (userId: string) => {
   return result;
 };
 
+const flagReview = async (id: string, isFlagged: boolean) => {
+  const result = await prisma.review.update({
+    where: { id },
+    data: { isFlagged },
+  });
+  return result;
+};
+
+const hideReview = async (id: string, isHidden: boolean) => {
+  const result = await prisma.review.update({
+    where: { id },
+    data: { isHidden },
+  });
+  return result;
+};
+
 export const ReviewService = {
   createReview,
   getAllReviews,
@@ -150,4 +203,6 @@ export const ReviewService = {
   deleteReview,
   getReviewsByWorkshopId,
   getReviewsByUserId,
+  flagReview,
+  hideReview,
 };

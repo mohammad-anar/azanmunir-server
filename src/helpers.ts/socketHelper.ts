@@ -75,6 +75,18 @@ export const initSocket = (server: any) => {
       }
     });
 
+    socket.on("create_room", async (data: { workshopId: string, userId: string, bookingId?: string, name?: string }) => {
+      try {
+        const room = await ChatService.createRoom(data);
+        socket.join(room.id);
+        socket.emit("room_created", room);
+        console.log(colors.blue(`Room created/retrieved: ${room.id} for user ${data.userId} and workshop ${data.workshopId}`));
+      } catch (error) {
+        console.error("Error creating room", error);
+        socket.emit("error", { message: "Failed to create room" });
+      }
+    });
+
     socket.on("typing", (data: { roomId: string, senderId: string, isTyping: boolean }) => {
       socket.to(data.roomId).emit("user_typing", data);
     });
@@ -83,6 +95,11 @@ export const initSocket = (server: any) => {
 
   return io;
 };
+
+export const createRoom = async (data: { workshopId: string, userId: string, bookingId?: string, name?: string }) => {
+  return await ChatService.createRoom(data);
+};
+
 
 export const getIO = () => {
   if (!io) throw new Error("Socket.io not initialized!");

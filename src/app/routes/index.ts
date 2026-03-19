@@ -20,6 +20,7 @@ import { ServiceCategoryRouter } from "../modules/serviceCategory/serviceCategor
 import { ContactRouter } from "../modules/contact/contact.routes.js";
 import { WorkshopCategoryRouter } from "../modules/workshopCategory/workshopCategory.routes.js";
 import { WorkshopOpeningHourRouter } from "../modules/workshopOpeningHours/workshopOpeningHours.routes.js";
+import { ActivityRouter } from "../modules/activity/activity.routes.js";
 
 const router = express.Router();
 
@@ -107,6 +108,10 @@ const moduleRoutes = [
   {
     path: "/workshop-opening-hour",
     route: WorkshopOpeningHourRouter,
+  },
+  {
+    path: "/activity",
+    route: ActivityRouter,
   },
 ];
 

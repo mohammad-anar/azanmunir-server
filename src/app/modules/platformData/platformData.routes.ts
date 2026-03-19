@@ -7,8 +7,24 @@ import { PlatformDataValidation } from "./platformData.validation.js";
 
 const router = express.Router();
 
-// Public: anyone can GET the platform settings (e.g. for fee display)
-router.get("/", PlatformDataController.getPlatformData);
+// Admin-only: GET platform settings
+router.get("/", auth(Role.ADMIN), PlatformDataController.getPlatformData);
+
+// Admin-only: create platform data
+router.post(
+  "/",
+  auth(Role.ADMIN),
+  validateRequest(PlatformDataValidation.update), // reusing same validation for simplicity OR add a create one
+  PlatformDataController.createPlatformData,
+);
+
+// Admin-only: create platform data
+router.post(
+  "/",
+  auth(Role.ADMIN),
+  validateRequest(PlatformDataValidation.create),
+  PlatformDataController.createPlatformData,
+);
 
 // Admin-only: update platform fee and maximum job radius
 router.patch(

@@ -26,4 +26,16 @@ router.delete("/:id", auth(Role.ADMIN, Role.USER), ReviewController.deleteReview
 router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), ReviewController.getReviewsByWorkshopId);
 router.get("/user/:userId", auth(Role.ADMIN, Role.USER), ReviewController.getReviewsByUserId);
 
+router.patch(
+  "/flag/:id",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  ReviewController.flagReview
+);
+
+router.patch(
+  "/hide/:id",
+  auth(Role.ADMIN),
+  ReviewController.hideReview
+);
+
 export const ReviewRouter = router;

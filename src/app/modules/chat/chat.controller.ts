@@ -73,10 +73,24 @@ const markMessagesAsRead = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getRoomByBookingId = catchAsync(async (req: Request, res: Response) => {
+  const { bookingId } = req.params;
+  const result = await ChatService.getRoomByBookingId(bookingId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Room retrieved successfully",
+    data: result,
+  });
+});
+
 export const ChatController = {
   createRoom,
   getRoomById,
   getMyRooms,
   getRoomMessages,
   markMessagesAsRead,
+  getRoomByBookingId,
 };
+
