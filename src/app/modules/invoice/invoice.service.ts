@@ -232,6 +232,7 @@ const generateMonthlyInvoices = async () => {
       },
       create: {
         workshopId,
+        title: "Monthly Invoice",
         billingMonth: startOfPreviousMonth,
         totalJobs: data.totalJobs,
         totalAmount: data.totalAmount,
