@@ -32,8 +32,12 @@ const getUserAnalytics = async (userId: string) => {
 const getWorkshopAnalytics = async (workshopId: string) => {
   const workshop = await prisma.workshop.findUnique({
     where: { id: workshopId },
-    select: { avgRating: true, reviewsCount: true }
+    select: { avgRating: true, reviewsCount: true, platformFees: true }
   });
+
+  const platformData = await prisma.platformData.findFirst();
+  const globalFee = platformData?.platformFee || 0;
+  const effectiveFeeRate = workshop?.platformFees ?? globalFee;
 
   const totalOffersMade = await prisma.jobOffer.count({ where: { workshopId } });
   
@@ -45,31 +49,57 @@ const getWorkshopAnalytics = async (workshopId: string) => {
   });
 
   const totalBookings = bookings.length;
+  const conversionRate = totalOffersMade > 0 ? (totalBookings / totalOffersMade) * 100 : 0;
   
   const activeBookings = bookings.filter((b) => b.status === "CONFIRMED" || b.status === "IN_PROGRESS").length;
-  const completedBookings = bookings.filter((b) => b.status === "COMPLETED").length;
+  const completedBookings = bookings.filter((b) => b.status === "COMPLETED");
+  const completedBookingsCount = completedBookings.length;
   
-  const totalRevenue = bookings
-    .filter((b) => b.status === "COMPLETED")
-    .reduce((sum, b) => sum + (b.offer?.price || 0), 0);
+  const totalRevenue = completedBookings.reduce((sum, b) => sum + (b.offer?.price || 0), 0);
+  const avgJobValue = completedBookingsCount > 0 ? totalRevenue / completedBookingsCount : 0;
+
+  const platformFees = totalRevenue * (effectiveFeeRate / 100);
+  const workshopRevenue = totalRevenue - platformFees;
 
   return {
     totalOffersMade,
     totalBookings,
+    conversionRate: parseFloat(conversionRate.toFixed(2)),
     activeBookings,
-    completedBookings,
+    completedBookings: completedBookingsCount,
     totalRevenue,
+    avgJobValue: parseFloat(avgJobValue.toFixed(2)),
+    platformFees: parseFloat(platformFees.toFixed(2)),
+    workshopRevenue: parseFloat(workshopRevenue.toFixed(2)),
     avgRating: workshop?.avgRating || 0,
     reviewsCount: workshop?.reviewsCount || 0,
   };
 };
 
 const getAdminAnalytics = async () => {
-  const totalUsers = await prisma.user.count({ where: { role: "USER" } });
-  const totalWorkshops = await prisma.workshop.count();
+  const now = new Date();
+  const startOfToday = new Date(new Date(now).setHours(0, 0, 0, 0));
   
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const startOfWeek = new Date(new Date(now).setDate(diff));
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const totalUsers = await prisma.user.count({ where: { role: "USER" } });
+  const activeUsers = await prisma.user.count({ where: { role: "USER", status: "ACTIVE" } });
+  
+  const totalWorkshops = await prisma.workshop.count();
+  const approvedWorkshops = await prisma.workshop.count({ where: { approvalStatus: "APPROVED" } });
+  const pendingWorkshops = await prisma.workshop.count({ where: { approvalStatus: "PENDING" } });
+
   const totalJobs = await prisma.job.count();
+  const jobsToday = await prisma.job.count({ where: { createdAt: { gte: startOfToday } } });
+  const jobsThisWeek = await prisma.job.count({ where: { createdAt: { gte: startOfWeek } } });
+
   const totalBookings = await prisma.booking.count();
+  const bookingsCompletedThisWeek = await prisma.booking.count({ 
+    where: { status: "COMPLETED", updatedAt: { gte: startOfWeek } } 
+  });
   
   const completedBookings = await prisma.booking.findMany({
     where: { status: "COMPLETED" },
@@ -108,10 +138,19 @@ const getAdminAnalytics = async () => {
   return {
     overview: {
       totalUsers,
+      activeUsers,
       totalWorkshops,
+      approvedWorkshops,
+      pendingWorkshops,
       totalJobs,
       totalBookings,
+      bookingsCompletedThisWeek,
       totalPlatformRevenue,
+    },
+    jobBreakdown: {
+      today: jobsToday,
+      thisWeek: jobsThisWeek,
+      total: totalJobs,
     },
     statusBreakdowns: {
       workshops: workshopsByStatus,
@@ -120,6 +159,7 @@ const getAdminAnalytics = async () => {
     }
   };
 };
+
 
 const getMonthlyReport = async (year: number, month: number) => {
   const startDate = new Date(year, month - 1, 1);
