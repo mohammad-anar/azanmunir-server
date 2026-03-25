@@ -6,6 +6,8 @@ import { UserService } from "./user.service.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import pick from "src/helpers.ts/pick.js";
 import { Prisma, UserStatus } from "@prisma/client";
+import { prisma } from "src/helpers.ts/prisma.js";
+import ApiError from "src/errors/ApiError.js";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload: Prisma.UserCreateInput = req.body;
@@ -88,7 +90,11 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
 });
 const banUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await UserService.updateUser(id, {
+  const isExist = await prisma.user.findUnique({ where: { id } });
+  if (!isExist) {
+    throw new ApiError(404, "User not found");
+  }
+  const result = await UserService.updateUser(isExist?.email as string, {
     status: UserStatus.BANNED,
   });
 
@@ -101,13 +107,17 @@ const banUser = catchAsync(async (req: Request, res: Response) => {
 });
 const unBanUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await UserService.updateUser(id, {
+  const isExist = await prisma.user.findUnique({ where: { id } });
+  if (!isExist) {
+    throw new ApiError(404, "User not found");
+  }
+  const result = await UserService.updateUser(isExist?.email as string, {
     status: UserStatus.ACTIVE,
   });
 
   sendResponse(res, {
     success: true,
-    message: "User banned successfully",
+    message: "User unbanned successfully",
     statusCode: 200,
     data: result,
   });
