@@ -3,7 +3,9 @@ import { prisma } from "../../../helpers.ts/prisma.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
 
-const createInvoice = async (payload: Prisma.InvoiceCreateInput & { month?: string }) => {
+const createInvoice = async (
+  payload: Prisma.InvoiceCreateInput & { month?: string },
+) => {
   const payloadData = payload as any;
   const workshopId = payloadData.workshopId;
   const month = payloadData.month;
@@ -20,7 +22,9 @@ const createInvoice = async (payload: Prisma.InvoiceCreateInput & { month?: stri
     // Fetch platform data for default platform fee
     const platformData = await prisma.platformData.findFirst();
     if (!platformData) {
-      throw new Error("Platform data not found. Please set platform fee first.");
+      throw new Error(
+        "Platform data not found. Please set platform fee first.",
+      );
     }
 
     // Fetch all completed bookings for this workshop in the specified month
@@ -33,7 +37,6 @@ const createInvoice = async (payload: Prisma.InvoiceCreateInput & { month?: stri
           gte: startOfMonth,
           lte: endOfMonth,
         },
-        
       },
       include: {
         offer: true,
@@ -48,17 +51,32 @@ const createInvoice = async (payload: Prisma.InvoiceCreateInput & { month?: stri
     let totalAmount = 0;
     completedBookings.forEach((booking) => {
       const price = booking.offer.price || 0;
-      const effectiveFee = booking.workshop.platformFees ?? platformData.platformFee;
+      const effectiveFee =
+        booking.workshop.platformFees ?? platformData.platformFee;
       totalAmount += price * (effectiveFee / 100);
     });
 
     const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const billingMonthName = monthNames[startOfMonth.getMonth()];
     const title = `Invoice for ${billingMonthName} ${yearPart}`;
-    const dueDate = new Date(new Date().getFullYear(), new Date().getMonth(), 15);
+    const dueDate = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      15,
+    );
 
     // Clean up payload to avoid Prisma validation errors if 'month' is not in schema
     const { month: _, ...prismaPayload } = payloadData;
@@ -113,7 +131,7 @@ const createInvoice = async (payload: Prisma.InvoiceCreateInput & { month?: stri
 
   // Determine platform fee: workshop specific or default from platformData
   const effectiveFee = workshop.platformFees ?? platformData.platformFee;
-  
+
   // Calculate total amount as the fee based on the provided totalAmount (assuming input is gross amount)
   const calculatedAmount = inputAmount * (effectiveFee / 100);
 
@@ -126,9 +144,6 @@ const createInvoice = async (payload: Prisma.InvoiceCreateInput & { month?: stri
 
   return result;
 };
-
-
-
 
 const getAllInvoices = async (
   filter: { searchTerm?: string; month?: string; status?: string },
@@ -200,6 +215,7 @@ const getAllInvoices = async (
           approvalStatus: true,
           avatar: true,
           avgRating: true,
+          platformFees: true,
         },
       },
     },
@@ -252,8 +268,6 @@ const updateInvoice = async (
 
   return result;
 };
-
-
 
 const deleteInvoice = async (id: string) => {
   const result = await prisma.invoice.delete({
@@ -351,7 +365,8 @@ const generateMonthlyInvoices = async (month?: string) => {
     const price = booking.offer.price || 0;
 
     // Determine platform fee: workshop specific or default from platformData
-    const effectiveFee = booking.workshop.platformFees ?? platformData.platformFee;
+    const effectiveFee =
+      booking.workshop.platformFees ?? platformData.platformFee;
     const amount = price * (effectiveFee / 100);
 
     if (!workshopInvoiceData[workshopId]) {
@@ -369,8 +384,18 @@ const generateMonthlyInvoices = async (month?: string) => {
   const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
 
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const billingMonthName = monthNames[startOfMonth.getMonth()];
   const billingYear = startOfMonth.getFullYear();

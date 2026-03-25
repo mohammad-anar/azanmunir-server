@@ -12,10 +12,10 @@ const createReview = async (payload: Prisma.ReviewCreateInput) => {
 };
 
 const getAllReviews = async (
-  filter: { 
-    searchTerm?: string; 
-    isFlagged?: boolean; 
-    isHidden?: boolean; 
+  filter: {
+    searchTerm?: string;
+    isFlagged?: boolean;
+    isHidden?: boolean;
     rating?: number;
     workshopId?: string;
   },
@@ -74,18 +74,14 @@ const getAllReviews = async (
     skip,
     take: limit,
     include: {
-      booking: true,
       user: {
         select: {
           id: true,
           name: true,
-          email: true,
-          avatar: true,
-          address: true,
-          phone: true,
-          country: true,
-          updatedAt: true,
         },
+      },
+      booking: {
+        select: { workshop: { select: { workshopName: true } } },
       },
     },
     orderBy:

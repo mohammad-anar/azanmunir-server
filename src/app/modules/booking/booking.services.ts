@@ -33,10 +33,21 @@ const getAllBookings = async (
     where: whereConditions,
     skip,
     take: limit,
-    include: {
-      job: true,
-      offer: true,
-      review: true,
+    select: {
+      id: true,
+      createdAt: true,
+      jobId: true,
+      offerId: true,
+      scheduleEnd: true,
+      paymentStatus: true,
+      scheduleStart: true,
+      status: true,
+      userId: true,
+      updatedAt: true,
+      workshopId: true,
+      offer: { select: { price: true } },
+      user: { select: { name: true } },
+      workshop: { select: { workshopName: true } },
     },
     orderBy:
       options.sortBy && options.sortOrder
@@ -65,21 +76,30 @@ const getAllBookings = async (
   };
 };
 const getBookingsById = async (id: string) => {
-  const result = await prisma.booking.findUniqueOrThrow({ where: { id }, include: { job: true, offer: true, review: true, workshop: true , user:true} });
+  const result = await prisma.booking.findUniqueOrThrow({
+    where: { id },
+    include: {
+      job: true,
+      offer: true,
+      review: true,
+      workshop: true,
+      user: true,
+    },
+  });
   return result;
 };
 
-// get all bookings by user id 
-const getBookingsByUserId = async (userId:string) => {
-    const result = await prisma.booking.findMany({ where: { userId } });
-    return result;
+// get all bookings by user id
+const getBookingsByUserId = async (userId: string) => {
+  const result = await prisma.booking.findMany({ where: { userId } });
+  return result;
 };
 
-// get all bookings by workshop id 
-const getBookingsByWorkshopId = async (workshopId:string) => {
-    const result = await prisma.booking.findMany({ where: { workshopId } });
-    return result;
-}; 
+// get all bookings by workshop id
+const getBookingsByWorkshopId = async (workshopId: string) => {
+  const result = await prisma.booking.findMany({ where: { workshopId } });
+  return result;
+};
 
 const getReviewByBookingId = async (bookingId: string) => {
   const result = await prisma.review.findUnique({
@@ -233,8 +253,16 @@ const getMonthlyBookings = async (
   filterBy: "scheduleStart" | "createdAt" = "scheduleStart",
 ) => {
   const targetDate = date ? new Date(date) : new Date();
-  const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-  const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+  const startOfMonth = new Date(
+    targetDate.getFullYear(),
+    targetDate.getMonth(),
+    1,
+  );
+  const endOfMonth = new Date(
+    targetDate.getFullYear(),
+    targetDate.getMonth() + 1,
+    1,
+  );
 
   const result = await prisma.booking.findMany({
     where: {

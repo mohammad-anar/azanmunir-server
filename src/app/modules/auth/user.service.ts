@@ -8,7 +8,10 @@ import { prisma } from "../../../helpers.ts/prisma.js";
 import ApiError from "../../../errors/ApiError.js";
 import { emailTemplate } from "../../shared/emailTemplate.js";
 import { emailHelper } from "../../../helpers.ts/emailHelper.js";
-import { IPaginationOptions, IUserFilterRequest } from "../../../types/pagination.js";
+import {
+  IPaginationOptions,
+  IUserFilterRequest,
+} from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
 import { jwtHelper } from "../../../helpers.ts/jwtHelper.js";
 import redisClient from "../../../helpers.ts/redis.js";
@@ -182,6 +185,19 @@ const getUserById = async (id: string) => {
       isVerified: true,
       status: true,
       postalCode: true,
+      blogs: true,
+      bookings: {
+        select: {
+          id: true,
+          createdAt: true,
+          job: true,
+          jobId: true,
+          offer: true,
+          workshop: true,
+        },
+      },
+      jobs: true,
+      reviews: true,
       createdAt: true,
       updatedAt: true,
       _count: true,
