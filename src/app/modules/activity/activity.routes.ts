@@ -11,4 +11,15 @@ router.get(
   ActivityController.getActivityFeed,
 );
 
+router.get(
+  "/my-activities",
+  auth(Role.USER, Role.ADMIN),
+  ActivityController.getMyActivities,
+);
+router.get(
+  "/workshop-activities",
+  auth(Role.WORKSHOP, Role.ADMIN),
+  ActivityController.getWorkshopActivities,
+);
+
 export const ActivityRouter = router;
