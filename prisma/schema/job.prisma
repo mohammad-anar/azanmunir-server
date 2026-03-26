@@ -64,6 +64,8 @@ model JobOffer {
     estimatedTime DateTime
     message       String?
     status        OfferStatus @default(PENDING)
+    distance      Float?
+    isBestValue   Boolean     @default(false)
     createdAt     DateTime    @default(now())
     updatedAt     DateTime    @updatedAt
 
