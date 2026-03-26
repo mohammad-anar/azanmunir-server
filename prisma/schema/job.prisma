@@ -61,7 +61,7 @@ model JobOffer {
     workshopId    String
     workshop      Workshop    @relation(fields: [workshopId], references: [id])
     price         Float
-    estimatedTime DateTime
+    estimatedTime String
     message       String?
     status        OfferStatus @default(PENDING)
     distance      Float?

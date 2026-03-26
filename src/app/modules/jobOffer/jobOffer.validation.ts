@@ -8,7 +8,7 @@ export const CreateJobOfferSchema = z.object({
   price: z
     .number({ message: "Price is required" })
     .positive("Price must be greater than 0"),
-  estimatedTime: z.coerce.date({
+  estimatedTime: z.string({
     message: "Estimated time is required",
   }),
   message: z.string().optional(),

@@ -260,9 +260,19 @@ const getOffersByJobId = async (
   let bestOfferId: string | null = null;
   let minScore = Infinity;
 
+  // this estimated time will be string now, write logic so calculate from "1 hours" or "2 days" or "30 minutes" or "1 week" or "1 month" etc
+  const timeInHours = (timeString: string) => {
+    const [value, unit] = timeString.split(" ");
+    const numValue = parseInt(value);
+    if (unit === "hours") return numValue;
+    if (unit === "days") return numValue * 24;
+    if (unit === "minutes") return numValue / 60;
+    if (unit === "weeks") return numValue * 24 * 7;
+    if (unit === "month") return numValue * 24 * 30;
+    return 0;
+  };
   const scoredOffers = result.map((offer: any) => {
-    const hoursToComplete =
-      (offer.estimatedTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const hoursToComplete = timeInHours(offer.estimatedTime);
     const dist = offer.distance || 0;
 
     // Score: price is primary, distance and time are tie-breakers/adjusters
