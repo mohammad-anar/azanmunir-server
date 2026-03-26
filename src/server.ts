@@ -1,4 +1,6 @@
+import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
 import app from "./app.js";
+import { PlatformDataService } from "./app/modules/platformData/platformData.services.js";
 import config from "./config/index.js";
 import { seedSuperAdmin } from "./db/seedSuperAdmin.js";
 import { initSocket } from "./helpers.ts/socketHelper.js";
@@ -15,6 +17,18 @@ async function bootstrap() {
   try {
     // seeding admin
     await seedSuperAdmin();
+
+    const result = await PlatformDataService.getPlatformData();
+
+    // seed platform data
+    if (!result) {
+      await PlatformDataService.createPlatformData({
+        platformFee: 10,
+        maximumJobRadius: 100,
+      });
+    }else{
+      console.log("Platform data already exist.");
+    }
     //
     server = app.listen(config.port, () => {
       console.log(`🚀 Server running on http://localhost:${config.port}`);

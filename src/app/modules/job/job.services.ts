@@ -230,9 +230,69 @@ const getJobsByUserId = async (userId: string) => {
   const result = await prisma.job.findMany({ where: { userId }, include: { user: true, categories: true, offers: true, bookings: true, bike:true} });
   return result;
 };
-const getOffersByJobId = async (jobId: string, userId:string) => {
-  const result = await prisma.jobOffer.findMany({ where: { jobId,job:{userId:userId} } });
-  return result;
+const getOffersByJobId = async (
+  jobId: string,
+  userId: string,
+  options: IPaginationOptions,
+) => {
+  const { page, limit, skip } = paginationHelper.calculatePagination(options);
+
+  const result = await prisma.jobOffer.findMany({
+    where: { jobId, job: { userId: userId } },
+    include: { workshop: true },
+  });
+
+  const total = result.length;
+  if (total === 0) {
+    return {
+      meta: {
+        page,
+        limit,
+        total,
+        totalPage: 0,
+      },
+      data: [],
+    };
+  }
+
+  // Calculate best value in memory across all offers for this job
+  const now = new Date();
+  let bestOfferId: string | null = null;
+  let minScore = Infinity;
+
+  const scoredOffers = result.map((offer: any) => {
+    const hoursToComplete =
+      (offer.estimatedTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const dist = offer.distance || 0;
+
+    // Score: price is primary, distance and time are tie-breakers/adjusters
+    const score = offer.price * 0.5 + dist * 10 * 0.3 + hoursToComplete * 0.2;
+
+    if (score < minScore) {
+      minScore = score;
+      bestOfferId = offer.id;
+    }
+    return { ...offer, score };
+  });
+
+  const finalResult = scoredOffers
+    .map((offer) => ({
+      ...offer,
+      isBestValue: offer.id === bestOfferId,
+    }))
+    .slice(skip, skip + limit);
+
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage,
+    },
+    data: finalResult,
+  };
 };
 const updateJobById = async (id: string, userId:string, payload: Prisma.JobUpdateInput) => {
   const result = await prisma.job.update({ where: { id,userId }, data: payload });

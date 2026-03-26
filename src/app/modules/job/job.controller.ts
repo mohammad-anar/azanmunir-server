@@ -82,7 +82,9 @@ const getOffersByJobId = catchAsync(async (req: Request, res: Response) => {
   const { jobId } = req.params;
   const { id:userId} = req.user;
 
-  const result = await JobService.getOffersByJobId(jobId,userId);
+    const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const result = await JobService.getOffersByJobId(jobId,userId,options);
 
   sendResponse(res, {
     success: true,

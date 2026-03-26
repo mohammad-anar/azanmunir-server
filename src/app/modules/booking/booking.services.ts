@@ -91,7 +91,11 @@ const getBookingsById = async (id: string) => {
 
 // get all bookings by user id
 const getBookingsByUserId = async (userId: string) => {
-  const result = await prisma.booking.findMany({ where: { userId } });
+  const result = await prisma.booking.findMany({ where: { userId }, include: {
+    workshop: {select: {workshopName: true, email:true, phone:true, address:true, id:true, ownerName:true}},
+    job: {select: {title: true, description: true, id: true}},
+    offer: {select: {price: true, id: true}}
+  } });
   return result;
 };
 

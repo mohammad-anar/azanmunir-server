@@ -119,6 +119,19 @@ const hideReview = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPendingReviews = catchAsync(async (req: Request, res: Response) => {
+  const user = (req as any).user;
+
+  const result = await ReviewService.getPendingReviews(user.id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Pending reviews retrieved successfully",
+    data: result,
+  });
+});
+
 export const ReviewController = {
   createReview,
   getAllReviews,
@@ -129,4 +142,5 @@ export const ReviewController = {
   getReviewsByUserId,
   flagReview,
   hideReview,
+  getPendingReviews,
 };

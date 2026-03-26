@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
 import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 import { IPaginationOptions } from "src/types/pagination.js";
@@ -191,6 +192,31 @@ const hideReview = async (id: string, isHidden: boolean) => {
   return result;
 };
 
+const getPendingReviews = async (userId: string) => {
+
+  const result = await prisma.booking.findMany({
+    where: {
+      userId,
+      status: "COMPLETED",
+      review: {
+        is: null,
+      },
+    },
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+        },
+      },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 export const ReviewService = {
   createReview,
   getAllReviews,
@@ -201,4 +227,5 @@ export const ReviewService = {
   getReviewsByUserId,
   flagReview,
   hideReview,
+  getPendingReviews,
 };

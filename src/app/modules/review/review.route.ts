@@ -38,4 +38,10 @@ router.patch(
   ReviewController.hideReview
 );
 
+router.get(
+  "/pending-reviews/get",
+  auth(Role.USER, Role.ADMIN),
+  ReviewController.getPendingReviews,
+);
+
 export const ReviewRouter = router;
