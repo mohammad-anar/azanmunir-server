@@ -346,6 +346,51 @@ const exportBookingsCSV = async () => {
   return convertToCSV(bookings);
 };
 
+const getWeeklyBookingCount = async (workshopId: string) => {
+  const last7Days = new Date();
+  last7Days.setDate(last7Days.getDate() - 7);
+
+  const bookings = await prisma.booking.findMany({
+    where: {
+      workshopId,
+      createdAt: {
+        gte: last7Days,
+      },
+    },
+    select: {
+      createdAt: true,
+    },
+  });
+
+  const dayNames = [
+    "sunDay",
+    "monDay",
+    "tuesDay",
+    "wednesDay",
+    "thursDay",
+    "friDay",
+    "saturDay",
+  ];
+
+  const counts: Record<string, number> = {
+    sunDay: 0,
+    monDay: 0,
+    tuesDay: 0,
+    wednesDay: 0,
+    thursDay: 0,
+    friDay: 0,
+    saturDay: 0,
+  };
+
+  bookings.forEach((b) => {
+    const dayIndex = b.createdAt.getDay();
+    const dayName = dayNames[dayIndex];
+    counts[dayName]++;
+  });
+
+  return counts;
+};
+
 export const AnalyticsService = {
   getUserAnalytics,
   getWorkshopAnalytics,
@@ -355,4 +400,5 @@ export const AnalyticsService = {
   exportWorkshopsCSV,
   exportJobsCSV,
   exportBookingsCSV,
+  getWeeklyBookingCount,
 };

@@ -11,6 +11,12 @@ router.get(
   auth(Role.WORKSHOP),
   AnalyticsController.getWorkshopAnalytics,
 );
+
+router.get(
+  "/weekly-bookings",
+  auth(Role.WORKSHOP),
+  AnalyticsController.getWeeklyBookingCount,
+);
 router.get("/admin", auth(Role.ADMIN), AnalyticsController.getAdminAnalytics);
 router.get(
   "/monthly-report",

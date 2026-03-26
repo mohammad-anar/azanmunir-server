@@ -82,6 +82,18 @@ const exportBookingsCSV = catchAsync(async (req: Request, res: Response) => {
   res.status(200).send(result);
 });
 
+const getWeeklyBookingCount = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.user;
+  const result = await AnalyticsService.getWeeklyBookingCount(id);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Weekly booking count retrieved successfully",
+    data: result,
+  });
+});
+
 export const AnalyticsController = {
   getUserAnalytics,
   getWorkshopAnalytics,
@@ -91,4 +103,5 @@ export const AnalyticsController = {
   exportWorkshopsCSV,
   exportJobsCSV,
   exportBookingsCSV,
+  getWeeklyBookingCount,
 };
