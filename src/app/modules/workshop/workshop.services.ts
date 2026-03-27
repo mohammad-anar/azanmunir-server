@@ -437,7 +437,7 @@ const getNearbyJobs = async (workshopId: string) => {
     throw new Error("Workshop location not set");
   }
 
-  return prisma.$queryRaw`
+  const nearByJobs = await prisma.$queryRaw`
     SELECT *
     FROM "Job"
     WHERE status = 'OPEN'
@@ -448,6 +448,16 @@ const getNearbyJobs = async (workshopId: string) => {
     )
     ORDER BY "createdAt" DESC
   `;
+
+  // is this workshop already send exist on workshopIds then add a field that offerSend:true else false 
+  const result = (nearByJobs as any[])?.map((job: any) => {
+    if (job.workshopIds.includes(workshopId)) {
+      return { ...job, offerSend: true };
+    }
+    return { ...job, offerSend: false };
+  });
+
+  return result;
 };
 
 const getReviewsByWorkshopId = async (workshopId: string) => {

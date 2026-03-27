@@ -25,6 +25,8 @@ model Job {
 
     urgency Urgency   @default(MEDIUM)
     status  JobStatus @default(PENDING)
+    workshopIds String[] @default([])
+
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

@@ -6,6 +6,7 @@ import ApiError from "src/errors/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 
 import { calculateDistance } from "src/helpers.ts/distance.js";
+import { timeInHours } from "src/helpers.ts/timeConvertHelper.js";
 
 const createJobOffer = async (payload: any) => {
   // check if already sent offer for this job then throw a error message
@@ -44,11 +45,25 @@ const createJobOffer = async (payload: any) => {
     );
   }
 
-  const result = await prisma.jobOffer.create({
-    data: {
-      ...payload,
-      distance,
-    },
+  const result = await prisma.$transaction(async (tx) => {
+    const newOffer = await tx.jobOffer.create({
+      data: {
+        ...payload,
+        distance,
+      },
+    });
+
+    // Update job to include this workshopId in workshopIds array
+    await tx.job.update({
+      where: { id: payload.jobId },
+      data: {
+        workshopIds: {
+          push: payload.workshopId,
+        },
+      },
+    });
+
+    return newOffer;
   });
 
   return result;
@@ -132,7 +147,7 @@ const acceptOffer = async (id: string, userId: string) => {
         userId: offer.job.userId,
         workshopId: offer.workshopId,
         scheduleStart: new Date(),
-        scheduleEnd: offer.estimatedTime,
+        scheduleEnd: new Date(timeInHours(offer.estimatedTime)),
         status: "CONFIRMED",
       },
     });
