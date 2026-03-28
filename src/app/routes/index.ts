@@ -21,6 +21,7 @@ import { ContactRouter } from "../modules/contact/contact.routes.js";
 import { WorkshopCategoryRouter } from "../modules/workshopCategory/workshopCategory.routes.js";
 import { WorkshopOpeningHourRouter } from "../modules/workshopOpeningHours/workshopOpeningHours.routes.js";
 import { ActivityRouter } from "../modules/activity/activity.routes.js";
+import { VisionStatisticsRouter } from "../modules/visionStatistics/visionStatistics.routes.js";
 
 const router = express.Router();
 
@@ -112,6 +113,10 @@ const moduleRoutes = [
   {
     path: "/activity",
     route: ActivityRouter,
+  },
+  {
+    path: "/vision-statistics",
+    route: VisionStatisticsRouter,
   },
 ];
 
