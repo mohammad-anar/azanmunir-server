@@ -473,6 +473,8 @@ const changeWorkshopPassword = async (
 
 
 
+// include categories in the response
+
 const getNearbyJobs = async ({
   workshopId,
   search,
@@ -481,6 +483,10 @@ const getNearbyJobs = async ({
   page = 1,
   limit = 10,
 }: GetNearbyJobsParams) => {
+  if (!workshopId) {
+    throw new Error("workshopId is required");
+  }
+
   const workshop = await prisma.workshop.findUnique({
     where: { id: workshopId },
   });
@@ -491,47 +497,76 @@ const getNearbyJobs = async ({
 
   const offset = (page - 1) * limit;
 
+  // Search across title AND description
   const searchClause = search
-    ? Prisma.sql`AND "title" ILIKE ${`%${search}%`}`
+    ? Prisma.sql`AND (j."title" ILIKE ${`%${search}%`} OR j."description" ILIKE ${`%${search}%`})`
     : Prisma.empty;
 
+  // Filter by category name — uses INNER JOIN logic via EXISTS to avoid row duplication
   const categoryClause = category
-    ? Prisma.sql`AND "category" = ${category}`
+    ? Prisma.sql`AND EXISTS (
+        SELECT 1 FROM "JobCategory" jc2
+        INNER JOIN "Category" c2 ON c2.id = jc2."categoryId"
+        WHERE jc2."jobId" = j.id AND c2.name ILIKE ${`%${category}%`}
+      )`
     : Prisma.empty;
 
   const orderClause =
     sortOrder === "asc"
-      ? Prisma.sql`ORDER BY "createdAt" ASC`
-      : Prisma.sql`ORDER BY "createdAt" DESC`;
+      ? Prisma.sql`ORDER BY j."createdAt" ASC`
+      : Prisma.sql`ORDER BY j."createdAt" DESC`;
 
-  const baseWhere = Prisma.sql`
-    FROM "Job"
-    WHERE status = 'OPEN'
-    ${searchClause}
-    ${categoryClause}
-    AND ST_DWithin(
-      ST_SetSRID(ST_MakePoint("longitude", "latitude"), 4326)::geography,
-      ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
-      "radius" * 1000
-    )
-  `;
-
-  // Run paginated query and count query in parallel
   const [nearByJobs, countResult] = await Promise.all([
     prisma.$queryRaw`
-      SELECT * ${baseWhere}
+      SELECT 
+        j.*,
+        COALESCE(
+          JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', jc.id,
+              'categoryId', jc."categoryId",
+              'name', c.name,
+              'description', jc.description,
+              'createdAt', jc."createdAt"
+            )
+          ) FILTER (WHERE jc.id IS NOT NULL),
+          '[]'
+        ) AS categories
+      FROM "Job" j
+      LEFT JOIN "JobCategory" jc ON jc."jobId" = j.id
+      LEFT JOIN "Category" c ON c.id = jc."categoryId"
+      WHERE j.status = 'OPEN'
+      ${searchClause}
+      ${categoryClause}
+      AND ST_DWithin(
+        ST_SetSRID(ST_MakePoint(j."longitude", j."latitude"), 4326)::geography,
+        ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
+        j."radius" * 1000
+      )
+      GROUP BY j.id
       ${orderClause}
       LIMIT ${limit} OFFSET ${offset}
     `,
     prisma.$queryRaw<[{ count: bigint }]>`
-      SELECT COUNT(*) ${baseWhere}
+      SELECT COUNT(DISTINCT j.id)
+      FROM "Job" j
+      LEFT JOIN "JobCategory" jc ON jc."jobId" = j.id
+      LEFT JOIN "Category" c ON c.id = jc."categoryId"
+      WHERE j.status = 'OPEN'
+      ${searchClause}
+      ${categoryClause}
+      AND ST_DWithin(
+        ST_SetSRID(ST_MakePoint(j."longitude", j."latitude"), 4326)::geography,
+        ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
+        j."radius" * 1000
+      )
     `,
   ]);
 
   const total = Number(countResult[0].count);
   const totalPages = Math.ceil(total / limit);
 
-  const data = (nearByJobs as any[])?.map((job: any) => ({
+  const data = (nearByJobs as any[]).map((job: any) => ({
     ...job,
     offerSend: job.workshopIds.includes(workshopId),
   }));
@@ -548,7 +583,6 @@ const getNearbyJobs = async ({
     data,
   };
 };
-
 const getReviewsByWorkshopId = async (workshopId: string) => {
   const result = await prisma.review.findMany({
     where: {
