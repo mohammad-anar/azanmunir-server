@@ -3,10 +3,22 @@ import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 import { prisma } from "src/helpers.ts/prisma.js";
 import { IPaginationOptions } from "src/types/pagination.js";
 import { INewsletterFilterRequest } from "./newsletter.interface.js";
+import { emailHelper } from "src/helpers.ts/emailHelper.js";
+import config from "src/config/index.js";
 
 const subscribe = async (payload: Prisma.NewsletterCreateInput) => {
   const result = await prisma.newsletter.create({
     data: payload,
+  });
+
+  // send email to admin
+  await emailHelper.sendEmail({
+    to: config.email.from as string,
+    subject: "New Newsletter Subscription",
+    html: `
+    <h1>New Newsletter Subscription</h1>
+    <p>Email: ${payload.email}</p>
+    `,
   });
   return result;
 };

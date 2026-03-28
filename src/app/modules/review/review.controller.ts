@@ -28,6 +28,17 @@ const getAllReviews = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPublicReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getPublicReviews();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Public reviews retrieved successfully",
+    data: result,
+  });
+});
+
 const getReviewById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -143,4 +154,5 @@ export const ReviewController = {
   flagReview,
   hideReview,
   getPendingReviews,
+  getPublicReviews,
 };

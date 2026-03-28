@@ -112,6 +112,25 @@ const getAllReviews = async (
   };
 };
 
+// get all healthy reviews not flagged and not hidden
+const getPublicReviews = async () => {
+  const result = await prisma.review.findMany({
+    where: {
+      isFlagged: false, 
+      isHidden: false,
+    },
+    include: {
+      user: true,
+      booking: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 const getReviewById = async (id: string) => {
   const result = await prisma.review.findUniqueOrThrow({
     where: { id },
@@ -228,4 +247,5 @@ export const ReviewService = {
   flagReview,
   hideReview,
   getPendingReviews,
+  getPublicReviews,
 };

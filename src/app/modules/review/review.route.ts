@@ -14,6 +14,7 @@ router.post(
   ReviewController.createReview
 );
 router.get("/", auth(Role.ADMIN, Role.WORKSHOP, Role.USER  ), ReviewController.getAllReviews);
+router.get("/public", ReviewController.getPublicReviews);
 router.get("/:id", auth(Role.ADMIN, Role.WORKSHOP, Role.USER ), ReviewController.getReviewById);
 router.patch(
   "/:id",
