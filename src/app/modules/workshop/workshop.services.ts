@@ -1,20 +1,28 @@
 import { Prisma } from "@prisma/client";
 
 
-import { ICreateWorkshop } from "./workshop.interfaces.js"  ;
 import bcrypt from "bcryptjs";
 import { Secret, SignOptions } from "jsonwebtoken";
-import { ILogin, IVerifyEmail } from "../auth/user.interface.js";
+import config from "../../../config/index.js";
+import ApiError from "../../../errors/ApiError.js";
+import { emailHelper } from "../../../helpers.ts/emailHelper.js";
+import generateOTP from "../../../helpers.ts/generateOTP.js";
+import { jwtHelper } from "../../../helpers.ts/jwtHelper.js";
 import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
 import { prisma } from "../../../helpers.ts/prisma.js";
-import ApiError from "../../../errors/ApiError.js";
-import { jwtHelper } from "../../../helpers.ts/jwtHelper.js";
-import config from "../../../config/index.js";
 import redisClient from "../../../helpers.ts/redis.js";
-import generateOTP from "../../../helpers.ts/generateOTP.js";
-import { emailTemplate } from "../../shared/emailTemplate.js";
-import { emailHelper } from "../../../helpers.ts/emailHelper.js";
 import { IPaginationOptions, IUserFilterRequest } from "../../../types/pagination.js";
+import { emailTemplate } from "../../shared/emailTemplate.js";
+import { ILogin, IVerifyEmail } from "../auth/user.interface.js";
+
+interface GetNearbyJobsParams {
+  workshopId: string;
+  search?: string;
+  category?: string;
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+}
 
 // create workshop ================================
 const createWorkshop = async (payload: Prisma.WorkshopCreateInput) => {
@@ -428,7 +436,51 @@ const changeWorkshopPassword = async (
   return null;
 };
 
-const getNearbyJobs = async (workshopId: string) => {
+
+
+// add searching and filtering on getNearbyJobs service
+// const getNearbyJobs = async (workshopId: string) => {
+//   const workshop = await prisma.workshop.findUnique({
+//     where: { id: workshopId },
+//   });
+
+//   if (!workshop?.latitude || !workshop?.longitude) {
+//     throw new Error("Workshop location not set");
+//   }
+
+//   const nearByJobs = await prisma.$queryRaw`
+//     SELECT *
+//     FROM "Job"
+//     WHERE status = 'OPEN'
+//     AND ST_DWithin(
+//       ST_SetSRID(ST_MakePoint("longitude", "latitude"), 4326)::geography,
+//       ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
+//       "radius" * 1000
+//     )
+//     ORDER BY "createdAt" DESC
+//   `;
+
+//   // is this workshop already send exist on workshopIds then add a field that offerSend:true else false 
+//   const result = (nearByJobs as any[])?.map((job: any) => {
+//     if (job.workshopIds.includes(workshopId)) {
+//       return { ...job, offerSend: true };
+//     }
+//     return { ...job, offerSend: false };
+//   });
+
+//   return result;
+// };
+
+
+
+const getNearbyJobs = async ({
+  workshopId,
+  search,
+  category,
+  sortOrder = "desc",
+  page = 1,
+  limit = 10,
+}: GetNearbyJobsParams) => {
   const workshop = await prisma.workshop.findUnique({
     where: { id: workshopId },
   });
@@ -437,27 +489,64 @@ const getNearbyJobs = async (workshopId: string) => {
     throw new Error("Workshop location not set");
   }
 
-  const nearByJobs = await prisma.$queryRaw`
-    SELECT *
+  const offset = (page - 1) * limit;
+
+  const searchClause = search
+    ? Prisma.sql`AND "title" ILIKE ${`%${search}%`}`
+    : Prisma.empty;
+
+  const categoryClause = category
+    ? Prisma.sql`AND "category" = ${category}`
+    : Prisma.empty;
+
+  const orderClause =
+    sortOrder === "asc"
+      ? Prisma.sql`ORDER BY "createdAt" ASC`
+      : Prisma.sql`ORDER BY "createdAt" DESC`;
+
+  const baseWhere = Prisma.sql`
     FROM "Job"
     WHERE status = 'OPEN'
+    ${searchClause}
+    ${categoryClause}
     AND ST_DWithin(
       ST_SetSRID(ST_MakePoint("longitude", "latitude"), 4326)::geography,
       ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
       "radius" * 1000
     )
-    ORDER BY "createdAt" DESC
   `;
 
-  // is this workshop already send exist on workshopIds then add a field that offerSend:true else false 
-  const result = (nearByJobs as any[])?.map((job: any) => {
-    if (job.workshopIds.includes(workshopId)) {
-      return { ...job, offerSend: true };
-    }
-    return { ...job, offerSend: false };
-  });
+  // Run paginated query and count query in parallel
+  const [nearByJobs, countResult] = await Promise.all([
+    prisma.$queryRaw`
+      SELECT * ${baseWhere}
+      ${orderClause}
+      LIMIT ${limit} OFFSET ${offset}
+    `,
+    prisma.$queryRaw<[{ count: bigint }]>`
+      SELECT COUNT(*) ${baseWhere}
+    `,
+  ]);
 
-  return result;
+  const total = Number(countResult[0].count);
+  const totalPages = Math.ceil(total / limit);
+
+  const data = (nearByJobs as any[])?.map((job: any) => ({
+    ...job,
+    offerSend: job.workshopIds.includes(workshopId),
+  }));
+
+  return {
+    meta: {
+      total,
+      totalPages,
+      page,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
+    data,
+  };
 };
 
 const getReviewsByWorkshopId = async (workshopId: string) => {

@@ -38,7 +38,6 @@ model Message {
   room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   senderId  String
-  sender    User     @relation(fields: [senderId], references: [id])
 
   content   String?
 

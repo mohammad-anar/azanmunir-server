@@ -264,7 +264,14 @@ const changeWorkshopPassword = catchAsync(
 const getNearbyJobs = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
 
-  const result = await WorkshopService.getNearbyJobs(id);
+  const result = await WorkshopService.getNearbyJobs({
+    workshopId: id,
+    search: req.query.search as string | undefined,
+    category: req.query.category as string | undefined,
+    sortOrder: req.query.sortOrder as "asc" | "desc" | undefined,
+    page: req.query.page ? Number(req.query.page) : undefined,
+    limit: req.query.limit ? Number(req.query.limit) : undefined,
+  });
 
   sendResponse(res, {
     success: true,
@@ -273,7 +280,6 @@ const getNearbyJobs = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
 const getReviewsByWorkshopId = catchAsync(
   async (req: Request, res: Response) => {
     const { workshopId } = req.params;

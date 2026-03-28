@@ -6,7 +6,7 @@ import { ChatController } from "./chat.controller.js";
 const router = express.Router();
 
 router.post("/", auth(Role.USER, Role.WORKSHOP, Role.ADMIN), ChatController.createRoom);
-router.get("/my-rooms", auth(Role.USER, Role.WORKSHOP), ChatController.getMyRooms);
+router.get("/my-rooms", auth(Role.USER, Role.WORKSHOP, Role.ADMIN), ChatController.getMyRooms);
 router.get("/booking/:bookingId", auth(Role.USER, Role.WORKSHOP, Role.ADMIN), ChatController.getRoomByBookingId);
 router.get("/:id", auth(Role.USER, Role.WORKSHOP, Role.ADMIN), ChatController.getRoomById);
 

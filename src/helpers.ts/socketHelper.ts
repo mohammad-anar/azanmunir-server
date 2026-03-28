@@ -55,7 +55,7 @@ export const initSocket = (server: any) => {
     });
 
     // ================= SEND MESSAGE =================
-    socket.on("send_message", async (payload: any) => {
+    socket.on("send_message", async (payload: any, callback: (value: any) => void) => {
       try {
         // 🔥 Ensure JSON object
         let data = payload;
@@ -63,7 +63,6 @@ export const initSocket = (server: any) => {
           data = JSON.parse(payload);
         }
 
-        console.log("Incoming data:", data);
 
         const { roomId, senderId, content, type } = data;
 
@@ -94,6 +93,13 @@ export const initSocket = (server: any) => {
             type: type || "TEXT",
           },
         });
+
+        // callback for frontend
+        callback({
+          success: true,
+          message: "Message sent successfully",
+          data: message,
+        })
 
         // ✅ Broadcast message
         io!.to(roomId).emit("receive_message", message);
