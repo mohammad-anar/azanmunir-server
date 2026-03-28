@@ -23,6 +23,11 @@ router.post(
   JobOfferController.declineJobOffer,
 );
 router.get(
+  "/my-offers/user",
+  auth(Role.USER),
+  JobOfferController.getJobOffersByUserId,
+);
+router.get(
   "/:id",
   auth(Role.WORKSHOP, Role.USER, Role.ADMIN),
   JobOfferController.getOfferById,

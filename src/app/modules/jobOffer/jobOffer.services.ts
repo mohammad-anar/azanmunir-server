@@ -7,6 +7,8 @@ import { StatusCodes } from "http-status-codes";
 
 import { calculateDistance } from "src/helpers.ts/distance.js";
 import { timeInHours } from "src/helpers.ts/timeConvertHelper.js";
+import { IPaginationOptions } from "src/types/pagination.js";
+import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
 
 const createJobOffer = async (payload: any) => {
   // check if already sent offer for this job then throw a error message
@@ -72,6 +74,39 @@ const createJobOffer = async (payload: any) => {
 const getOfferById = async (id: string) => {
   const result = await prisma.jobOffer.findUniqueOrThrow({ where: { id } });
   return result;
+};
+
+// add pagination here
+const getJobOffersByUserId = async (
+  userId: string,
+  options: IPaginationOptions
+) => {
+  const { page, limit, skip } = paginationHelper.calculatePagination(options);
+
+  const result = await prisma.jobOffer.findMany({
+    where: { job: { userId } },
+    skip,
+    take: limit,
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const total = await prisma.jobOffer.count({
+    where: { job: { userId } },
+  });
+
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage,
+    },
+    data: result,
+  };
 };
 
 const updateOfferById = async (
@@ -187,6 +222,7 @@ const acceptOffer = async (id: string, userId: string) => {
 export const JobOfferServices = {
   createJobOffer,
   getOfferById,
+  getJobOffersByUserId,
   updateOfferById,
   deleteOffer,
   acceptOffer,

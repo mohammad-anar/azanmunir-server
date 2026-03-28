@@ -3,6 +3,8 @@ import { JobOfferServices } from "./jobOffer.services.js";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 
+import pick from "src/helpers.ts/pick.js";
+
 const createJobOffer = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
 
@@ -23,6 +25,19 @@ const getOfferById = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     success: true,
     message: "Job offer retrieved successfully",
+    statusCode: 200,
+    data: result,
+  });
+});
+const getJobOffersByUserId = catchAsync(async (req: Request, res: Response) => {
+  const { id: userId } = req.user;
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const result = await JobOfferServices.getJobOffersByUserId(userId, options);
+
+  sendResponse(res, {
+    success: true,
+    message: "Job offers retrieved successfully",
     statusCode: 200,
     data: result,
   });
@@ -94,6 +109,7 @@ export const JobOfferController = {
   acceptJobOffer,
   declineJobOffer,
   getOfferById,
+  getJobOffersByUserId,
   updateOfferById,
   deleteOfferById,
 };
