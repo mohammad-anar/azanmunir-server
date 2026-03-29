@@ -6,6 +6,7 @@ import { WorkshopService } from "./workshop.services.js";
 import sendResponse from "src/app/shared/sendResponse.js";
 import { Prisma } from "@prisma/client";
 import pick from "src/helpers.ts/pick.js";
+import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
 
 const createWorkshop = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -230,6 +231,7 @@ const resetWorkshopPassword = catchAsync(
   async (req: Request, res: Response) => {
     const { email } = req.user; // workshop JWT payload
     const { password } = req.body;
+    console.log("from reset pass workshop",email, password);
 
     const result = await WorkshopService.resetWorkshopPassword(email, password);
 

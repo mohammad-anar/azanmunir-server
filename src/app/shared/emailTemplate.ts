@@ -185,6 +185,46 @@ const forgetPassword = (values: { email: string; token: string }) => {
     html: baseTemplate(content),
   };
 };
+const forgetPasswordWorkshop = (values: { email: string; token: string }) => {
+  const content = `
+    <h2 style="margin:0 0 20px 0; font-size:20px; color:#222;">
+      Reset Your Password
+    </h2>
+
+    <p style="font-size:15px; line-height:1.7; color:#555; margin-bottom:25px;">
+      Click the button below to securely reset your password.
+    </p>
+
+    <div style="text-align:center; margin:30px 0;">
+      <a href="${config.frontend_url}/service-provider/reset-password?token=${values.token}"
+         style="
+           background:${PRIMARY_COLOR};
+           color:#ffffff;
+           text-decoration:none;
+           padding:14px 30px;
+           border-radius:8px;
+           font-size:15px;
+           font-weight:600;
+           display:inline-block;">
+         Reset Password
+      </a>
+    </div>
+
+    <p style="font-size:13px; color:#777;">
+      This link will expire shortly for security reasons.
+    </p>
+
+    <p style="font-size:13px; color:#999; margin-top:15px;">
+      If you didn’t request this password reset, you can ignore this email.
+    </p>
+  `;
+
+  return {
+    to: values.email,
+    subject: "Password Reset Request",
+    html: baseTemplate(content),
+  };
+};
 
 // ==========================
 // 📧 CONTACT ADMIN TEMPLATE
@@ -271,6 +311,7 @@ export const emailTemplate = {
   createAccount,
   resetPassword,
   forgetPassword,
+  forgetPasswordWorkshop,
   contactAdmin,
   workshopContactAdmin,
 };

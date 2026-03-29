@@ -377,6 +377,99 @@ const getWorkshopInvoicePDF = async (workshopId: string, month: string): Promise
   return generateInvoicePDFBuffer(pdfData);
 };
 
+const recalculateWorkshopInvoice = async (workshopId: string, month?: string) => {
+  const now = new Date();
+  let startOfMonth: Date;
+  let endOfMonth: Date;
+
+  if (month) {
+    // Expected format: "YYYY-MM"
+    const [yearPart, monthPart] = month.split("-").map(Number);
+    if (!yearPart || !monthPart || monthPart < 1 || monthPart > 12) {
+      throw new Error("Invalid month format. Please use YYYY-MM.");
+    }
+    startOfMonth = new Date(yearPart, monthPart - 1, 1);
+    endOfMonth = new Date(yearPart, monthPart, 0, 23, 59, 59, 999);
+  } else {
+    // Default to the current month for "this month" requirement
+    startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  }
+
+  // Fetch platform data for default platform fee
+  const platformData = await prisma.platformData.findFirst();
+  if (!platformData) {
+    throw new Error("Platform data not found.");
+  }
+
+  // Fetch the workshop to get its platformFees
+  const workshop = await prisma.workshop.findUnique({
+    where: { id: workshopId },
+    select: { platformFees: true },
+  });
+
+  if (!workshop) {
+    throw new Error("Workshop not found.");
+  }
+
+  // Fetch all completed & paid bookings for this workshop in specified month
+  const completedBookings = await prisma.booking.findMany({
+    where: {
+      workshopId,
+      status: "COMPLETED",
+      paymentStatus: "PAID",
+      scheduleEnd: {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      },
+    },
+    include: {
+      offer: true,
+    },
+  });
+
+  // Calculate totals
+  let totalJobs = 0;
+  let totalJobAmount = 0;
+  let platformFeeTotal = 0;
+
+  completedBookings.forEach((booking) => {
+    const price = booking.offer.price || 0;
+    const effectiveFee = workshop.platformFees ?? platformData.platformFee;
+    const fee = price * (effectiveFee / 100);
+
+    totalJobs += 1;
+    totalJobAmount += price;
+    platformFeeTotal += fee;
+  });
+
+  const workshopRevenue = totalJobAmount - platformFeeTotal;
+
+  // Find existing invoice for this month
+  const existingInvoice = await prisma.invoice.findUnique({
+    where: {
+      workshopId_billingMonth: {
+        workshopId,
+        billingMonth: startOfMonth,
+      },
+    },
+  });
+
+  // If invoice exists, update it. If not, do nothing (wait for next generation).
+  if (existingInvoice) {
+    await prisma.invoice.update({
+      where: { id: existingInvoice.id },
+      data: {
+        totalJobs,
+        totalJobAmount,
+        platformFee: platformFeeTotal,
+        workshopRevenue,
+        totalAmount: platformFeeTotal, // totalAmount matches platformFee in this system
+      },
+    });
+  }
+};
+
 export const InvoiceService = {
   generateMonthlyInvoices,
   getMonthlyInvoices,
@@ -384,4 +477,5 @@ export const InvoiceService = {
   updateInvoiceStatus,
   getInvoicePDFById,
   getWorkshopInvoicePDF,
+  recalculateWorkshopInvoice,
 };

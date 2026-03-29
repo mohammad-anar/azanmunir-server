@@ -14,6 +14,7 @@ import redisClient from "../../../helpers.ts/redis.js";
 import { IPaginationOptions, IUserFilterRequest } from "../../../types/pagination.js";
 import { emailTemplate } from "../../shared/emailTemplate.js";
 import { ILogin, IVerifyEmail } from "../auth/user.interface.js";
+import { InvoiceService } from "../invoice/invoice.service.js";
 
 interface GetNearbyJobsParams {
   workshopId: string;
@@ -233,6 +234,11 @@ const updateWorkshop = async (
     data: payload,
   });
 
+  // If platformFees is updated, recalculate current month's invoice
+  if (payload.platformFees !== undefined) {
+    await InvoiceService.recalculateWorkshopInvoice(id);
+  }
+
   return result;
 };
 
@@ -243,6 +249,10 @@ const updatePlatformFees = async (id:string, platformFees:number) => {
             platformFees: platformFees,
         },
     });
+
+    // Recalculate current month's invoice
+    await InvoiceService.recalculateWorkshopInvoice(id);
+
     return result;
 };
 
@@ -382,12 +392,12 @@ const forgetWorkshopPassword = async (email: string) => {
   if (!workshop.isVerified) throw new ApiError(403, "Workshop not verified");
 
   const token = jwtHelper.createToken(
-    { id: workshop.id, email: workshop.email },
+    { id: workshop.id, email: workshop.email, role: workshop.role},
     config.jwt.jwt_secret as Secret,
     "15m",
   );
 
-  const template = await emailTemplate.forgetPassword({
+  const template = await emailTemplate.forgetPasswordWorkshop({
     email,
     token,
   });
