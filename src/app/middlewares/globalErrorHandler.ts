@@ -1,7 +1,15 @@
+import { Prisma } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import handleZodError from "src/errors/handleZodError.js";
+import jwt from "jsonwebtoken";
 import { ZodError } from "zod";
+import ApiError from "src/errors/ApiError.js";
+import handleJWTError from "src/errors/handleJWTError.js";
+import handlePrismaError from "src/errors/handlePrismaError.js";
+import handleZodError from "src/errors/handleZodError.js";
+import { IErrorMessage } from "src/types/errors.types.js";
+
+const { JsonWebTokenError, TokenExpiredError, NotBeforeError } = jwt as any;
 
 const globalErrorHandler = (
   err: any,
@@ -9,24 +17,71 @@ const globalErrorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  let statusCode =
-    err.statusCode || (httpStatus.INTERNAL_SERVER_ERROR as number);
-  let success = false;
-  let message = err.message || "Something went wrong!";
-  let errorDetails = err;
+  let statusCode: number = httpStatus.INTERNAL_SERVER_ERROR;
+  let message: string = "Something went wrong!";
+  let errorMessages: IErrorMessage[] = [];
 
-  // Check if the error is a Zod validation error
+  // ── Zod Validation Error ──────────────────────────────────────────────────
   if (err instanceof ZodError) {
-    const simplifiedError = handleZodError(err);
-    statusCode = simplifiedError.statusCode;
-    message = simplifiedError.message;
-    errorDetails = simplifiedError.errorMessages;
+    const simplified = handleZodError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorMessages = simplified.errorMessages;
+  }
+
+  // ── Prisma Known Request Errors ───────────────────────────────────────────
+  else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    const simplified = handlePrismaError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorMessages = simplified.errorMessages;
+  }
+
+  // ── Prisma Validation Error ───────────────────────────────────────────────
+  else if (err instanceof Prisma.PrismaClientValidationError) {
+    statusCode = 400;
+    message = "Invalid data provided. Please check your request.";
+    errorMessages = [{ path: "input", message }];
+  }
+
+  // ── Prisma Initialization / Connection Error ──────────────────────────────
+  else if (err instanceof Prisma.PrismaClientInitializationError) {
+    statusCode = 503;
+    message = "Database connection failed. Please try again later.";
+    errorMessages = [{ path: "database", message }];
+  }
+
+  // ── JWT Errors ────────────────────────────────────────────────────────────
+  else if (
+    err instanceof TokenExpiredError ||
+    err instanceof JsonWebTokenError ||
+    err instanceof NotBeforeError
+  ) {
+    const simplified = handleJWTError(err);
+    statusCode = simplified.statusCode;
+    message = simplified.message;
+    errorMessages = simplified.errorMessages;
+  }
+
+  // ── Custom API Error ──────────────────────────────────────────────────────
+  else if (err instanceof ApiError) {
+    statusCode = err.statusCode;
+    message = err.message;
+    errorMessages = [{ path: "error", message: err.message }];
+  }
+
+  // ── Generic / Standard Error ──────────────────────────────────────────────
+  else if (err instanceof Error) {
+    statusCode = (err as any).statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+    message = err.message || "An unexpected error occurred.";
+    errorMessages = [{ path: "error", message }];
   }
 
   res.status(statusCode).json({
-    success,
+    success: false,
     message,
-    error: errorDetails,
+    errorMessages,
+    ...(process.env.NODE_ENV === "development" && { stack: err?.stack }),
   });
 };
 
