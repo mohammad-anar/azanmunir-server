@@ -37,6 +37,18 @@ const createWorkshop = async (payload: Prisma.WorkshopCreateInput) => {
     },
   });
 
+  // Generate OTP and send verification email
+  const otp = generateOTP();
+  await redisClient.set(`otp:${workshop.email}`, otp, { EX: 300 });
+
+  const template = await emailTemplate.createAccount({
+    name: workshop.workshopName,
+    otp,
+    email: workshop.email,
+  });
+
+  await emailHelper.sendEmail(template);
+
   return workshop;
 };
 

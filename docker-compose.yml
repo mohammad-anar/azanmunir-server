@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  # ──────────────────────────────────────
+  # PostgreSQL Database (with PostGIS)
+  # ──────────────────────────────────────
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: azanmunir_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-azanmunir}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────
+  # Redis Cache
+  # ──────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: azanmunir_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ──────────────────────────────────────
+  # Node.js Application
+  # ──────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: azanmunir_app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-azanmunir}?schema=public
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "${PORT:-5000}:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./tmp:/app/tmp
+
+volumes:
+  pgdata:
+  redisdata:
