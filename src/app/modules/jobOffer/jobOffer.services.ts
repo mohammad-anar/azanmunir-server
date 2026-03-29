@@ -90,6 +90,9 @@ const getJobOffersByUserId = async (
     orderBy: {
       createdAt: "desc",
     },
+    include: {
+      workshop: {select: {id:true, workshopName:true}},
+    },
   });
 
   const total = await prisma.jobOffer.count({

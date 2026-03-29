@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../../helpers.ts/prisma.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import { convertToCSV } from "../../shared/utils/csv.js";
+import { generateInvoicePDFBuffer, IInvoicePDFData } from "../../shared/utils/pdf.js";
 
 const createInvoice = async (
   payload: Prisma.InvoiceCreateInput & { month?: string },
@@ -48,13 +50,17 @@ const createInvoice = async (
       },
     });
 
-    let totalAmount = 0;
+    let totalJobAmount = 0;
+    let platformFee = 0;
     completedBookings.forEach((booking) => {
       const price = booking.offer.price || 0;
       const effectiveFee =
         booking.workshop.platformFees ?? platformData.platformFee;
-      totalAmount += price * (effectiveFee / 100);
+      totalJobAmount += price;
+      platformFee += price * (effectiveFee / 100);
     });
+
+    const totalAmount = platformFee;
 
     const monthNames = [
       "January",
@@ -92,14 +98,19 @@ const createInvoice = async (
       update: {
         ...prismaPayload,
         title,
+        totalJobAmount,
+        platformFee,
         totalAmount,
         totalJobs: completedBookings.length,
         dueDate: prismaPayload.dueDate || dueDate,
+        status: "SENT",
       },
       create: {
         ...prismaPayload,
         title,
         workshopId,
+        totalJobAmount,
+        platformFee,
         totalAmount,
         billingMonth: startOfMonth,
         totalJobs: completedBookings.length,
@@ -133,12 +144,14 @@ const createInvoice = async (
   const effectiveFee = workshop.platformFees ?? platformData.platformFee;
 
   // Calculate total amount as the fee based on the provided totalAmount (assuming input is gross amount)
-  const calculatedAmount = inputAmount * (effectiveFee / 100);
+  const platformFee = inputAmount * (effectiveFee / 100);
 
   const result = await prisma.invoice.create({
     data: {
       ...payload,
-      totalAmount: calculatedAmount,
+      totalJobAmount: inputAmount,
+      platformFee: platformFee,
+      totalAmount: platformFee,
     },
   });
 
@@ -357,7 +370,7 @@ const generateMonthlyInvoices = async (month?: string) => {
   // Group by workshop
   const workshopInvoiceData: Record<
     string,
-    { totalJobs: number; totalAmount: number }
+    { totalJobs: number; totalJobAmount: number; platformFee: number }
   > = {};
 
   completedBookings.forEach((booking) => {
@@ -370,11 +383,16 @@ const generateMonthlyInvoices = async (month?: string) => {
     const amount = price * (effectiveFee / 100);
 
     if (!workshopInvoiceData[workshopId]) {
-      workshopInvoiceData[workshopId] = { totalJobs: 0, totalAmount: 0 };
+      workshopInvoiceData[workshopId] = {
+        totalJobs: 0,
+        totalJobAmount: 0,
+        platformFee: 0,
+      };
     }
 
     workshopInvoiceData[workshopId].totalJobs += 1;
-    workshopInvoiceData[workshopId].totalAmount += amount;
+    workshopInvoiceData[workshopId].totalJobAmount += price;
+    workshopInvoiceData[workshopId].platformFee += amount;
   });
 
   // Generate invoices
@@ -414,15 +432,20 @@ const generateMonthlyInvoices = async (month?: string) => {
       },
       update: {
         totalJobs: data.totalJobs,
-        totalAmount: data.totalAmount,
+        totalJobAmount: data.totalJobAmount,
+        platformFee: data.platformFee,
+        totalAmount: data.platformFee,
         dueDate: dueDate,
+        status: "SENT",
       },
       create: {
         title,
         workshopId,
         billingMonth: startOfMonth,
         totalJobs: data.totalJobs,
-        totalAmount: data.totalAmount,
+        totalJobAmount: data.totalJobAmount,
+        platformFee: data.platformFee,
+        totalAmount: data.platformFee,
         dueDate: dueDate,
         status: "SENT",
       },
@@ -445,6 +468,217 @@ const markInvoiceAsPaid = async (id: string) => {
   return result;
 };
 
+const getMonthlyInvoices = async (month: string) => {
+  const [year, monthPart] = month.split("-").map(Number);
+  const startDate = new Date(year, monthPart - 1, 1);
+  const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
+
+  const result = await prisma.invoice.findMany({
+    where: {
+      billingMonth: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    include: {
+      workshop: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
+const exportInvoicesToCSV = async (filters: {
+  month?: string;
+  workshopId?: string;
+}) => {
+  const andConditions: Prisma.InvoiceWhereInput[] = [];
+
+  if (filters.month) {
+    const [year, month] = filters.month.split("-").map(Number);
+    if (year && month) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      andConditions.push({
+        billingMonth: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
+    }
+  }
+
+  if (filters.workshopId) {
+    andConditions.push({ workshopId: filters.workshopId });
+  }
+
+  const whereConditions: Prisma.InvoiceWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const invoices = await prisma.invoice.findMany({
+    where: whereConditions,
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          ownerName: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const formattedData = invoices.map((invoice) => ({
+    id: invoice.id,
+    title: invoice.title,
+    workshopName: invoice.workshop.workshopName,
+    workshopEmail: invoice.workshop.email,
+    ownerName: invoice.workshop.ownerName,
+    totalJobs: invoice.totalJobs,
+    totalJobAmount: invoice.totalJobAmount,
+    platformFee: invoice.platformFee.toFixed(2),
+    totalAmount: invoice.totalAmount.toFixed(2),
+    status: invoice.status,
+    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
+    dueDate: invoice.dueDate.toISOString().split("T")[0],
+    createdAt: invoice.createdAt.toISOString().split("T")[0],
+  }));
+
+  return convertToCSV(formattedData);
+};
+
+const exportInvoiceByIdToCSV = async (id: string) => {
+  const invoice = await prisma.invoice.findUniqueOrThrow({
+    where: { id },
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          ownerName: true,
+        },
+      },
+    },
+  });
+
+  const formattedData = [
+    {
+      id: invoice.id,
+      title: invoice.title,
+      workshopName: invoice.workshop.workshopName,
+      workshopEmail: invoice.workshop.email,
+      ownerName: invoice.workshop.ownerName,
+      totalJobs: invoice.totalJobs,
+      totalJobAmount: invoice.totalJobAmount,
+      platformFee: invoice.platformFee.toFixed(2),
+      totalAmount: invoice.totalAmount.toFixed(2),
+      status: invoice.status,
+      billingMonth: invoice.billingMonth.toISOString().split("T")[0],
+      dueDate: invoice.dueDate.toISOString().split("T")[0],
+      createdAt: invoice.createdAt.toISOString().split("T")[0],
+    },
+  ];
+
+  return convertToCSV(formattedData);
+};
+
+const generateInvoicePDF = async (id: string): Promise<Buffer> => {
+  const invoice = await prisma.invoice.findUniqueOrThrow({
+    where: { id },
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          address: true,
+        },
+      },
+    },
+  });
+
+  const pdfData: IInvoicePDFData = {
+    title: invoice.title,
+    invoiceId: invoice.id,
+    workshopName: invoice.workshop.workshopName,
+    workshopEmail: invoice.workshop.email,
+    workshopAddress: invoice.workshop.address ?? undefined,
+    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
+    totalJobs: invoice.totalJobs,
+    totalJobAmount: invoice.totalJobAmount,
+    platformFee: invoice.platformFee,
+    totalAmount: invoice.totalAmount,
+    dueDate: invoice.dueDate.toISOString().split("T")[0],
+  };
+
+  return generateInvoicePDFBuffer(pdfData);
+};
+
+const generateBulkInvoicesPDF = async (filters: {
+  month?: string;
+  workshopId?: string;
+}): Promise<Buffer> => {
+  const andConditions: Prisma.InvoiceWhereInput[] = [];
+
+  if (filters.month) {
+    const [year, month] = filters.month.split("-").map(Number);
+    if (year && month) {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+      andConditions.push({
+        billingMonth: {
+          gte: startDate,
+          lte: endDate,
+        },
+      });
+    }
+  }
+
+  if (filters.workshopId) {
+    andConditions.push({ workshopId: filters.workshopId });
+  }
+
+  const whereConditions: Prisma.InvoiceWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
+
+  const invoices = await prisma.invoice.findMany({
+    where: whereConditions,
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          address: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (invoices.length === 0) {
+    throw new Error("No invoices found for the specified filters.");
+  }
+
+  const pdfDataList: IInvoicePDFData[] = invoices.map((invoice) => ({
+    title: invoice.title,
+    invoiceId: invoice.id,
+    workshopName: invoice.workshop.workshopName,
+    workshopEmail: invoice.workshop.email,
+    workshopAddress: invoice.workshop.address ?? undefined,
+    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
+    totalJobs: invoice.totalJobs,
+    totalJobAmount: invoice.totalJobAmount,
+    platformFee: invoice.platformFee,
+    totalAmount: invoice.totalAmount,
+    dueDate: invoice.dueDate.toISOString().split("T")[0],
+  }));
+
+  return generateInvoicePDFBuffer(pdfDataList);
+};
+
 export const InvoiceService = {
   createInvoice,
   getAllInvoices,
@@ -454,4 +688,9 @@ export const InvoiceService = {
   getInvoicesByWorkshopId,
   generateMonthlyInvoices,
   markInvoiceAsPaid,
+  getMonthlyInvoices,
+  exportInvoicesToCSV,
+  exportInvoiceByIdToCSV,
+  generateInvoicePDF,
+  generateBulkInvoicesPDF,
 };

@@ -53,6 +53,15 @@ const getVisionStatistics = async () => {
     }),
   ]);
 
+  // Calculate average job requests per year
+  const totalJobRequests = jobRequestsEveryYear.reduce(
+    (acc, curr) => acc + Number(curr.count),
+    0
+  );
+  const numberOfYears = jobRequestsEveryYear.length;
+  const avgJobRequestsPerYear =
+    numberOfYears > 0 ? totalJobRequests / numberOfYears : 0;
+
   return {
     totalJobs,
     totalReviews,
@@ -63,6 +72,7 @@ const getVisionStatistics = async () => {
       year: item.year,
       count: Number(item.count),
     })),
+    avgJobRequestsPerYear: Number(avgJobRequestsPerYear.toFixed(2)),
     totalBookingsCompleted,
   };
 };

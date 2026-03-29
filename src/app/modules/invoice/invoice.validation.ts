@@ -40,7 +40,28 @@ export const updateInvoiceZodSchema = z.object({
     .transform((val) => (typeof val === "string" ? new Date(val) : val)),
 });
 
+const generateMonthlyZodSchema = z.object({
+
+    month: z
+      .string()
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format")
+      .optional(),
+
+});
+
+const downloadMonthlyZodSchema = z.object({
+ 
+    month: z
+      .string()
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format")
+      .optional(),
+    workshopId: z.string().optional(),
+  
+});
+
 export const InvoiceValidation = {
   createInvoiceZodSchema,
   updateInvoiceZodSchema,
+  generateMonthlyZodSchema,
+  downloadMonthlyZodSchema,
 };

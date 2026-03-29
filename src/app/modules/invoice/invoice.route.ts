@@ -22,7 +22,20 @@ router.patch(
   InvoiceController.updateInvoice
 );
 router.delete("/:id", auth(Role.ADMIN), InvoiceController.deleteInvoice);
-router.post("/generate-monthly", auth(Role.ADMIN), InvoiceController.generateMonthlyInvoices);
+router.get("/monthly-report", auth(Role.ADMIN), InvoiceController.getMonthlyInvoices);
+router.get(
+  "/monthly-report/download",
+  auth(Role.ADMIN),
+  validateRequest(InvoiceValidation.downloadMonthlyZodSchema),
+  InvoiceController.downloadMonthlyInvoices
+);
+router.get("/:id/download", auth(Role.ADMIN), InvoiceController.downloadInvoice);
+router.post(
+  "/generate-monthly",
+  auth(Role.ADMIN),
+  validateRequest(InvoiceValidation.generateMonthlyZodSchema),
+  InvoiceController.generateMonthlyInvoices
+);
 router.patch("/:id/mark-paid", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.markInvoiceAsPaid);
 
 router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.getInvoicesByWorkshopId);

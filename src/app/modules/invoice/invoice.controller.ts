@@ -109,6 +109,45 @@ const markInvoiceAsPaid = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMonthlyInvoices = catchAsync(async (req: Request, res: Response) => {
+  const { month } = req.query;
+  const result = await InvoiceService.getMonthlyInvoices(month as string);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Monthly invoices retrieved successfully",
+    data: result,
+  });
+});
+
+const downloadInvoice = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await InvoiceService.generateInvoicePDF(id);
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=invoice-${id}.pdf`,
+  );
+  res.status(200).send(result);
+});
+
+const downloadMonthlyInvoices = catchAsync(
+  async (req: Request, res: Response) => {
+    const { month, workshopId } = req.query;
+    const result = await InvoiceService.generateBulkInvoicesPDF({
+      month: month as string,
+      workshopId: workshopId as string,
+    });
+
+    const filename = month ? `invoices-${month}.pdf` : "invoices.pdf";
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    res.status(200).send(result);
+  },
+);
+
 export const InvoiceController = {
   createInvoice,
   getAllInvoices,
@@ -118,4 +157,7 @@ export const InvoiceController = {
   getInvoicesByWorkshopId,
   generateMonthlyInvoices,
   markInvoiceAsPaid,
+  getMonthlyInvoices,
+  downloadInvoice,
+  downloadMonthlyInvoices,
 };

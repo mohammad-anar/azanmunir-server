@@ -79,6 +79,9 @@ const getAllReviews = async (
         select: {
           id: true,
           name: true,
+          avatar: true,
+          phone: true,
+          status: true,
         },
       },
       booking: {
@@ -120,8 +123,7 @@ const getPublicReviews = async () => {
       isHidden: false,
     },
     include: {
-      user: true,
-      booking: true,
+      user: {select: {id:true, name:true, avatar:true, phone:true, status:true}},
     },
     orderBy: {
       createdAt: "desc",
@@ -135,8 +137,7 @@ const getReviewById = async (id: string) => {
   const result = await prisma.review.findUniqueOrThrow({
     where: { id },
     include: {
-      user: true,
-      booking: true,
+      user: {select: {id:true, name:true, avatar:true, phone:true, status:true}},
     },
   });
 

@@ -5,9 +5,11 @@ model Invoice {
     workshopId   String
     workshop     Workshop      @relation(fields: [workshopId], references: [id])
     billingMonth DateTime
-    totalJobs    Int
-    totalAmount  Float
-    status       InvoiceStatus @default(SENT)
+    totalJobs      Int
+    totalJobAmount Float         @default(0)
+    platformFee    Float         @default(0)
+    totalAmount    Float
+    status         InvoiceStatus @default(SENT)
     dueDate      DateTime
     createdAt    DateTime      @default(now())
     updatedAt    DateTime      @updatedAt

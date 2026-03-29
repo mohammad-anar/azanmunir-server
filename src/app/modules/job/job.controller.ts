@@ -6,6 +6,7 @@ import { getMultipleFilesPath } from "../../shared/getFilePath.js";
 import config from "../../../config/index.js";
 import sendResponse from "../../shared/sendResponse.js";
 import pick from "../../../helpers.ts/pick.js";
+import { prisma } from "src/helpers.ts/prisma.js";
 
 const createJob = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;
@@ -30,6 +31,15 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
       payload.photos = photos;
     }
   }
+
+  const platformData = await prisma.platformData.findFirst();
+  if (!platformData) {
+    throw new ApiError(404, "Platform data not found");
+  }
+  
+  // set radius from platform data
+  payload.radius = platformData.maximumJobRadius;
+
 
   // console.log(payload);
   const result = await JobService.createJob(id, payload);

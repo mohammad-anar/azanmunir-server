@@ -22,7 +22,7 @@ export const CreateJobSchema = z.object({
   postalCode: z.string(),
   latitude: z.number(),
   longitude: z.number(),
-  radius: z.number().min(1),
+  radius: z.number().optional(),
   bikeName: z.string(),
   bikeType: z.enum(BikeType),
   bikeBrand: z.string().optional(),
