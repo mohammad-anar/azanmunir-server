@@ -7,37 +7,48 @@ import { Role } from "@prisma/client";
 
 const router = express.Router();
 
-router.post(
-  "/",
-  auth(Role.ADMIN),
-  validateRequest(InvoiceValidation.createInvoiceZodSchema),
-  InvoiceController.createInvoice
-);
-router.get("/", auth(Role.ADMIN),InvoiceController.getAllInvoices);
-router.get("/:id", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.getInvoiceById);
-router.patch(
-  "/:id",
-  auth(Role.ADMIN),
-  validateRequest(InvoiceValidation.updateInvoiceZodSchema),
-  InvoiceController.updateInvoice
-);
-router.delete("/:id", auth(Role.ADMIN), InvoiceController.deleteInvoice);
-router.get("/monthly-report", auth(Role.ADMIN), InvoiceController.getMonthlyInvoices);
-router.get(
-  "/monthly-report/download",
-  auth(Role.ADMIN),
-  validateRequest(InvoiceValidation.downloadMonthlyZodSchema),
-  InvoiceController.downloadMonthlyInvoices
-);
-router.get("/:id/download", auth(Role.ADMIN), InvoiceController.downloadInvoice);
+// POST /invoices/generate-monthly  →  generate invoices for all workshops for a given month
 router.post(
   "/generate-monthly",
   auth(Role.ADMIN),
   validateRequest(InvoiceValidation.generateMonthlyZodSchema),
-  InvoiceController.generateMonthlyInvoices
+  InvoiceController.generateMonthlyInvoices,
 );
-router.patch("/:id/mark-paid", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.markInvoiceAsPaid);
 
-router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), InvoiceController.getInvoicesByWorkshopId);
+// GET /invoices/monthly?month=YYYY-MM  →  list all invoices for the month
+router.get(
+  "/monthly",
+  auth(Role.ADMIN),
+  InvoiceController.getMonthlyInvoices,
+);
+
+// GET /invoices/monthly/download?month=YYYY-MM  →  download all invoices as a single PDF
+router.get(
+  "/monthly/download",
+  auth(Role.ADMIN),
+  InvoiceController.downloadMonthlyInvoicesPDF,
+);
+
+// PATCH /invoices/:id/paid  →  admin marks an invoice as PAID
+router.patch(
+  "/:id/paid",
+  auth(Role.ADMIN),
+  InvoiceController.updateInvoiceStatus,
+);
+
+// GET /invoices/:id/download  →  download a single invoice by its ID
+router.get(
+  "/:id/download",
+  auth(Role.ADMIN),
+  InvoiceController.downloadInvoicePDFById,
+);
+
+// GET /invoices/workshop/:workshopId/download?month=YYYY-MM  →  download specific workshop invoice
+router.get(
+  "/workshop/:workshopId/download",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  validateRequest(InvoiceValidation.downloadWorkshopInvoiceZodSchema),
+  InvoiceController.downloadWorkshopInvoicePDF,
+);
 
 export const InvoiceRouter = router;

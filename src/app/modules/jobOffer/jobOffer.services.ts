@@ -185,7 +185,7 @@ const acceptOffer = async (id: string, userId: string) => {
         userId: offer.job.userId,
         workshopId: offer.workshopId,
         scheduleStart: new Date(),
-        scheduleEnd: new Date(timeInHours(offer.estimatedTime)),
+        scheduleEnd: new Date(new Date(timeInHours(offer.estimatedTime))),
         status: "CONFIRMED",
       },
     });

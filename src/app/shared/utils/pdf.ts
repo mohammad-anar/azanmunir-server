@@ -10,6 +10,7 @@ export interface IInvoicePDFData {
   totalJobs: number;
   totalJobAmount: number;
   platformFee: number;
+  workshopRevenue: number;
   totalAmount: number;
   dueDate: string;
 }
@@ -80,6 +81,8 @@ export const generateInvoicePDFBuffer = async (
       generateTableRow(doc, position, "Total Job Group Amount", "", entry.totalJobAmount.toFixed(2));
       position += 20;
       generateTableRow(doc, position, "Platform Fee (Invoice)", "", entry.platformFee.toFixed(2));
+      position += 20;
+      generateTableRow(doc, position, "Workshop Revenue", "", entry.workshopRevenue.toFixed(2));
       
       generateHr(doc, position + 20);
       

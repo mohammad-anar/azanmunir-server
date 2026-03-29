@@ -1,67 +1,37 @@
 import { z } from "zod";
-import { InvoiceStatus } from "@prisma/client";
 
-// Schema for creating an invoice
-export const createInvoiceZodSchema = z.object({
-  workshopId: z.string({
-    message: "Workshop ID is required",
-  }),
-  month: z
-    .string()
-    .optional()
-    .refine((val) => {
-      if (!val) return true; // optional
-      // validate format YYYY-MM
-      return /^\d{4}-(0[1-9]|1[0-2])$/.test(val);
-    }, "Month must be in YYYY-MM format"),
-  totalAmount: z.number().min(0).optional(), // allow manual totalAmount if needed
-});
-
-// Schema for updating an invoice
-export const updateInvoiceZodSchema = z.object({
-  billingMonth: z
-    .union([z.date(), z.string()])
-    .optional()
-    .transform((val) => (typeof val === "string" ? new Date(val) : val)),
-  totalJobs: z.number().int().min(0).optional(),
-  totalAmount: z.number().min(0).optional(),
-  status: z
-    .enum([
-      InvoiceStatus.DRAFT,
-      InvoiceStatus.SENT,
-      InvoiceStatus.PAID,
-      InvoiceStatus.OVERDUE,
-      InvoiceStatus.CANCELLED,
-    ])
-    .optional(),
-  dueDate: z
-    .union([z.date(), z.string()])
-    .optional()
-    .transform((val) => (typeof val === "string" ? new Date(val) : val)),
-});
+const monthSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format")
+  .optional();
 
 const generateMonthlyZodSchema = z.object({
-
-    month: z
-      .string()
-      .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format")
-      .optional(),
-
+  month: monthSchema,
 });
 
-const downloadMonthlyZodSchema = z.object({
- 
+const getMonthlyZodSchema = z.object({
+  month: z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format"),
+});
+
+const updateInvoiceStatusZodSchema = z.object({
+  body: z.object({
+    status: z.enum(["PAID", "SENT", "CANCELLED"]),
+  }),
+});
+
+const downloadWorkshopInvoiceZodSchema = z.object({
+  query: z.object({
     month: z
       .string()
-      .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format")
-      .optional(),
-    workshopId: z.string().optional(),
-  
+      .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format"),
+  }),
 });
 
 export const InvoiceValidation = {
-  createInvoiceZodSchema,
-  updateInvoiceZodSchema,
   generateMonthlyZodSchema,
-  downloadMonthlyZodSchema,
+  getMonthlyZodSchema,
+  updateInvoiceStatusZodSchema,
+  downloadWorkshopInvoiceZodSchema,
 };

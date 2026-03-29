@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const createContactZodSchema = z.object({
-  body: z.object({
+
     fullName: z.string({
       message: "Full Name is required",
     }),
@@ -17,11 +17,11 @@ const createContactZodSchema = z.object({
     message: z.string({
       message: "Message is required",
     }),
-  }),
+  
 });
 
 const createWorkshopContactZodSchema = z.object({
-  body: z.object({
+ 
     companyName: z.string({
       message: "Company Name is required",
     }),
@@ -32,7 +32,7 @@ const createWorkshopContactZodSchema = z.object({
       message: "Phone is required",
     }),
     additionalInfo: z.string().optional(),
-  }),
+ 
 });
 
 export const ContactValidation = {

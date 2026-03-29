@@ -4,160 +4,99 @@ import sendResponse from "../../shared/sendResponse.js";
 import { InvoiceService } from "./invoice.service.js";
 import pick from "../../../helpers.ts/pick.js";
 
-const createInvoice = catchAsync(async (req: Request, res: Response) => {
-  const result = await InvoiceService.createInvoice(req.body);
-
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: "Invoice created successfully",
-    data: result,
-  });
-});
-
-const getAllInvoices = catchAsync(async (req: Request, res: Response) => {
-  const filters = pick(req.query, ["status", "month", "searchTerm"]);
-  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
-  const result = await InvoiceService.getAllInvoices(filters, options);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Invoices retrieved successfully",
-    data: result,
-  });
-});
-
-const getInvoiceById = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const result = await InvoiceService.getInvoiceById(id);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Invoice retrieved successfully",
-    data: result,
-  });
-});
-
-const updateInvoice = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const result = await InvoiceService.updateInvoice(id, req.body);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Invoice updated successfully",
-    data: result,
-  });
-});
-
-const deleteInvoice = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const result = await InvoiceService.deleteInvoice(id);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Invoice deleted successfully",
-    data: result,
-  });
-});
-
-const getInvoicesByWorkshopId = catchAsync(
-  async (req: Request, res: Response) => {
-    const { workshopId } = req.params;
-
-    const result = await InvoiceService.getInvoicesByWorkshopId(workshopId);
-
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Workshop invoices retrieved successfully",
-      data: result,
-    });
-  },
-);
-
+// POST /invoices/generate-monthly
+// Body: { month?: "YYYY-MM" }
 const generateMonthlyInvoices = catchAsync(
   async (req: Request, res: Response) => {
     const { month } = req.body;
-    const result = await InvoiceService.generateMonthlyInvoices(month);
+    const result = await InvoiceService.generateMonthlyInvoices(month as string);
 
     sendResponse(res, {
       statusCode: 201,
       success: true,
       message: "Monthly invoices generated successfully",
-      data: result,
+      data: null,
     });
   },
 );
 
-const markInvoiceAsPaid = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const result = await InvoiceService.markInvoiceAsPaid(id);
-
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Invoice marked as paid successfully",
-    data: result,
-  });
-});
-
+// GET /invoices/monthly?month=YYYY-MM
 const getMonthlyInvoices = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, ["searchTerm", "status"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
   const { month } = req.query;
-  const result = await InvoiceService.getMonthlyInvoices(month as string);
+
+  const result = await InvoiceService.getMonthlyInvoices(
+    month as string,
+    filters,
+    options,
+  );
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
     message: "Monthly invoices retrieved successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
+
+// GET /invoices/monthly/download?month=YYYY-MM
+const downloadMonthlyInvoicesPDF = catchAsync(
+  async (req: Request, res: Response) => {
+    const { month } = req.query;
+    const buffer = await InvoiceService.downloadMonthlyInvoicesPDF(
+      month as string,
+    );
+
+    const filename = `invoices-${month}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+    res.status(200).send(buffer);
+  },
+);
+
+// PATCH /invoices/:id/status
+const updateInvoiceStatus = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await InvoiceService.updateInvoiceStatus(id, "PAID");
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Invoice status updated successfully",
     data: result,
   });
 });
 
-const downloadInvoice = catchAsync(async (req: Request, res: Response) => {
+// GET /invoices/:id/download
+const downloadInvoicePDFById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await InvoiceService.generateInvoicePDF(id);
+  const buffer = await InvoiceService.getInvoicePDFById(id);
 
+  const filename = `invoice-${id}.pdf`;
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename=invoice-${id}.pdf`,
-  );
-  res.status(200).send(result);
+  res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+  res.status(200).send(buffer);
 });
 
-const downloadMonthlyInvoices = catchAsync(
-  async (req: Request, res: Response) => {
-    const { month, workshopId } = req.query;
-    const result = await InvoiceService.generateBulkInvoicesPDF({
-      month: month as string,
-      workshopId: workshopId as string,
-    });
+// GET /invoices/workshop/:workshopId/download?month=YYYY-MM
+const downloadWorkshopInvoicePDF = catchAsync(async (req: Request, res: Response) => {
+  const { workshopId } = req.params;
+  const { month } = req.query;
+  const buffer = await InvoiceService.getWorkshopInvoicePDF(workshopId, month as string);
 
-    const filename = month ? `invoices-${month}.pdf` : "invoices.pdf";
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
-    res.status(200).send(result);
-  },
-);
+  const filename = `invoice-${workshopId}-${month}.pdf`;
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
+  res.status(200).send(buffer);
+});
 
 export const InvoiceController = {
-  createInvoice,
-  getAllInvoices,
-  getInvoiceById,
-  updateInvoice,
-  deleteInvoice,
-  getInvoicesByWorkshopId,
   generateMonthlyInvoices,
-  markInvoiceAsPaid,
   getMonthlyInvoices,
-  downloadInvoice,
-  downloadMonthlyInvoices,
+  downloadMonthlyInvoicesPDF,
+  updateInvoiceStatus,
+  downloadInvoicePDFById,
+  downloadWorkshopInvoicePDF,
 };

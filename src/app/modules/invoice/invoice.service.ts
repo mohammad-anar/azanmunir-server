@@ -1,317 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../../helpers.ts/prisma.js";
+import { generateInvoicePDFBuffer, IInvoicePDFData } from "../../shared/utils/pdf.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
-import { convertToCSV } from "../../shared/utils/csv.js";
-import { generateInvoicePDFBuffer, IInvoicePDFData } from "../../shared/utils/pdf.js";
-
-const createInvoice = async (
-  payload: Prisma.InvoiceCreateInput & { month?: string },
-) => {
-  const payloadData = payload as any;
-  const workshopId = payloadData.workshopId;
-  const month = payloadData.month;
-
-  if (month) {
-    // Expected format: "YYYY-MM"
-    const [yearPart, monthPart] = month.split("-").map(Number);
-    if (!yearPart || !monthPart || monthPart < 1 || monthPart > 12) {
-      throw new Error("Invalid month format. Please use YYYY-MM.");
-    }
-    const startOfMonth = new Date(yearPart, monthPart - 1, 1);
-    const endOfMonth = new Date(yearPart, monthPart, 0, 23, 59, 59, 999);
-
-    // Fetch platform data for default platform fee
-    const platformData = await prisma.platformData.findFirst();
-    if (!platformData) {
-      throw new Error(
-        "Platform data not found. Please set platform fee first.",
-      );
-    }
-
-    // Fetch all completed bookings for this workshop in the specified month
-    const completedBookings = await prisma.booking.findMany({
-      where: {
-        workshopId,
-        status: "COMPLETED",
-        paymentStatus: "PAID",
-        scheduleEnd: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
-      },
-      include: {
-        offer: true,
-        workshop: {
-          select: {
-            platformFees: true,
-          },
-        },
-      },
-    });
-
-    let totalJobAmount = 0;
-    let platformFee = 0;
-    completedBookings.forEach((booking) => {
-      const price = booking.offer.price || 0;
-      const effectiveFee =
-        booking.workshop.platformFees ?? platformData.platformFee;
-      totalJobAmount += price;
-      platformFee += price * (effectiveFee / 100);
-    });
-
-    const totalAmount = platformFee;
-
-    const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    const billingMonthName = monthNames[startOfMonth.getMonth()];
-    const title = `Invoice for ${billingMonthName} ${yearPart}`;
-    const dueDate = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      15,
-    );
-
-    // Clean up payload to avoid Prisma validation errors if 'month' is not in schema
-    const { month: _, ...prismaPayload } = payloadData;
-
-    // Use upsert to avoid duplicate invoices for the same workshop and month
-    const result = await prisma.invoice.upsert({
-      where: {
-        workshopId_billingMonth: {
-          workshopId,
-          billingMonth: startOfMonth,
-        },
-      },
-      update: {
-        ...prismaPayload,
-        title,
-        totalJobAmount,
-        platformFee,
-        totalAmount,
-        totalJobs: completedBookings.length,
-        dueDate: prismaPayload.dueDate || dueDate,
-        status: "SENT",
-      },
-      create: {
-        ...prismaPayload,
-        title,
-        workshopId,
-        totalJobAmount,
-        platformFee,
-        totalAmount,
-        billingMonth: startOfMonth,
-        totalJobs: completedBookings.length,
-        dueDate: prismaPayload.dueDate || dueDate,
-        status: "SENT",
-      },
-    });
-    return result;
-  }
-
-  // Fallback to manual creation if no month is provided
-  // Fetch platform data for default platform fee
-  const platformData = await prisma.platformData.findFirst();
-  if (!platformData) {
-    throw new Error("Platform data not found. Please set platform fee first.");
-  }
-
-  const inputAmount = payloadData.totalAmount || 0;
-
-  // Fetch workshop to get custom platform fees if exists
-  const workshop = await prisma.workshop.findUnique({
-    where: { id: workshopId },
-    select: { platformFees: true },
-  });
-
-  if (!workshop) {
-    throw new Error("Workshop not found");
-  }
-
-  // Determine platform fee: workshop specific or default from platformData
-  const effectiveFee = workshop.platformFees ?? platformData.platformFee;
-
-  // Calculate total amount as the fee based on the provided totalAmount (assuming input is gross amount)
-  const platformFee = inputAmount * (effectiveFee / 100);
-
-  const result = await prisma.invoice.create({
-    data: {
-      ...payload,
-      totalJobAmount: inputAmount,
-      platformFee: platformFee,
-      totalAmount: platformFee,
-    },
-  });
-
-  return result;
-};
-
-const getAllInvoices = async (
-  filter: { searchTerm?: string; month?: string; status?: string },
-  options: IPaginationOptions,
-) => {
-  const { page, limit, skip } = paginationHelper.calculatePagination(options);
-
-  const andConditions: Prisma.InvoiceWhereInput[] = [];
-
-  if (filter.searchTerm) {
-    andConditions.push({
-      OR: [
-        {
-          workshop: {
-            workshopName: {
-              contains: filter.searchTerm,
-              mode: "insensitive",
-            },
-          },
-        },
-        {
-          workshop: {
-            email: {
-              contains: filter.searchTerm,
-              mode: "insensitive",
-            },
-          },
-        },
-      ],
-    });
-  }
-
-  if (filter.month) {
-    // Expected format: "YYYY-MM"
-    const [year, month] = filter.month.split("-").map(Number);
-    if (year && month) {
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-      andConditions.push({
-        billingMonth: {
-          gte: startDate,
-          lte: endDate,
-        },
-      });
-    }
-  }
-
-  if (filter.status) {
-    andConditions.push({
-      status: filter.status as any,
-    });
-  }
-
-  const whereConditions: Prisma.InvoiceWhereInput =
-    andConditions.length > 0 ? { AND: andConditions } : {};
-
-  const result = await prisma.invoice.findMany({
-    where: whereConditions,
-    skip,
-    take: limit,
-    include: {
-      workshop: {
-        select: {
-          id: true,
-          workshopName: true,
-          ownerName: true,
-          email: true,
-          address: true,
-          approvalStatus: true,
-          avatar: true,
-          avgRating: true,
-          platformFees: true,
-        },
-      },
-    },
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? {
-            [options.sortBy]: options.sortOrder,
-          }
-        : {
-            createdAt: "desc",
-          },
-  });
-
-  const total = await prisma.invoice.count({
-    where: whereConditions,
-  });
-
-  const totalPage = Math.ceil(total / limit);
-
-  return {
-    meta: {
-      page,
-      limit,
-      total,
-      totalPage,
-    },
-    data: result,
-  };
-};
-
-const getInvoiceById = async (id: string) => {
-  const result = await prisma.invoice.findUniqueOrThrow({
-    where: { id },
-    include: {
-      workshop: true,
-    },
-  });
-
-  return result;
-};
-
-const updateInvoice = async (
-  id: string,
-  payload: Prisma.InvoiceUpdateInput,
-) => {
-  const result = await prisma.invoice.update({
-    where: { id },
-    data: payload,
-  });
-
-  return result;
-};
-
-const deleteInvoice = async (id: string) => {
-  const result = await prisma.invoice.delete({
-    where: { id },
-  });
-
-  return result;
-};
-
-const getInvoicesByWorkshopId = async (workshopId: string) => {
-  const result = await prisma.invoice.findMany({
-    where: { workshopId },
-    include: {
-      workshop: {
-        select: {
-          ownerName: true,
-          email: true,
-          phone: true,
-          address: true,
-          role: true,
-          id: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return result;
-};
 
 const generateMonthlyInvoices = async (month?: string) => {
   const now = new Date();
@@ -324,7 +15,6 @@ const generateMonthlyInvoices = async (month?: string) => {
     if (!yearPart || !monthPart || monthPart < 1 || monthPart > 12) {
       throw new Error("Invalid month format. Please use YYYY-MM.");
     }
-    // Month in JS is 0-indexed
     startOfMonth = new Date(yearPart, monthPart - 1, 1);
     endOfMonth = new Date(yearPart, monthPart, 0, 23, 59, 59, 999);
   } else {
@@ -347,7 +37,7 @@ const generateMonthlyInvoices = async (month?: string) => {
     throw new Error("Platform data not found. Please set platform fee first.");
   }
 
-  // Fetch all completed bookings in the previous month
+  // Fetch all completed & paid bookings in the specified month
   const completedBookings = await prisma.booking.findMany({
     where: {
       status: "COMPLETED",
@@ -367,7 +57,7 @@ const generateMonthlyInvoices = async (month?: string) => {
     },
   });
 
-  // Group by workshop
+  // Group bookings by workshopId
   const workshopInvoiceData: Record<
     string,
     { totalJobs: number; totalJobAmount: number; platformFee: number }
@@ -376,11 +66,9 @@ const generateMonthlyInvoices = async (month?: string) => {
   completedBookings.forEach((booking) => {
     const workshopId = booking.workshopId;
     const price = booking.offer.price || 0;
-
-    // Determine platform fee: workshop specific or default from platformData
     const effectiveFee =
       booking.workshop.platformFees ?? platformData.platformFee;
-    const amount = price * (effectiveFee / 100);
+    const fee = price * (effectiveFee / 100);
 
     if (!workshopInvoiceData[workshopId]) {
       workshopInvoiceData[workshopId] = {
@@ -392,50 +80,40 @@ const generateMonthlyInvoices = async (month?: string) => {
 
     workshopInvoiceData[workshopId].totalJobs += 1;
     workshopInvoiceData[workshopId].totalJobAmount += price;
-    workshopInvoiceData[workshopId].platformFee += amount;
+    workshopInvoiceData[workshopId].platformFee += fee;
   });
 
-  // Generate invoices
-  const invoicesCreated = [];
-
-  // Set due date to x days from now? Let's say 15th of current month
-  const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
-
+  // Build title and due date
   const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
   const billingMonthName = monthNames[startOfMonth.getMonth()];
   const billingYear = startOfMonth.getFullYear();
   const title = `Invoice for ${billingMonthName} ${billingYear}`;
+  const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
+
+  const invoicesCreated = [];
 
   for (const workshopId in workshopInvoiceData) {
     const data = workshopInvoiceData[workshopId];
+    const workshopRevenue = data.totalJobAmount - data.platformFee;
 
-    // We can use upsert to avoid creating duplicates if run multiple times
     const result = await prisma.invoice.upsert({
       where: {
         workshopId_billingMonth: {
-          workshopId: workshopId,
+          workshopId,
           billingMonth: startOfMonth,
         },
       },
       update: {
+        title,
         totalJobs: data.totalJobs,
         totalJobAmount: data.totalJobAmount,
         platformFee: data.platformFee,
+        workshopRevenue,
         totalAmount: data.platformFee,
-        dueDate: dueDate,
+        dueDate,
         status: "SENT",
       },
       create: {
@@ -445,207 +123,132 @@ const generateMonthlyInvoices = async (month?: string) => {
         totalJobs: data.totalJobs,
         totalJobAmount: data.totalJobAmount,
         platformFee: data.platformFee,
+        workshopRevenue,
         totalAmount: data.platformFee,
-        dueDate: dueDate,
+        dueDate,
         status: "SENT",
+      },
+      include: {
+        workshop: {
+          select: {
+            id: true,
+            workshopName: true,
+            ownerName: true,
+            email: true,
+            address: true,
+          },
+        },
       },
     });
 
     invoicesCreated.push(result);
   }
 
-  return invoicesCreated;
+  return {
+    month: `${billingMonthName} ${billingYear}`,
+    totalInvoices: invoicesCreated.length,
+    invoices: invoicesCreated,
+  };
 };
 
-const markInvoiceAsPaid = async (id: string) => {
-  const result = await prisma.invoice.update({
-    where: { id },
-    data: {
-      status: "PAID",
-    },
-  });
+const getMonthlyInvoices = async (
+  month: string,
+  filters: { searchTerm?: string; status?: string },
+  options: IPaginationOptions,
+) => {
+  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    throw new Error("Invalid month format. Please use YYYY-MM.");
+  }
 
-  return result;
-};
+  const { searchTerm, status } = filters;
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(options);
 
-const getMonthlyInvoices = async (month: string) => {
   const [year, monthPart] = month.split("-").map(Number);
   const startDate = new Date(year, monthPart - 1, 1);
   const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
 
-  const result = await prisma.invoice.findMany({
+  const where: Prisma.InvoiceWhereInput = {
+    billingMonth: {
+      gte: startDate,
+      lte: endDate,
+    },
+  };
+
+  if (status) {
+    where.status = status as any;
+  }
+
+  if (searchTerm) {
+    where.OR = [
+      { title: { contains: searchTerm, mode: "insensitive" } },
+      {
+        workshop: {
+          workshopName: { contains: searchTerm, mode: "insensitive" },
+        },
+      },
+      {
+        workshop: {
+          email: { contains: searchTerm, mode: "insensitive" },
+        },
+      },
+    ];
+  }
+
+  const invoices = await prisma.invoice.findMany({
+    where,
+    skip,
+    take: limit,
+    include: {
+      workshop: {
+        select: {
+          id: true,
+          workshopName: true,
+          ownerName: true,
+          email: true,
+          address: true,
+          phone: true,
+          platformFees: true,
+          avgRating: true,
+          avatar: true,
+        },
+      },
+    },
+    orderBy: {
+      [sortBy || "createdAt"]: sortOrder || "desc",
+    },
+  });
+
+  const total = await prisma.invoice.count({ where });
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage,
+    },
+    data: invoices,
+  };
+};
+
+const downloadMonthlyInvoicesPDF = async (month: string): Promise<Buffer> => {
+  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    throw new Error("Invalid month format. Please use YYYY-MM.");
+  }
+
+  const [year, monthPart] = month.split("-").map(Number);
+  const startDate = new Date(year, monthPart - 1, 1);
+  const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
+
+  const invoices = await prisma.invoice.findMany({
     where: {
       billingMonth: {
         gte: startDate,
         lte: endDate,
       },
     },
-    include: {
-      workshop: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return result;
-};
-
-const exportInvoicesToCSV = async (filters: {
-  month?: string;
-  workshopId?: string;
-}) => {
-  const andConditions: Prisma.InvoiceWhereInput[] = [];
-
-  if (filters.month) {
-    const [year, month] = filters.month.split("-").map(Number);
-    if (year && month) {
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-      andConditions.push({
-        billingMonth: {
-          gte: startDate,
-          lte: endDate,
-        },
-      });
-    }
-  }
-
-  if (filters.workshopId) {
-    andConditions.push({ workshopId: filters.workshopId });
-  }
-
-  const whereConditions: Prisma.InvoiceWhereInput =
-    andConditions.length > 0 ? { AND: andConditions } : {};
-
-  const invoices = await prisma.invoice.findMany({
-    where: whereConditions,
-    include: {
-      workshop: {
-        select: {
-          workshopName: true,
-          email: true,
-          ownerName: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const formattedData = invoices.map((invoice) => ({
-    id: invoice.id,
-    title: invoice.title,
-    workshopName: invoice.workshop.workshopName,
-    workshopEmail: invoice.workshop.email,
-    ownerName: invoice.workshop.ownerName,
-    totalJobs: invoice.totalJobs,
-    totalJobAmount: invoice.totalJobAmount,
-    platformFee: invoice.platformFee.toFixed(2),
-    totalAmount: invoice.totalAmount.toFixed(2),
-    status: invoice.status,
-    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
-    dueDate: invoice.dueDate.toISOString().split("T")[0],
-    createdAt: invoice.createdAt.toISOString().split("T")[0],
-  }));
-
-  return convertToCSV(formattedData);
-};
-
-const exportInvoiceByIdToCSV = async (id: string) => {
-  const invoice = await prisma.invoice.findUniqueOrThrow({
-    where: { id },
-    include: {
-      workshop: {
-        select: {
-          workshopName: true,
-          email: true,
-          ownerName: true,
-        },
-      },
-    },
-  });
-
-  const formattedData = [
-    {
-      id: invoice.id,
-      title: invoice.title,
-      workshopName: invoice.workshop.workshopName,
-      workshopEmail: invoice.workshop.email,
-      ownerName: invoice.workshop.ownerName,
-      totalJobs: invoice.totalJobs,
-      totalJobAmount: invoice.totalJobAmount,
-      platformFee: invoice.platformFee.toFixed(2),
-      totalAmount: invoice.totalAmount.toFixed(2),
-      status: invoice.status,
-      billingMonth: invoice.billingMonth.toISOString().split("T")[0],
-      dueDate: invoice.dueDate.toISOString().split("T")[0],
-      createdAt: invoice.createdAt.toISOString().split("T")[0],
-    },
-  ];
-
-  return convertToCSV(formattedData);
-};
-
-const generateInvoicePDF = async (id: string): Promise<Buffer> => {
-  const invoice = await prisma.invoice.findUniqueOrThrow({
-    where: { id },
-    include: {
-      workshop: {
-        select: {
-          workshopName: true,
-          email: true,
-          address: true,
-        },
-      },
-    },
-  });
-
-  const pdfData: IInvoicePDFData = {
-    title: invoice.title,
-    invoiceId: invoice.id,
-    workshopName: invoice.workshop.workshopName,
-    workshopEmail: invoice.workshop.email,
-    workshopAddress: invoice.workshop.address ?? undefined,
-    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
-    totalJobs: invoice.totalJobs,
-    totalJobAmount: invoice.totalJobAmount,
-    platformFee: invoice.platformFee,
-    totalAmount: invoice.totalAmount,
-    dueDate: invoice.dueDate.toISOString().split("T")[0],
-  };
-
-  return generateInvoicePDFBuffer(pdfData);
-};
-
-const generateBulkInvoicesPDF = async (filters: {
-  month?: string;
-  workshopId?: string;
-}): Promise<Buffer> => {
-  const andConditions: Prisma.InvoiceWhereInput[] = [];
-
-  if (filters.month) {
-    const [year, month] = filters.month.split("-").map(Number);
-    if (year && month) {
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-      andConditions.push({
-        billingMonth: {
-          gte: startDate,
-          lte: endDate,
-        },
-      });
-    }
-  }
-
-  if (filters.workshopId) {
-    andConditions.push({ workshopId: filters.workshopId });
-  }
-
-  const whereConditions: Prisma.InvoiceWhereInput =
-    andConditions.length > 0 ? { AND: andConditions } : {};
-
-  const invoices = await prisma.invoice.findMany({
-    where: whereConditions,
     include: {
       workshop: {
         select: {
@@ -659,7 +262,7 @@ const generateBulkInvoicesPDF = async (filters: {
   });
 
   if (invoices.length === 0) {
-    throw new Error("No invoices found for the specified filters.");
+    throw new Error(`No invoices found for month: ${month}.`);
   }
 
   const pdfDataList: IInvoicePDFData[] = invoices.map((invoice) => ({
@@ -672,6 +275,7 @@ const generateBulkInvoicesPDF = async (filters: {
     totalJobs: invoice.totalJobs,
     totalJobAmount: invoice.totalJobAmount,
     platformFee: invoice.platformFee,
+    workshopRevenue: invoice.workshopRevenue,
     totalAmount: invoice.totalAmount,
     dueDate: invoice.dueDate.toISOString().split("T")[0],
   }));
@@ -679,18 +283,105 @@ const generateBulkInvoicesPDF = async (filters: {
   return generateInvoicePDFBuffer(pdfDataList);
 };
 
+const updateInvoiceStatus = async (id: string, status: "PAID" | "SENT" | "CANCELLED") => {
+  const result = await prisma.invoice.update({
+    where: { id },
+    data: { status },
+  });
+  return result;
+};
+
+const getInvoicePDFById = async (id: string): Promise<Buffer> => {
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          address: true,
+        },
+      },
+    },
+  });
+
+  if (!invoice) {
+    throw new Error("Invoice not found");
+  }
+
+  const pdfData: IInvoicePDFData = {
+    title: invoice.title,
+    invoiceId: invoice.id,
+    workshopName: invoice.workshop.workshopName,
+    workshopEmail: invoice.workshop.email,
+    workshopAddress: invoice.workshop.address ?? undefined,
+    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
+    totalJobs: invoice.totalJobs,
+    totalJobAmount: invoice.totalJobAmount,
+    platformFee: invoice.platformFee,
+    workshopRevenue: invoice.workshopRevenue,
+    totalAmount: invoice.totalAmount,
+    dueDate: invoice.dueDate.toISOString().split("T")[0],
+  };
+
+  return generateInvoicePDFBuffer(pdfData);
+};
+
+const getWorkshopInvoicePDF = async (workshopId: string, month: string): Promise<Buffer> => {
+  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    throw new Error("Invalid month format. Please use YYYY-MM.");
+  }
+
+  const [year, monthPart] = month.split("-").map(Number);
+  const startDate = new Date(year, monthPart - 1, 1);
+  const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
+
+  const invoice = await prisma.invoice.findFirst({
+    where: {
+      workshopId,
+      billingMonth: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          address: true,
+        },
+      },
+    },
+  });
+
+  if (!invoice) {
+    throw new Error(`No invoice found for workshop ${workshopId} for month ${month}.`);
+  }
+
+  const pdfData: IInvoicePDFData = {
+    title: invoice.title,
+    invoiceId: invoice.id,
+    workshopName: invoice.workshop.workshopName,
+    workshopEmail: invoice.workshop.email,
+    workshopAddress: invoice.workshop.address ?? undefined,
+    billingMonth: invoice.billingMonth.toISOString().split("T")[0],
+    totalJobs: invoice.totalJobs,
+    totalJobAmount: invoice.totalJobAmount,
+    platformFee: invoice.platformFee,
+    workshopRevenue: invoice.workshopRevenue,
+    totalAmount: invoice.totalAmount,
+    dueDate: invoice.dueDate.toISOString().split("T")[0],
+  };
+
+  return generateInvoicePDFBuffer(pdfData);
+};
+
 export const InvoiceService = {
-  createInvoice,
-  getAllInvoices,
-  getInvoiceById,
-  updateInvoice,
-  deleteInvoice,
-  getInvoicesByWorkshopId,
   generateMonthlyInvoices,
-  markInvoiceAsPaid,
   getMonthlyInvoices,
-  exportInvoicesToCSV,
-  exportInvoiceByIdToCSV,
-  generateInvoicePDF,
-  generateBulkInvoicesPDF,
+  downloadMonthlyInvoicesPDF,
+  updateInvoiceStatus,
+  getInvoicePDFById,
+  getWorkshopInvoicePDF,
 };
