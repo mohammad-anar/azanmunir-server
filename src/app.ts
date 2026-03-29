@@ -5,6 +5,7 @@ import router from "./app/routes/index.js";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler.js";
 import notFound from "./app/middlewares/notFound.js";
 import { getIO } from "./helpers.ts/socketHelper.js";
+import redisClient from "./helpers.ts/redis.js";
 
 const app: Application = express();
 app.use(
@@ -43,6 +44,13 @@ app.get("/", (req: Request, res: Response) => {
     uptime: process.uptime().toFixed(2) + " sec",
     timeStamp: new Date().toISOString(),
   });
+});
+
+app.get("/redis-test", async (req, res) => {
+  await redisClient.set("test", "working");
+  const value = await redisClient.get("test");
+
+  res.json({ redis: value });
 });
 
 app.use(globalErrorHandler);

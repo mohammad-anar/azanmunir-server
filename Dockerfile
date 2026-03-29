@@ -63,4 +63,4 @@ USER appuser
 EXPOSE 5000
 
 # Run Prisma migrations then start the app
-CMD ["sh", "-c", "node -e \"require('dotenv/config')\" || true && npx prisma migrate deploy --config prisma.config.js 2>/dev/null || true && node dist/server.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy --config prisma.config.js && node dist/server.js"]

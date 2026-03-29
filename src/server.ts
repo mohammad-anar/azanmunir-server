@@ -1,8 +1,8 @@
-import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
 import app from "./app.js";
 import { PlatformDataService } from "./app/modules/platformData/platformData.services.js";
 import config from "./config/index.js";
 import { seedSuperAdmin } from "./db/seedSuperAdmin.js";
+import { connectRedis } from "./helpers.ts/redis.js";
 import { initSocket } from "./helpers.ts/socketHelper.js";
 
 let server: any;
@@ -17,6 +17,8 @@ async function bootstrap() {
   try {
     // seeding admin
     await seedSuperAdmin();
+
+    await connectRedis();
 
     const result = await PlatformDataService.getPlatformData();
 
