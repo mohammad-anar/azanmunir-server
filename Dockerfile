@@ -20,6 +20,10 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY src ./src
 
+# Provide placeholder database URLs for schema validation during generation
+ENV DATABASE_URL=postgresql://postgres.uqepwcyseokcuhshfolw:AzanMunir123@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres
+ENV DIRECT_URL=postgresql://postgres.uqepwcyseokcuhshfolw:AzanMunir123@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+
 # Generate Prisma client
 RUN pnpm exec prisma generate --config prisma.config.js
 
@@ -44,12 +48,15 @@ COPY prisma ./prisma
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
 
+# Add environment variables for prisma generation (required by your prisma.config.js)
+ENV DATABASE_URL=postgresql://postgres.uqepwcyseokcuhshfolw:AzanMunir123@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres
+ENV DIRECT_URL=postgresql://postgres.uqepwcyseokcuhshfolw:AzanMunir123@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres
+
+# Generate Prisma client for the production environment
+RUN pnpm exec prisma generate --config prisma.config.js
+
 # Copy built output from builder
 COPY --from=builder /app/dist ./dist
-
-# Copy generated Prisma client from builder
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 # Create uploads and tmp directories
 RUN mkdir -p uploads tmp

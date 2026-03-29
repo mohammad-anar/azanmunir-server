@@ -13,7 +13,6 @@ node_modules
 !.example.env
 
 # TypeScript source (we ship compiled dist/)
-src
 
 # Build artifacts (rebuilt inside Docker)
 dist

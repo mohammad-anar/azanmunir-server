@@ -11,7 +11,10 @@
     "types": ["node"],
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "paths": {
+      "src/*": ["src/*"]
+    }
   },
   "include": ["src/**/*.ts", "generated/prisma"],
   "exclude": ["dist"]
