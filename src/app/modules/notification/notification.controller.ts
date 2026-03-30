@@ -2,7 +2,7 @@ import catchAsync from "app/shared/catchAsync.js";
 import { Request, Response } from "express";
 import { NotificationService } from "./notification.services.js";
 import sendResponse from "app/shared/sendResponse.js";
-import pick from "helpers.ts/pick.js";
+import pick from "helpers/pick.js";
 
 /* ---------- CREATE ---------- */
 const createNotification = catchAsync(async (req: Request, res: Response) => {

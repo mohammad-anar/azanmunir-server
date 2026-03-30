@@ -16,6 +16,6 @@
     "types": ["node"],
     "resolveJsonModule": true
   },
-  "include": ["src/**/*.ts", "generated/prisma"],
+  "include": ["src/**/*.ts", "generated/prisma", "src/helpers"],
   "exclude": ["node_modules", "dist"]
 }

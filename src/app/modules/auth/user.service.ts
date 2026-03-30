@@ -4,18 +4,18 @@ import { Response } from "express";
 import { JwtPayload, Secret, SignOptions } from "jsonwebtoken";
 import { ILogin, IVerifyEmail } from "./user.interface.js";
 import config from "../../../config/index.js";
-import { prisma } from "../../../helpers.ts/prisma.js";
+import { prisma } from "../../../helpers/prisma.js";
 import ApiError from "../../../errors/ApiError.js";
 import { emailTemplate } from "../../shared/emailTemplate.js";
-import { emailHelper } from "../../../helpers.ts/emailHelper.js";
+import { emailHelper } from "../../../helpers/emailHelper.js";
 import {
   IPaginationOptions,
   IUserFilterRequest,
 } from "../../../types/pagination.js";
-import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
-import { jwtHelper } from "../../../helpers.ts/jwtHelper.js";
-import redisClient from "../../../helpers.ts/redis.js";
-import generateOTP from "../../../helpers.ts/generateOTP.js";
+import { paginationHelper } from "../../../helpers/paginationHelper.js";
+import { jwtHelper } from "../../../helpers/jwtHelper.js";
+import redisClient from "../../../helpers/redis.js";
+import generateOTP from "../../../helpers/generateOTP.js";
 
 // create users ================================
 const createUser = async (payload: Prisma.UserCreateInput) => {

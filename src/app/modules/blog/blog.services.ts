@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 import slugifyModule from "slugify";
-import { prisma } from "../../../helpers.ts/prisma.js";
+import { prisma } from "../../../helpers/prisma.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
-import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import { paginationHelper } from "../../../helpers/paginationHelper.js";
 
 interface BlogPayload {
   title: string;

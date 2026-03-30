@@ -2,7 +2,7 @@ import app from "./app.js";
 import { PlatformDataService } from "./app/modules/platformData/platformData.services.js";
 import config from "./config/index.js";
 import { seedSuperAdmin } from "./db/seedSuperAdmin.js";
-import { initSocket } from "./helpers.ts/socketHelper.js";
+import { initSocket } from "./helpers/socketHelper.js";
 
 let server: any;
 

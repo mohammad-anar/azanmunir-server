@@ -4,7 +4,7 @@ import config from "./config/index.js";
 import router from "./app/routes/index.js";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler.js";
 import notFound from "./app/middlewares/notFound.js";
-import { getIO } from "./helpers.ts/socketHelper.js";
+import { getIO } from "./helpers/socketHelper.js";
 
 const app: Application = express();
 app.use(

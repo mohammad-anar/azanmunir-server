@@ -1,5 +1,5 @@
 import { Prisma, WorkshopCategory } from "@prisma/client";
-import { prisma } from "../../../helpers.ts/prisma.js";
+import { prisma } from "../../../helpers/prisma.js";
 
 const createWorkshopCategory = async (data: Prisma.WorkshopCategoryCreateInput): Promise<WorkshopCategory> => {
   const result = await prisma.workshopCategory.create({

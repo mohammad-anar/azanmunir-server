@@ -1,4 +1,4 @@
-import { prisma } from "../../../helpers.ts/prisma.js";
+import { prisma } from "../../../helpers/prisma.js";
 
 const getActivityFeed = async (date?: string) => {
   const targetDate = date ? new Date(date) : new Date();

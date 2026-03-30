@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { NewsletterService } from "./newsletter.services.js";
 import catchAsync from "app/shared/catchAsync.js";
 import sendResponse from "app/shared/sendResponse.js";
-import pick from "helpers.ts/pick.js";
+import pick from "helpers/pick.js";
 
 const subscribe = catchAsync(async (req: Request, res: Response) => {
   const result = await NewsletterService.subscribe(req.body);

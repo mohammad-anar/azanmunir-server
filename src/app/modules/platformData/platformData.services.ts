@@ -1,7 +1,6 @@
 
-import { prisma } from "helpers.ts/prisma.js";
+import { prisma } from "../../../helpers/prisma.js";
 import { IPlatformDataUpdatePayload } from "./platformData.interface.js";
-import { Prisma } from "@prisma/client";
 
 const createPlatformData = async (payload: { platformFee: number; maximumJobRadius: number }) => {
   const existing = await prisma.platformData.findFirst();

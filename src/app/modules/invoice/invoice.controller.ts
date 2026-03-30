@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 import { InvoiceService } from "./invoice.service.js";
-import pick from "../../../helpers.ts/pick.js";
+import pick from "../../../helpers/pick.js";
 
 // POST /invoices/generate-monthly
 // Body: { month?: "YYYY-MM" }

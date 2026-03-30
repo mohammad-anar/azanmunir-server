@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client"
-import { prisma } from "helpers.ts/prisma.js"
+import { prisma } from "helpers/prisma.js"
 
 const createWorkshopOpeningHour = async (payload: Prisma.WorkshopOpeningHourCreateInput) => {
     const result = await prisma.workshopOpeningHour.create({

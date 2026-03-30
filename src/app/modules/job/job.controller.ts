@@ -5,8 +5,8 @@ import ApiError from "../../../errors/ApiError.js";
 import { getMultipleFilesPath } from "../../shared/getFilePath.js";
 import config from "../../../config/index.js";
 import sendResponse from "../../shared/sendResponse.js";
-import pick from "../../../helpers.ts/pick.js";
-import { prisma } from "helpers.ts/prisma.js";
+import pick from "../../../helpers/pick.js";
+import { prisma } from "helpers/prisma.js";
 
 const createJob = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;

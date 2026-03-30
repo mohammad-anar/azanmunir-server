@@ -1,5 +1,5 @@
 
-import { prisma } from "helpers.ts/prisma.js";
+import { prisma } from "helpers/prisma.js";
 import { convertToCSV } from "../../shared/utils/csv.js";
 
 const getUserAnalytics = async (userId: string) => {

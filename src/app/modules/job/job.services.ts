@@ -1,8 +1,8 @@
 import { JobStatus, Prisma, Urgency } from "@prisma/client";
-import { prisma } from "../../../helpers.ts/prisma.js";
-import { createAndEmitNotification } from "../../../helpers.ts/socketHelper.js";
+import { prisma } from "../../../helpers/prisma.js";
+import { createAndEmitNotification } from "../../../helpers/socketHelper.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
-import { paginationHelper } from "../../../helpers.ts/paginationHelper.js";
+import { paginationHelper } from "../../../helpers/paginationHelper.js";
 import unlinkFile, { extractPathFromUrl } from "../../shared/unlinkFile.js";
 
 // const createJob = async (userId: string, payload: any) => {

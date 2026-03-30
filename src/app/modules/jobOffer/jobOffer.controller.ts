@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { JobOfferServices } from "./jobOffer.services.js";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
-import pick from "helpers.ts/pick.js";
+import pick from "helpers/pick.js";
 
 
 

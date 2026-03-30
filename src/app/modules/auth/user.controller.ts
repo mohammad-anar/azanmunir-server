@@ -4,9 +4,9 @@ import { getSingleFilePath } from "app/shared/getFilePath.js";
 import { Request, Response } from "express";
 import { UserService } from "./user.service.js";
 import sendResponse from "app/shared/sendResponse.js";
-import pick from "helpers.ts/pick.js";
+import pick from "helpers/pick.js";
 import config from "config/index.js";
-import { prisma } from "helpers.ts/prisma.js";
+import { prisma } from "helpers/prisma.js";
 import ApiError from "errors/ApiError.js";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {

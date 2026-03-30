@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { BlogCategoryService } from "./blogCategory.services.js";
 import catchAsync from "app/shared/catchAsync.js";
 import sendResponse from "app/shared/sendResponse.js";
-import pick from "helpers.ts/pick.js";
+import pick from "helpers/pick.js";
 
 /* -------- CREATE CATEGORY -------- */
 
