@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    container_name: azanmunir-app
+    ports:
+      - "3000:3000"
+    # ADD THIS LINE:
+    env_file: .env
+    environment:
+      # These override whatever is in your .env specifically for Docker
+      DATABASE_URL: "postgresql://postgres:123456@host.docker.internal:5432/azanmunir?schema=public"
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: azanmunir-redis
+    ports:
+      - "6379:6379"

@@ -1,12 +1,11 @@
-# =====================
-# Stage 1: Builder
-# =====================
-FROM node:20-alpine AS builder
+# Use a slim Node image
+FROM node:20-slim
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install OpenSSL (required for Prisma to run in Docker)
+RUN apt-get update -y && apt-get install -y openssl
 
 WORKDIR /app
+
 
 # Copy configuration and dependency files
 COPY package.json pnpm-lock.yaml ./
@@ -63,3 +62,20 @@ EXPOSE 4000
 # We run migrations and then start the server using tsx.
 # This handles the absolute-looking path aliases and the Prisma ESM/CJS named exports natively.
 CMD ["sh", "-c", "pnpm exec prisma migrate deploy && pnpm exec tsx ./src/server.ts"]
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy Prisma schema and generate client
+COPY prisma ./prisma/
+# Update this line if your schema file has an extension like .prisma
+RUN npx prisma generate --schema ./prisma/schema 
+
+# Copy the rest of your source code
+COPY . .
+
+EXPOSE 3000
+
+# Start the application using tsx pointing to your server.ts
+CMD ["npx", "tsx", "src/server.ts"]
