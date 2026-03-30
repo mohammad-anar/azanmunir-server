@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { IErrorMessage } from "src/types/errors.types.js";
+import { IErrorMessage } from "types/errors.types.js";
 
 const handlePrismaError = (
   err: Prisma.PrismaClientKnownRequestError

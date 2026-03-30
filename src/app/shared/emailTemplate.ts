@@ -1,5 +1,5 @@
-import config from "src/config/index.js";
-import { IContact, IWorkshopContact, ICreateAccount, IResetPassword } from "src/types/emailTamplate.js";
+import config from "config/index.js";
+import { IContact, ICreateAccount, IResetPassword, IWorkshopContact } from "types/emailTamplate.js";
 
 const PRIMARY_COLOR = "#00C6CF";
 

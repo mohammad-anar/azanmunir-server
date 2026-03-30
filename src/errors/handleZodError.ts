@@ -1,4 +1,5 @@
-import { IErrorMessage } from 'src/types/errors.types.js';
+
+import { IErrorMessage } from 'types/errors.types.js';
 import { ZodError } from 'zod';
 
 const handleZodError = (error: ZodError) => {

@@ -1,5 +1,5 @@
+import config from "config/index.js";
 import nodemailer from "nodemailer";
-import config from "src/config/index.js";
 
 export type ISendEmail = {
   to: string;

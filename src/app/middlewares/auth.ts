@@ -1,9 +1,9 @@
+import config from "config/index.js";
+import ApiError from "errors/ApiError.js";
 import { NextFunction, Request, Response } from "express";
+import { jwtHelper } from "helpers.ts/jwtHelper.js";
 import { StatusCodes } from "http-status-codes";
 import { Secret } from "jsonwebtoken";
-import config from "src/config/index.js";
-import ApiError from "src/errors/ApiError.js";
-import { jwtHelper } from "src/helpers.ts/jwtHelper.js";
 
 const auth =
   (...roles: string[]) =>

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { IErrorMessage } from "src/types/errors.types.js";
+import { IErrorMessage } from "types/errors.types.js";
 
 const { JsonWebTokenError, TokenExpiredError, NotBeforeError } = jwt as any;
 
