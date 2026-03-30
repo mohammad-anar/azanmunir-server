@@ -21,6 +21,7 @@ RUN pnpm install --frozen-lockfile
 COPY src ./src
 
 # Generate Prisma client
+ENV DATABASE_URL="postgresql://postgres:123456@localhost:5432/azanmunir?schema=public"
 RUN pnpm exec prisma generate --config prisma.config.js
 
 # Build TypeScript
@@ -41,15 +42,12 @@ COPY package.json pnpm-lock.yaml ./
 COPY prisma.config.js prisma.config.ts ./
 COPY prisma ./prisma
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
-
 # Copy built output from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy generated Prisma client from builder
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+# Copy all node_modules from builder and prune devDependencies
+COPY --from=builder /app/node_modules ./node_modules
+RUN pnpm prune --prod
 
 # Create uploads and tmp directories
 RUN mkdir -p uploads tmp
@@ -59,8 +57,8 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 USER appuser
 
-# Expose the app port (default 5000)
-EXPOSE 5000
+# Expose the app port (default 4000)
+EXPOSE 4000
 
-# Run Prisma migrations then start the app
-CMD ["sh", "-c", "node -e \"require('dotenv/config')\" || true && npx prisma migrate deploy --config prisma.config.js 2>/dev/null || true && node dist/server.js"]
+# Start the application
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy --config prisma.config.js && node dist/server.js"]
