@@ -6,7 +6,6 @@ dist
 *.md
 Dockerfile
 docker-compose.yml
-pnpm-lock.yaml
 prisma/migrations
 uploads
 tmp
