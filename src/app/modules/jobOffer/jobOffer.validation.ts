@@ -1,4 +1,4 @@
-import { OfferStatus } from "@prisma/client";
+import { OfferStatus } from "../../../types/enum.js";
 import { z } from "zod";
 
 // 1️⃣ Create JobOffer Schema

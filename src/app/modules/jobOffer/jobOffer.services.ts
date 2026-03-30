@@ -1,13 +1,14 @@
-import { JobStatus, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { JobStatus } from "../../../types/enum.js";
 import { ChatService } from "../chat/chat.service.js";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "helpers/prisma.js";
-import ApiError from "errors/ApiError.js";
-import { calculateDistance } from "helpers/distance.js";
-import { IPaginationOptions } from "types/pagination.js";
-import { paginationHelper } from "helpers/paginationHelper.js";
-import { timeInHours } from "helpers/timeConvertHelper.js";
-import { createAndEmitNotification } from "helpers/socketHelper.js";
+import { prisma } from "../../../helpers/prisma.js";
+import ApiError from "../../../errors/ApiError.js";
+import { calculateDistance } from "../../../helpers/distance.js";
+import { IPaginationOptions } from "../../../types/pagination.js";
+import { paginationHelper } from "../../../helpers/paginationHelper.js";
+import { timeInHours } from "../../../helpers/timeConvertHelper.js";
+import { createAndEmitNotification } from "../../../helpers/socketHelper.js";
 
 const createJobOffer = async (payload: any) => {
   // check if already sent offer for this job then throw a error message
@@ -21,7 +22,7 @@ const createJobOffer = async (payload: any) => {
   if (isExistOffer) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "You have already sent an offer for this job"
+      "You have already sent an offer for this job",
     );
   }
 
@@ -42,7 +43,7 @@ const createJobOffer = async (payload: any) => {
       job.latitude,
       job.longitude,
       workshop.latitude,
-      workshop.longitude
+      workshop.longitude,
     );
   }
 
@@ -78,7 +79,7 @@ const getOfferById = async (id: string) => {
 // add pagination here
 const getJobOffersByUserId = async (
   userId: string,
-  options: IPaginationOptions
+  options: IPaginationOptions,
 ) => {
   const { page, limit, skip } = paginationHelper.calculatePagination(options);
 
@@ -90,7 +91,7 @@ const getJobOffersByUserId = async (
       createdAt: "desc",
     },
     include: {
-      workshop: {select: {id:true, workshopName:true}},
+      workshop: { select: { id: true, workshopName: true } },
     },
   });
 
@@ -113,7 +114,7 @@ const getJobOffersByUserId = async (
 
 const updateOfferById = async (
   id: string,
-  payload: Prisma.JobOfferUpdateInput
+  payload: Prisma.JobOfferUpdateInput,
 ) => {
   const result = await prisma.jobOffer.update({ where: { id }, data: payload });
   return result;
@@ -138,22 +139,22 @@ const acceptOffer = async (id: string, userId: string) => {
   if (acceptedOffer) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "This job already has an accepted offer"
+      "This job already has an accepted offer",
     );
   }
 
   if (offer.job.userId !== userId) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "You are not authorized to accept this offer"
+      "You are not authorized to accept this offer",
     );
   }
 
-  const allowedStatuses: JobStatus[] = ["PENDING", "OPEN"];
+  const allowedStatuses: JobStatus[] = [JobStatus.PENDING, JobStatus.OPEN];
   if (!allowedStatuses.includes(offer.job.status as JobStatus)) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      "This job already has an accepted offer or is no longer pending or open"
+      "This job already has an accepted offer or is no longer pending or open",
     );
   }
 
@@ -197,7 +198,7 @@ const acceptOffer = async (id: string, userId: string) => {
         workshopId: offer.workshopId,
         name: `${offer.job.title} - Chat`,
       },
-      tx
+      tx,
     );
 
     return { offer: updatedOffer, booking, room };

@@ -2,9 +2,10 @@ import express from "express";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { NewsletterController } from "./newsletter.controller.js";
 import { NewsletterValidation } from "./newsletter.validation.js";
+import { Role } from "../../../types/enum.js";
 
-import { Role } from "@prisma/client";
-import auth from "app/middlewares/auth.js";
+//role
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -14,10 +15,6 @@ router.post(
   NewsletterController.subscribe,
 );
 
-router.get(
-  "/",
-  auth(Role.ADMIN),
-  NewsletterController.getAllNewsletters,
-);
+router.get("/", auth(Role.ADMIN), NewsletterController.getAllNewsletters);
 
 export const NewsletterRouter = router;

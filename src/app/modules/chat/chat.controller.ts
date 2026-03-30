@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { ChatService } from "./chat.service.js";
-import { Role } from "@prisma/client";
-import catchAsync from "app/shared/catchAsync.js";
-import sendResponse from "app/shared/sendResponse.js";
+//role
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
+import { Role } from "../../../types/enum.js";
 
 const createRoom = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
@@ -30,7 +31,7 @@ const getRoomById = catchAsync(async (req: Request, res: Response) => {
 
 const getMyRooms = catchAsync(async (req: Request, res: Response) => {
   const { id, role } = req.user;
-  
+
   let result: any;
   if (role === Role.USER) {
     result = await ChatService.getUserRooms(id);
@@ -93,4 +94,3 @@ export const ChatController = {
   markMessagesAsRead,
   getRoomByBookingId,
 };
-

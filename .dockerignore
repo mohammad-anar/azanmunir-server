@@ -14,12 +14,8 @@ node_modules
 
 # TypeScript source (removed src from ignore because we need it for builder stage)
 
-# Build artifacts (rebuilt inside Docker)
-dist
 
-# Prisma generated client (regenerated inside Docker)
-src/generated
-generated
+
 
 # Logs
 *.log

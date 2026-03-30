@@ -1,12 +1,12 @@
 import { Prisma } from "@prisma/client";
-import ApiError from "errors/ApiError.js";
-import handleJWTError from "errors/handleJWTError.js";
-import handlePrismaError from "errors/handlePrismaError.js";
-import handleZodError from "errors/handleZodError.js";
+import ApiError from "../../errors/ApiError.js";
+import handleJWTError from "../../errors/handleJWTError.js";
+import handlePrismaError from "../../errors/handlePrismaError.js";
+import handleZodError from "../../errors/handleZodError.js";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
-import { IErrorMessage } from "types/errors.types.js";
+import { IErrorMessage } from "../../types/errors.types.js";
 import { ZodError } from "zod";
 
 const { JsonWebTokenError, TokenExpiredError, NotBeforeError } = jwt as any;

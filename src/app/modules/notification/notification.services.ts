@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
-import { paginationHelper } from "helpers/paginationHelper.js";
-import { prisma } from "helpers/prisma.js";
-import { IPaginationOptions } from "types/pagination.js";
+import { paginationHelper } from "../../../helpers/paginationHelper.js";
+import { prisma } from "../../../helpers/prisma.js";
+import { IPaginationOptions } from "../../../types/pagination.js";
 
 /* ---------- CREATE NOTIFICATION ---------- */
 const createNotification = async (payload: Prisma.NotificationCreateInput) => {

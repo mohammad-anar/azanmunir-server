@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { WorkshopOpeningHourServices } from "./workshopOpeningHours.services.js"
-import catchAsync from "app/shared/catchAsync.js";
-import sendResponse from "app/shared/sendResponse.js";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
 
 const createWorkshopOpeningHour = catchAsync(async (req: Request, res: Response) => {
   const result = await WorkshopOpeningHourServices.createWorkshopOpeningHour(req.body);

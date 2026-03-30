@@ -1,10 +1,11 @@
-import { Role } from "@prisma/client";
+//role
 import express from "express";
 import { UserController } from "./user.controller.js";
 import { UserValidation } from "./user.validation.js";
-import auth from "app/middlewares/auth.js";
-import fileUploadHandler from "app/middlewares/fileUploadHandler.js";
-import validateRequest from "app/middlewares/validateRequest.js";
+import auth from "../../middlewares/auth.js";
+import fileUploadHandler from "../../middlewares/fileUploadHandler.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { Role } from "../../../types/enum.js";
 
 const router = express.Router();
 

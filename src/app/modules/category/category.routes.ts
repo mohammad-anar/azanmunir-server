@@ -1,10 +1,11 @@
 import express from "express";
 import validateRequest from "../../middlewares/validateRequest.js";
 
-import { Role } from "@prisma/client";
+//role
 import { CategoryController } from "./category.controller.js";
 import { CreateCategorySchema } from "./category.validation.js";
-import auth from "app/middlewares/auth.js";
+import auth from "../../middlewares/auth.js";
+import { Role } from "../../../types/enum.js";
 
 const router = express.Router();
 

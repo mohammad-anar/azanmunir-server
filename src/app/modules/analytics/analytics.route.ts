@@ -1,7 +1,8 @@
 import express from "express";
-import { Role } from "@prisma/client";
+import { Role } from "../../../types/enum.js";
+//role
 import { AnalyticsController } from "./analytics.controller.js";
-import auth from "app/middlewares/auth.js";
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 

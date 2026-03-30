@@ -1,4 +1,5 @@
-import { JobStatus, Prisma, Urgency } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { JobStatus, Urgency } from "../../../types/enum.js";
 import { prisma } from "../../../helpers/prisma.js";
 import { createAndEmitNotification } from "../../../helpers/socketHelper.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
@@ -222,12 +223,30 @@ const getAllJobs = async (
 };
 
 const getJobById = async (id: string) => {
-  const result = await prisma.job.findUniqueOrThrow({ where: { id }, include: { user: true, categories: true, offers: true, bookings: true, bike:true} });
+  const result = await prisma.job.findUniqueOrThrow({
+    where: { id },
+    include: {
+      user: true,
+      categories: true,
+      offers: true,
+      bookings: true,
+      bike: true,
+    },
+  });
   return result;
 };
 // get jobs by user id
 const getJobsByUserId = async (userId: string) => {
-  const result = await prisma.job.findMany({ where: { userId }, include: { user: true, categories: true, offers: true, bookings: true, bike:true} });
+  const result = await prisma.job.findMany({
+    where: { userId },
+    include: {
+      user: true,
+      categories: true,
+      offers: true,
+      bookings: true,
+      bike: true,
+    },
+  });
   return result;
 };
 const getOffersByJobId = async (
@@ -304,8 +323,15 @@ const getOffersByJobId = async (
     data: finalResult,
   };
 };
-const updateJobById = async (id: string, userId:string, payload: Prisma.JobUpdateInput) => {
-  const result = await prisma.job.update({ where: { id,userId }, data: payload });
+const updateJobById = async (
+  id: string,
+  userId: string,
+  payload: Prisma.JobUpdateInput,
+) => {
+  const result = await prisma.job.update({
+    where: { id, userId },
+    data: payload,
+  });
   return result;
 };
 const deleteJob = async (id: string, userId: string) => {

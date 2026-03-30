@@ -1,13 +1,21 @@
-import { Role } from "@prisma/client";
+//role
 import express from "express";
 import auth from "../../middlewares/auth.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { WorkshopOpeningHourController } from "./workshopOpeningHours.controller.js";
-import { createWorkshopOpeningHourSchema, updateWorkshopOpeningHourSchema } from "./workshopOpeningHours.validation.js";
+import { Role } from "../../../types/enum.js";
+import {
+  createWorkshopOpeningHourSchema,
+  updateWorkshopOpeningHourSchema,
+} from "./workshopOpeningHours.validation.js";
 
 const router = express.Router();
 
-router.get("/", auth(Role.ADMIN), WorkshopOpeningHourController.getWorkshopOpeningHour);
+router.get(
+  "/",
+  auth(Role.ADMIN),
+  WorkshopOpeningHourController.getWorkshopOpeningHour,
+);
 
 router.post(
   "/",
@@ -16,9 +24,17 @@ router.post(
   WorkshopOpeningHourController.createWorkshopOpeningHour,
 );
 
-router.get("/:id", auth(Role.ADMIN, Role.WORKSHOP), WorkshopOpeningHourController.getWorkshopOpeningHourById);
+router.get(
+  "/:id",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  WorkshopOpeningHourController.getWorkshopOpeningHourById,
+);
 
-router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), WorkshopOpeningHourController.getWorkshopOpeningHourByWorkshopId);
+router.get(
+  "/workshop/:workshopId",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  WorkshopOpeningHourController.getWorkshopOpeningHourByWorkshopId,
+);
 
 router.patch(
   "/:id",
@@ -33,6 +49,10 @@ router.patch(
   WorkshopOpeningHourController.makeOpeningHourClose,
 );
 
-router.delete("/:id", auth(Role.WORKSHOP), WorkshopOpeningHourController.deleteWorkshopOpeningHour);
+router.delete(
+  "/:id",
+  auth(Role.WORKSHOP),
+  WorkshopOpeningHourController.deleteWorkshopOpeningHour,
+);
 
 export const WorkshopOpeningHourRouter = router;

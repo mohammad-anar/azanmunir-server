@@ -1,11 +1,12 @@
 import express from "express";
 import validateRequest from "../../middlewares/validateRequest.js";
+import { Role } from "../../../types/enum.js";
 
-import { Role } from "@prisma/client";
+//role
 import { JobController } from "./job.controller.js";
 import { CreateJobSchema, UpdateJobSchema } from "./job.validation.js";
-import auth from "app/middlewares/auth.js";
-import fileUploadHandler from "app/middlewares/fileUploadHandler.js";
+import auth from "../../middlewares/auth.js";
+import fileUploadHandler from "../../middlewares/fileUploadHandler.js";
 
 const router = express.Router();
 

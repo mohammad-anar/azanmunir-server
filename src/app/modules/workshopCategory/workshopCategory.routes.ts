@@ -1,13 +1,18 @@
-import { Role } from "@prisma/client";
+//role
 import express from "express";
 import auth from "../../middlewares/auth.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { WorkshopCategoryController } from "./workshopCategory.controller.js";
 import { WorkshopCategoryValidation } from "./workshopCategory.validation.js";
+import { Role } from "../../../types/enum.js";
 
 const router = express.Router();
 
-router.get("/", auth(Role.WORKSHOP), WorkshopCategoryController.getAllWorkshopCategories);
+router.get(
+  "/",
+  auth(Role.WORKSHOP),
+  WorkshopCategoryController.getAllWorkshopCategories,
+);
 
 router.post(
   "/",
@@ -16,7 +21,11 @@ router.post(
   WorkshopCategoryController.createWorkshopCategory,
 );
 
-router.get("/:id", auth(Role.WORKSHOP), WorkshopCategoryController.getWorkshopCategoryById);
+router.get(
+  "/:id",
+  auth(Role.WORKSHOP),
+  WorkshopCategoryController.getWorkshopCategoryById,
+);
 
 router.patch(
   "/:id",
@@ -25,6 +34,10 @@ router.patch(
   WorkshopCategoryController.updateWorkshopCategory,
 );
 
-router.delete("/:id", auth(Role.WORKSHOP), WorkshopCategoryController.deleteWorkshopCategory);
+router.delete(
+  "/:id",
+  auth(Role.WORKSHOP),
+  WorkshopCategoryController.deleteWorkshopCategory,
+);
 
 export const WorkshopCategoryRouter = router;

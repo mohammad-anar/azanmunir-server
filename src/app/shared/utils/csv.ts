@@ -6,7 +6,7 @@
  */
 export const convertToCSV = (data: any[], headers?: string[]): string => {
   if (!data || data.length === 0) {
-    return headers ? headers.join(',') + '\n' : '';
+    return headers ? headers.join(',') + '/n' : '';
   }
 
   const keys = headers || Object.keys(data[0]);
@@ -24,7 +24,7 @@ export const convertToCSV = (data: any[], headers?: string[]): string => {
         return '';
       }
       let stringValue = String(value);
-      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('/n')) {
         stringValue = `"${stringValue.replace(/"/g, '""')}"`;
       }
       return stringValue;
@@ -32,5 +32,5 @@ export const convertToCSV = (data: any[], headers?: string[]): string => {
     csvRows.push(values.join(','));
   }
 
-  return csvRows.join('\n');
+  return csvRows.join('/n');
 };

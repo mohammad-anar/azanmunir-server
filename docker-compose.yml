@@ -3,18 +3,37 @@ services:
     build: .
     container_name: azanmunir-app
     ports:
-      - "3000:3000"
-    # ADD THIS LINE:
+      - "5000:5000"
+      - "5555:5555"
     env_file: .env
     environment:
-      # These override whatever is in your .env specifically for Docker
-      DATABASE_URL: "postgresql://postgres:123456@host.docker.internal:5432/azanmunir?schema=public"
-      REDIS_URL: "redis://redis:6379"
+      # Password 'password' matches the db service below
+      DATABASE_URL: "postgresql://postgres:password@db:5432/azanmunir?schema=public"
+      REDIS_URL: "redis://azanmunir-redis:6379"
+      NODE_ENV: "production"
+      PRISMA_CLIENT_ENGINE_TYPE: "library"
     depends_on:
+      - db
       - redis
+
+  db:
+    image: postgres:15-alpine
+    container_name: azanmunir-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: azanmunir
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:alpine
     container_name: azanmunir-redis
     ports:
       - "6379:6379"
+
+volumes:
+  postgres_data:

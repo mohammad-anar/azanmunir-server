@@ -1,4 +1,4 @@
-import { MessageType } from "@prisma/client";
+import { MessageType } from "../../../types/enum.js";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../helpers/prisma.js";
 import ApiError from "../../../errors/ApiError.js";
@@ -44,7 +44,6 @@ const createRoom = async (
 
   return result;
 };
-
 
 const getRoomById = async (id: string) => {
   const result = await prisma.room.findUniqueOrThrow({
@@ -287,4 +286,3 @@ export const ChatService = {
   saveMessage,
   markMessagesAsRead,
 };
-

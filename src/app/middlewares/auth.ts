@@ -1,7 +1,7 @@
 import config from "../../config/index.js";
-import ApiError from "errors/ApiError.js";
+import ApiError from "../../errors/ApiError.js";
 import { NextFunction, Request, Response } from "express";
-import { jwtHelper } from "helpers/jwtHelper.js";
+import { jwtHelper } from "../../helpers/jwtHelper.js";
 import { StatusCodes } from "http-status-codes";
 import { Secret } from "jsonwebtoken";
 

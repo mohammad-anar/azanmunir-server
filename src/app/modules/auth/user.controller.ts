@@ -1,13 +1,13 @@
-import { Prisma, UserStatus } from "@prisma/client";
-import catchAsync from "app/shared/catchAsync.js";
-import { getSingleFilePath } from "app/shared/getFilePath.js";
+import { Prisma } from "@prisma/client";
+import catchAsync from "../../shared/catchAsync.js";
+import { getSingleFilePath } from "../../shared/getFilePath.js";
 import { Request, Response } from "express";
 import { UserService } from "./user.service.js";
-import sendResponse from "app/shared/sendResponse.js";
-import pick from "helpers/pick.js";
+import sendResponse from "../../shared/sendResponse.js";
+import pick from "../../../helpers/pick.js";
 import config from "../../../config/index.js";
-import { prisma } from "helpers/prisma.js";
-import ApiError from "errors/ApiError.js";
+import { prisma } from "../../../helpers/prisma.js";
+import ApiError from "../../../errors/ApiError.js";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload: Prisma.UserCreateInput = req.body;
@@ -95,7 +95,7 @@ const banUser = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(404, "User not found");
   }
   const result = await UserService.updateUser(isExist?.email as string, {
-    status: UserStatus.BANNED,
+    status: "BANNED",
   });
 
   sendResponse(res, {
@@ -112,7 +112,7 @@ const unBanUser = catchAsync(async (req: Request, res: Response) => {
     throw new ApiError(404, "User not found");
   }
   const result = await UserService.updateUser(isExist?.email as string, {
-    status: UserStatus.ACTIVE,
+    status: "ACTIVE",
   });
 
   sendResponse(res, {

@@ -2,9 +2,10 @@ import express from "express";
 import { ReviewController } from "./review.controller.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { ReviewValidation } from "./review.validation.js";
+import { Role } from "../../../types/enum.js";
 
-import { Role } from "@prisma/client";
-import auth from "app/middlewares/auth.js";
+//role
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -12,33 +13,49 @@ router.post(
   "/",
   auth(Role.USER),
   validateRequest(ReviewValidation.createReviewZodSchema),
-  ReviewController.createReview
+  ReviewController.createReview,
 );
-router.get("/", auth(Role.ADMIN, Role.WORKSHOP, Role.USER  ), ReviewController.getAllReviews);
+router.get(
+  "/",
+  auth(Role.ADMIN, Role.WORKSHOP, Role.USER),
+  ReviewController.getAllReviews,
+);
 router.get("/public", ReviewController.getPublicReviews);
-router.get("/:id", auth(Role.ADMIN, Role.WORKSHOP, Role.USER ), ReviewController.getReviewById);
+router.get(
+  "/:id",
+  auth(Role.ADMIN, Role.WORKSHOP, Role.USER),
+  ReviewController.getReviewById,
+);
 router.patch(
   "/:id",
   auth(Role.ADMIN, Role.USER),
   validateRequest(ReviewValidation.updateReviewZodSchema),
-  ReviewController.updateReview
+  ReviewController.updateReview,
 );
-router.delete("/:id", auth(Role.ADMIN, Role.USER), ReviewController.deleteReview);
+router.delete(
+  "/:id",
+  auth(Role.ADMIN, Role.USER),
+  ReviewController.deleteReview,
+);
 
-router.get("/workshop/:workshopId", auth(Role.ADMIN, Role.WORKSHOP), ReviewController.getReviewsByWorkshopId);
-router.get("/user/:userId", auth(Role.ADMIN, Role.USER), ReviewController.getReviewsByUserId);
+router.get(
+  "/workshop/:workshopId",
+  auth(Role.ADMIN, Role.WORKSHOP),
+  ReviewController.getReviewsByWorkshopId,
+);
+router.get(
+  "/user/:userId",
+  auth(Role.ADMIN, Role.USER),
+  ReviewController.getReviewsByUserId,
+);
 
 router.patch(
   "/flag/:id",
   auth(Role.ADMIN, Role.WORKSHOP),
-  ReviewController.flagReview
+  ReviewController.flagReview,
 );
 
-router.patch(
-  "/hide/:id",
-  auth(Role.ADMIN),
-  ReviewController.hideReview
-);
+router.patch("/hide/:id", auth(Role.ADMIN), ReviewController.hideReview);
 
 router.get(
   "/pending-reviews/get",

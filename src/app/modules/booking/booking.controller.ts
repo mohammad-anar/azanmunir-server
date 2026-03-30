@@ -1,9 +1,9 @@
-import catchAsync from "app/shared/catchAsync.js";
-import ApiError from "errors/ApiError.js";
+import catchAsync from "../../shared/catchAsync.js";
+import ApiError from "../../../errors/ApiError.js";
 import { Request, Response } from "express";
 import { BookingService } from "./booking.services.js";
-import pick from "helpers/pick.js";
-import sendResponse from "app/shared/sendResponse.js";
+import pick from "../../../helpers/pick.js";
+import sendResponse from "../../shared/sendResponse.js";
 
 const createBooking = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;

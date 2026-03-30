@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { BookingStatus, PaymentStatus } from "../../../types/enum.js";
 
 export const CreateBookingSchema = z.object({
   jobId: z.string({ message: "Job ID is required" }),
@@ -19,12 +19,10 @@ export const UpdateBookingSchema = z.object({
 });
 
 export const RescheduleBookingSchema = z.object({
-
-    scheduleStart: z.coerce.date({
-      message: "Schedule start is required",
-    }),
-    scheduleEnd: z.coerce.date({
-      message: "Schedule end is required",
-    }),
- 
+  scheduleStart: z.coerce.date({
+    message: "Schedule start is required",
+  }),
+  scheduleEnd: z.coerce.date({
+    message: "Schedule end is required",
+  }),
 });

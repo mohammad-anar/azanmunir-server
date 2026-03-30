@@ -1,4 +1,4 @@
-import { BikeType, JobStatus, Urgency } from "@prisma/client";
+import { BikeType, JobStatus, Urgency } from "../../../types/enum.js";
 import { z } from "zod";
 
 export const UrgencyEnum = z.enum(Urgency);

@@ -1,4 +1,4 @@
-enum Role {
+ enum Role {
   USER
   WORKSHOP
   ADMIN

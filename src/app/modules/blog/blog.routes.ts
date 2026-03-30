@@ -1,10 +1,11 @@
 import express from "express";
 import { BlogController } from "./blog.controller.js";
 import { CreateBlogSchema, UpdateBlogSchema } from "./blog.validation.js";
-import fileUploadHandler from "app/middlewares/fileUploadHandler.js";
-import auth from "app/middlewares/auth.js";
-import validateRequest from "app/middlewares/validateRequest.js";
-import { Role } from "@prisma/client";
+import fileUploadHandler from "../../middlewares/fileUploadHandler.js";
+import auth from "../../middlewares/auth.js";
+import validateRequest from "../../middlewares/validateRequest.js";
+import { Role } from "../../../types/enum.js";
+//role
 
 const router = express.Router();
 

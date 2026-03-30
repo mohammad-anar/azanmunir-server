@@ -1,8 +1,9 @@
 import express from "express";
 import { ServiceCategoryController } from "./serviceCategory.controller.js";
+import { Role } from "../../../types/enum.js";
 
-import { Role } from "@prisma/client";
-import auth from "app/middlewares/auth.js";
+//role
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 

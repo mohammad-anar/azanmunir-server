@@ -1,16 +1,15 @@
 import express from "express";
-import { Role } from "@prisma/client";
+import { Role } from "../../../types/enum.js";
+//role
 import validateRequest from "../../middlewares/validateRequest.js";
 import { PlatformDataController } from "./platformData.controller.js";
 import { PlatformDataValidation } from "./platformData.validation.js";
-import auth from "app/middlewares/auth.js";
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 
 // Admin-only: GET platform settings
 router.get("/", auth(Role.ADMIN), PlatformDataController.getPlatformData);
-
-
 
 // Admin-only: create platform data
 router.post(

@@ -1,15 +1,19 @@
-import { Role } from "@prisma/client";
+//role
 import bcrypt from "bcryptjs";
 import config from "../config/index.js";
-import { prisma } from "helpers/prisma.js";
+import { prisma } from "../helpers/prisma.js";
+import { Role } from "../types/enum.js";
 
 export const seedSuperAdmin = async () => {
-  const isExist = await prisma.user.findFirst({
-    where: {
-      email: config.admin.email,
-      role: Role.ADMIN,
-    },
-  });
+ console.log("Checking for Admin with email:", config.admin.email);
+
+ // Now prisma.user.findFirst cannot be undefined
+ const isExist = await prisma.user.findFirst({
+   where: {
+     email: config.admin.email,
+     role: Role.ADMIN,
+   },
+ });
 
   if (!isExist) {
     const hashedPassword = await bcrypt.hash(

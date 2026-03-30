@@ -1,24 +1,29 @@
-# Use a slim Node image
 FROM node:20-slim
 
-# Install OpenSSL (required for Prisma to run in Docker)
-RUN apt-get update -y && apt-get install -y openssl
+# 1. Install OpenSSL
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+# 2. Install pnpm
+RUN npm install -g pnpm
 
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
+# 3. Install dependencies
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --ignore-scripts
 
-# Copy Prisma schema and generate client
-COPY prisma ./prisma/
-# Update this line if your schema file has an extension like .prisma
-RUN npx prisma generate --schema ./prisma/schema 
+# 4. Copy your project files
+COPY dist ./dist
+COPY prisma ./prisma
+COPY prisma.config.ts ./ 
 
-# Copy the rest of your source code
-COPY . .
+# We REMOVE the "RUN npx prisma generate" from here because 
+# it crashes without the DATABASE_URL during build.
 
+ENV PRISMA_CLIENT_ENGINE_TYPE="library"
 EXPOSE 3000
 
-# Start the application using tsx pointing to your server.ts
-CMD ["npx", "tsx", "src/server.ts"]
+# 1. Generate: Points to the FOLDER
+# 2. Migrate: Applies existing migrations from prisma/migrations
+# 3. Start: Runs the compiled JS
+CMD ["sh", "-c", "npx prisma generate --schema ./prisma/schema && npx prisma migrate deploy --schema ./prisma/schema && npx tsx dist/server.js"]

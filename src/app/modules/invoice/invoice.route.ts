@@ -2,8 +2,9 @@ import express from "express";
 import { InvoiceController } from "./invoice.controller.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { InvoiceValidation } from "./invoice.validation.js";
-import { Role } from "@prisma/client";
-import auth from "app/middlewares/auth.js";
+import { Role } from "../../../types/enum.js";
+//role
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -16,11 +17,7 @@ router.post(
 );
 
 // GET /invoices/monthly?month=YYYY-MM  →  list all invoices for the month
-router.get(
-  "/monthly",
-  auth(Role.ADMIN),
-  InvoiceController.getMonthlyInvoices,
-);
+router.get("/monthly", auth(Role.ADMIN), InvoiceController.getMonthlyInvoices);
 
 // GET /invoices/monthly/download?month=YYYY-MM  →  download all invoices as a single PDF
 router.get(

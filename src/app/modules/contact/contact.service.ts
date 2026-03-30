@@ -1,5 +1,5 @@
 
-import { emailHelper } from "helpers/emailHelper.js";
+import { emailHelper } from "../../../helpers/emailHelper.js";
 import { emailTemplate } from "../../shared/emailTemplate.js";
 import { IContact, IWorkshopContact } from "./contact.interface.js";
 import config from "../../../config/index.js";

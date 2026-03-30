@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AnalyticsService } from "./analytics.service.js";
-import catchAsync from "app/shared/catchAsync.js";
-import sendResponse from "app/shared/sendResponse.js";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
 
 const getUserAnalytics = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.user;

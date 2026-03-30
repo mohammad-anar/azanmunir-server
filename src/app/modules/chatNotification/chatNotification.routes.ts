@@ -1,7 +1,8 @@
 import express from "express";
 import { ChatNotificationController } from "./chatNotification.controller.js";
-import { Role } from "@prisma/client";
-import auth from "app/middlewares/auth.js";
+import { Role } from "../../../types/enum.js";
+//role
+import auth from "../../middlewares/auth.js";
 
 const router = express.Router();
 

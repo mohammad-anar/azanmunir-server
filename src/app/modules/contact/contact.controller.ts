@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 
 import httpStatus from "http-status";
 import { ContactService } from "./contact.service.js";
-import catchAsync from "app/shared/catchAsync.js";
-import sendResponse from "app/shared/sendResponse.js";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
 
 const sendContactEmail = catchAsync(async (req: Request, res: Response) => {
   const result = await ContactService.sendContactEmail(req.body);

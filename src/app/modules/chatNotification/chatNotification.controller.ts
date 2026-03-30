@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ChatNotificationService } from "./chatNotification.services.js";
-import catchAsync from "app/shared/catchAsync.js";
-import sendResponse from "app/shared/sendResponse.js";
+import catchAsync from "../../shared/catchAsync.js";
+import sendResponse from "../../shared/sendResponse.js";
 
 /* ---------- CREATE ---------- */
 const createChatNotification = catchAsync(

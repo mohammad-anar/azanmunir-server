@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 import { ReviewService } from "./review.services.js";
-import pick from "helpers/pick.js";
+import pick from "../../../helpers/pick.js";
 
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
