@@ -1,7 +1,7 @@
 import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import config from "../config/index.js";
-import { prisma } from "helpers/prisma.js";
+import { prisma } from "../helpers/prisma.js";
 
 export const seedSuperAdmin = async () => {
   const isExist = await prisma.user.findFirst({

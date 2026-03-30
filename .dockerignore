@@ -1,48 +1,12 @@
-# Dependencies
 node_modules
-.pnpm-store
-
-# Git
+dist
+.env
 .git
 .gitignore
-
-# Environment files (never bundle secrets)
-.env
-.env.*
-!.env.example
-!.example.env
-
-# TypeScript source (removed src from ignore because we need it for builder stage)
-
-# Build artifacts (rebuilt inside Docker)
-dist
-
-# Prisma generated client (regenerated inside Docker)
-src/generated
-generated
-
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS / Editor
-.DS_Store
-Thumbs.db
-.vscode
-.idea
-
-# Uploads & temp (mounted as volumes)
+*.md
+Dockerfile
+docker-compose.yml
+pnpm-lock.yaml
+prisma/migrations
 uploads
 tmp
-
-# Docker files themselves
-Dockerfile
-docker-compose*.yml
-.dockerignore
-
-# Docs & misc
-README.md
-instructions.md
-*.md
