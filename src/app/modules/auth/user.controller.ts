@@ -5,7 +5,7 @@ import { Request, Response } from "express";
 import { UserService } from "./user.service.js";
 import sendResponse from "app/shared/sendResponse.js";
 import pick from "helpers/pick.js";
-import config from "config/index.js";
+import config from "../../../config/index.js";
 import { prisma } from "helpers/prisma.js";
 import ApiError from "errors/ApiError.js";
 

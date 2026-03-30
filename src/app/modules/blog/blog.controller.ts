@@ -3,7 +3,7 @@ import { BlogService } from "./blog.services.js";
 import catchAsync from "app/shared/catchAsync.js";
 import sendResponse from "app/shared/sendResponse.js";
 import { getMultipleFilesPath } from "app/shared/getFilePath.js";
-import config from "config/index.js";
+import config from "../../../config/index.js";
 import pick from "helpers/pick.js";
 
 /* ---------------- CREATE BLOG ---------------- */

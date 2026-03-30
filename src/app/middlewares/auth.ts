@@ -1,4 +1,4 @@
-import config from "config/index.js";
+import config from "../../config/index.js";
 import ApiError from "errors/ApiError.js";
 import { NextFunction, Request, Response } from "express";
 import { jwtHelper } from "helpers/jwtHelper.js";

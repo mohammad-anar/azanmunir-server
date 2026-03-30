@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import config from "config/index.js";
+import config from "../../../config/index.js";
 import { emailHelper } from "helpers/emailHelper.js";
 import { prisma } from "helpers/prisma.js";
 import { INewsletterFilterRequest } from "./newsletter.interface.js";

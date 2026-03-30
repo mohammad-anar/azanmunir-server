@@ -1,4 +1,4 @@
-import config from "config/index.js";
+import config from "../config/index.js" ;
 import nodemailer from "nodemailer";
 
 export type ISendEmail = {

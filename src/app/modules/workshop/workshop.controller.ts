@@ -1,6 +1,6 @@
 import catchAsync from "app/shared/catchAsync.js";
 import { getSingleFilePath } from "app/shared/getFilePath.js";
-import config from "config/index.js";
+import config from "../../../config/index.js";
 import { Request, Response } from "express";
 import { WorkshopService } from "./workshop.services.js";
 import sendResponse from "app/shared/sendResponse.js";
