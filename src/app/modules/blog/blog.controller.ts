@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import catchAsync from "src/app/shared/catchAsync.js";
-import sendResponse from "src/app/shared/sendResponse.js";
 import { BlogService } from "./blog.services.js";
-import pick from "src/helpers.ts/pick.js";
-import { getMultipleFilesPath } from "src/app/shared/getFilePath.js";
-import config from "src/config/index.js";
+import catchAsync from "app/shared/catchAsync.js";
+import sendResponse from "app/shared/sendResponse.js";
+import { getMultipleFilesPath } from "app/shared/getFilePath.js";
+import config from "config/index.js";
+import pick from "helpers.ts/pick.js";
 
 /* ---------------- CREATE BLOG ---------------- */
 

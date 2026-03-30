@@ -3,7 +3,6 @@ import express from "express";
 import auth from "../../middlewares/auth.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { WorkshopOpeningHourController } from "./workshopOpeningHours.controller.js";
-import { WorkshopCategoryValidation } from "../workshopCategory/workshopCategory.validation.js";
 import { createWorkshopOpeningHourSchema, updateWorkshopOpeningHourSchema } from "./workshopOpeningHours.validation.js";
 
 const router = express.Router();

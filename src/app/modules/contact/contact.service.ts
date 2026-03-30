@@ -1,7 +1,8 @@
-import config from "src/config/index.js";
-import { emailHelper } from "src/helpers.ts/emailHelper.js";
+
+import { emailHelper } from "helpers.ts/emailHelper.js";
 import { emailTemplate } from "../../shared/emailTemplate.js";
 import { IContact, IWorkshopContact } from "./contact.interface.js";
+import config from "config/index.js";
 
 const sendContactEmail = async (payload: IContact) => {
   const emailData = emailTemplate.contactAdmin(payload);

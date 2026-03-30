@@ -1,14 +1,13 @@
 import { JobStatus, Prisma } from "@prisma/client";
-import { prisma } from "src/helpers.ts/prisma.js";
 import { ChatService } from "../chat/chat.service.js";
-import { createAndEmitNotification } from "src/helpers.ts/socketHelper.js";
-import ApiError from "src/errors/ApiError.js";
 import { StatusCodes } from "http-status-codes";
-
-import { calculateDistance } from "src/helpers.ts/distance.js";
-import { timeInHours } from "src/helpers.ts/timeConvertHelper.js";
-import { IPaginationOptions } from "src/types/pagination.js";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
+import { prisma } from "helpers.ts/prisma.js";
+import ApiError from "errors/ApiError.js";
+import { calculateDistance } from "helpers.ts/distance.js";
+import { IPaginationOptions } from "types/pagination.js";
+import { paginationHelper } from "helpers.ts/paginationHelper.js";
+import { timeInHours } from "helpers.ts/timeConvertHelper.js";
+import { createAndEmitNotification } from "helpers.ts/socketHelper.js";
 
 const createJobOffer = async (payload: any) => {
   // check if already sent offer for this job then throw a error message

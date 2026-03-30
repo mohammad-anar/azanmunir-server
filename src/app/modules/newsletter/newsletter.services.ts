@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
-import { prisma } from "src/helpers.ts/prisma.js";
-import { IPaginationOptions } from "src/types/pagination.js";
+import config from "config/index.js";
+import { emailHelper } from "helpers.ts/emailHelper.js";
+import { prisma } from "helpers.ts/prisma.js";
 import { INewsletterFilterRequest } from "./newsletter.interface.js";
-import { emailHelper } from "src/helpers.ts/emailHelper.js";
-import config from "src/config/index.js";
+import { IPaginationOptions } from "types/pagination.js";
+import { paginationHelper } from "helpers.ts/paginationHelper.js";
 
 const subscribe = async (payload: Prisma.NewsletterCreateInput) => {
   const result = await prisma.newsletter.create({

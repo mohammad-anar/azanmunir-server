@@ -1,7 +1,7 @@
 import express from "express";
 import { Role } from "@prisma/client";
-import auth from "src/app/middlewares/auth.js";
 import { ChatController } from "./chat.controller.js";
+import auth from "app/middlewares/auth.js";
 
 const router = express.Router();
 

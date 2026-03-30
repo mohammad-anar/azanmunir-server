@@ -1,13 +1,13 @@
-import { Request, Response } from "express";
-import catchAsync from "src/app/shared/catchAsync.js";
-import { getSingleFilePath } from "src/app/shared/getFilePath.js";
-import config from "src/config/index.js";
-import { UserService } from "./user.service.js";
-import sendResponse from "src/app/shared/sendResponse.js";
-import pick from "src/helpers.ts/pick.js";
 import { Prisma, UserStatus } from "@prisma/client";
-import { prisma } from "src/helpers.ts/prisma.js";
-import ApiError from "src/errors/ApiError.js";
+import catchAsync from "app/shared/catchAsync.js";
+import { getSingleFilePath } from "app/shared/getFilePath.js";
+import { Request, Response } from "express";
+import { UserService } from "./user.service.js";
+import sendResponse from "app/shared/sendResponse.js";
+import pick from "helpers.ts/pick.js";
+import config from "config/index.js";
+import { prisma } from "helpers.ts/prisma.js";
+import ApiError from "errors/ApiError.js";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload: Prisma.UserCreateInput = req.body;

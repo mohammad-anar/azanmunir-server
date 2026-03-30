@@ -1,4 +1,3 @@
-import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
 import app from "./app.js";
 import { PlatformDataService } from "./app/modules/platformData/platformData.services.js";
 import config from "./config/index.js";
@@ -26,7 +25,7 @@ async function bootstrap() {
         platformFee: 10,
         maximumJobRadius: 100,
       });
-    }else{
+    } else {
       console.log("Platform data already exist.");
     }
     //

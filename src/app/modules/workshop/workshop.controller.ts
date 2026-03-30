@@ -1,12 +1,11 @@
+import catchAsync from "app/shared/catchAsync.js";
+import { getSingleFilePath } from "app/shared/getFilePath.js";
+import config from "config/index.js";
 import { Request, Response } from "express";
-import catchAsync from "src/app/shared/catchAsync.js";
-import { getSingleFilePath } from "src/app/shared/getFilePath.js";
-import config from "src/config/index.js";
 import { WorkshopService } from "./workshop.services.js";
-import sendResponse from "src/app/shared/sendResponse.js";
-import { Prisma } from "@prisma/client";
-import pick from "src/helpers.ts/pick.js";
-import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
+import sendResponse from "app/shared/sendResponse.js";
+import pick from "helpers.ts/pick.js";
+
 
 const createWorkshop = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;

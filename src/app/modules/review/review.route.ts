@@ -2,8 +2,9 @@ import express from "express";
 import { ReviewController } from "./review.controller.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { ReviewValidation } from "./review.validation.js";
-import auth from "src/app/middlewares/auth.js";
+
 import { Role } from "@prisma/client";
+import auth from "app/middlewares/auth.js";
 
 const router = express.Router();
 

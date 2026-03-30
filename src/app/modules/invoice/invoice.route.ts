@@ -2,8 +2,8 @@ import express from "express";
 import { InvoiceController } from "./invoice.controller.js";
 import validateRequest from "../../middlewares/validateRequest.js";
 import { InvoiceValidation } from "./invoice.validation.js";
-import auth from "src/app/middlewares/auth.js";
 import { Role } from "@prisma/client";
+import auth from "app/middlewares/auth.js";
 
 const router = express.Router();
 

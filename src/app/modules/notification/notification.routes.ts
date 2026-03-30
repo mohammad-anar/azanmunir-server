@@ -1,7 +1,8 @@
 import express from "express";
 import { NotificationController } from "./notification.controller.js";
-import auth from "src/app/middlewares/auth.js";
+
 import { Role } from "@prisma/client";
+import auth from "app/middlewares/auth.js";
 
 const router = express.Router();
 

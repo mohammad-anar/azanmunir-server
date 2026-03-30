@@ -1,8 +1,7 @@
 import { Prisma } from "@prisma/client";
-import { cleanRegex } from "node_modules/zod/v4/core/util.cjs";
-import { paginationHelper } from "src/helpers.ts/paginationHelper.js";
-import { prisma } from "src/helpers.ts/prisma.js";
-import { IPaginationOptions } from "src/types/pagination.js";
+import { paginationHelper } from "helpers.ts/paginationHelper.js";
+import { prisma } from "helpers.ts/prisma.js";
+import { IPaginationOptions } from "types/pagination.js";
 
 const createReview = async (payload: Prisma.ReviewCreateInput) => {
   const result = await prisma.review.create({

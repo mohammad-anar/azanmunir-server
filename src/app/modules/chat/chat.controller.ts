@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import catchAsync from "src/app/shared/catchAsync.js";
-import sendResponse from "src/app/shared/sendResponse.js";
 import { ChatService } from "./chat.service.js";
 import { Role } from "@prisma/client";
+import catchAsync from "app/shared/catchAsync.js";
+import sendResponse from "app/shared/sendResponse.js";
 
 const createRoom = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;

@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { JobOfferServices } from "./jobOffer.services.js";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
+import pick from "helpers.ts/pick.js";
 
-import pick from "src/helpers.ts/pick.js";
+
 
 const createJobOffer = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;

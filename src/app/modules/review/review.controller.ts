@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import catchAsync from "../../shared/catchAsync.js";
 import sendResponse from "../../shared/sendResponse.js";
 import { ReviewService } from "./review.services.js";
-import pick from "src/helpers.ts/pick.js";
+import pick from "helpers.ts/pick.js";
+
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
   const result = await ReviewService.createReview(req.body);
