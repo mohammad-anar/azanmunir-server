@@ -10,7 +10,7 @@ const router = express.Router();
 /* ---------- GET ALL ---------- */
 router.get(
   "/",
-  auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
+  auth(Role.ADMIN),
   NotificationController.getAllNotifications,
 );
 
@@ -20,7 +20,7 @@ router.post("/", auth(Role.ADMIN), NotificationController.createNotification);
 /* ---------- GET BY ID ---------- */
 router.get(
   "/:id",
-  auth(Role.ADMIN, Role.USER, Role.WORKSHOP),
+  auth(Role.ADMIN),
   NotificationController.getNotificationById,
 );
 

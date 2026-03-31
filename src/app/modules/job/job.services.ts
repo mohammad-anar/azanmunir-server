@@ -78,6 +78,7 @@ const createJob = async (userId: string, payload: any) => {
       receiverUserId: admin?.id,
       triggeredById: job.userId,
       title: "New Job Posted",
+      jobId: job.id,
       body: `A new job has been posted: ${job.title}`,
       eventType: "JOB_POSTED",
     });

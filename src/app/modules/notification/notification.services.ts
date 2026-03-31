@@ -19,16 +19,16 @@ const getAllNotifications = async (
 
   const andConditions: Prisma.BlogWhereInput[] = [];
 
-  // if (filter.searchTerm) {
-  //   andConditions.push({
-  //     OR: ["title", "body"].map((field) => ({
-  //       [field]: {
-  //         contains: filter.searchTerm,
-  //         mode: "insensitive",
-  //       },
-  //     })),
-  //   });
-  // }
+  if (filter.searchTerm) {
+    andConditions.push({
+      OR: ["title", "body"].map((field) => ({
+        [field]: {
+          contains: filter.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
 
   const whereConditions: Prisma.BlogWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {};

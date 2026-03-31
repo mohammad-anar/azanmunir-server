@@ -242,6 +242,7 @@ const acceptOffer = async (id: string, userId: string) => {
       receiverUserId: admin?.id,
       triggeredById: offer.workshopId,
       jobId: offer.jobId,
+      bookingId: result.booking.id,
       title: "Booking confirmed",
       body: `Your booking for "${offer.job.title}" has been confirmed!`,
       eventType: "BOOKING_CONFIRMED",
