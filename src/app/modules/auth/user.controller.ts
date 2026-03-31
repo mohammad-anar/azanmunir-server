@@ -12,7 +12,7 @@ import ApiError from "../../../errors/ApiError.js";
 const createUser = catchAsync(async (req: Request, res: Response) => {
   const payload: Prisma.UserCreateInput = req.body;
   const image = getSingleFilePath(req.files, "image") as string;
-  const url = `http://${config.ip_address}:${config.port}`.concat(image);
+  const url = `https://${config.ip_address}:${config.port}`.concat(image);
 
   if (image) {
     payload.avatar = url;
@@ -75,7 +75,7 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.user;
   const payload = req.body;
   const image = getSingleFilePath(req.files, "image") as string;
-  const url = `http://${config.ip_address}:${config.port}`.concat(image);
+  const url = `https://${config.ip_address}:${config.port}`.concat(image);
   if (image) {
     payload.avatar = url;
   }

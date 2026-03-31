@@ -6,11 +6,10 @@ import { WorkshopService } from "./workshop.services.js";
 import sendResponse from "../../shared/sendResponse.js";
 import pick from "../../../helpers/pick.js";
 
-
 const createWorkshop = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const image = getSingleFilePath(req.files, "image") as string;
-  const url = `http://${config.ip_address}:${config.port}`.concat(image);
+  const url = `https://${config.ip_address}:${config.port}`.concat(image);
 
   if (image) {
     payload.avatar = url;
@@ -78,7 +77,7 @@ const updateWorkshop = catchAsync(async (req: Request, res: Response) => {
   const image = getSingleFilePath(req.files, "image") as string;
 
   if (image) {
-    const url = `http://${config.ip_address}:${config.port}${image}`;
+    const url = `https://${config.ip_address}:${config.port}${image}`;
     payload.avatar = url; // 👈 using avatar field
   }
 
@@ -230,7 +229,7 @@ const resetWorkshopPassword = catchAsync(
   async (req: Request, res: Response) => {
     const { email } = req.user; // workshop JWT payload
     const { password } = req.body;
-    console.log("from reset pass workshop",email, password);
+    console.log("from reset pass workshop", email, password);
 
     const result = await WorkshopService.resetWorkshopPassword(email, password);
 
@@ -330,5 +329,5 @@ export const WorkshopController = {
   getNearbyJobs,
   getReviewsByWorkshopId,
   getBookingsByWorkshopId,
-  updatePlatformFees
+  updatePlatformFees,
 };

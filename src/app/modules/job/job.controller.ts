@@ -24,7 +24,7 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
   }
   if (image?.length > 0) {
     const photos = image?.map((img) =>
-      `http://${config.ip_address}:${config.port}`.concat(img),
+      `https://${config.ip_address}:${config.port}`.concat(img),
     );
 
     if (photos.length > 0) {
@@ -36,10 +36,9 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
   if (!platformData) {
     throw new ApiError(404, "Platform data not found");
   }
-  
+
   // set radius from platform data
   payload.radius = platformData.maximumJobRadius;
-
 
   // console.log(payload);
   const result = await JobService.createJob(id, payload);
@@ -90,11 +89,11 @@ const getJobsByUserId = catchAsync(async (req: Request, res: Response) => {
 });
 const getOffersByJobId = catchAsync(async (req: Request, res: Response) => {
   const { jobId } = req.params;
-  const { id:userId} = req.user;
+  const { id: userId } = req.user;
 
-    const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
 
-  const result = await JobService.getOffersByJobId(jobId,userId,options);
+  const result = await JobService.getOffersByJobId(jobId, userId, options);
 
   sendResponse(res, {
     success: true,
@@ -105,9 +104,9 @@ const getOffersByJobId = catchAsync(async (req: Request, res: Response) => {
 });
 const updateJobById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { id:userId} = req.user;
+  const { id: userId } = req.user;
   const payload = req.body;
-  const result = await JobService.updateJobById(id,userId, payload);
+  const result = await JobService.updateJobById(id, userId, payload);
 
   sendResponse(res, {
     success: true,
@@ -118,9 +117,9 @@ const updateJobById = catchAsync(async (req: Request, res: Response) => {
 });
 const deleteJobById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const {id:userId} = req.user;
+  const { id: userId } = req.user;
 
-  const result = await JobService.deleteJob(id,userId);
+  const result = await JobService.deleteJob(id, userId);
 
   sendResponse(res, {
     success: true,
