@@ -301,7 +301,7 @@ const cancelBooking = async (id: string) => {
     jobId: result.jobId,
     title: "Booking Completed",
     body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
-    eventType: "BOOKING_COMPLETED",
+    eventType: "`BOOKING_RESCHEDULED`",
   });
 
   return result;
