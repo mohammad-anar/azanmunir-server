@@ -55,79 +55,80 @@ export const initSocket = (server: any) => {
     });
 
     // ================= SEND MESSAGE =================
-    socket.on("send_message", async (payload: any, callback: (value: any) => void) => {
-      try {
-        // 🔥 Ensure JSON object
-        let data = payload;
-        if (typeof payload === "string") {
-          data = JSON.parse(payload);
-        }
+    socket.on(
+      "send_message",
+      async (payload: any, callback: (value: any) => void) => {
+        try {
+          // 🔥 Ensure JSON object
+          let data = payload;
+          if (typeof payload === "string") {
+            data = JSON.parse(payload);
+          }
 
+          const { roomId, senderId, content, type } = data;
 
-        const { roomId, senderId, content, type } = data;
+          // ✅ Validation
+          if (!roomId || !senderId) {
+            return socket.emit("error", {
+              message: "roomId and senderId are required",
+            });
+          }
 
-        // ✅ Validation
-        if (!roomId || !senderId) {
-          return socket.emit("error", {
-            message: "roomId and senderId are required",
+          // ✅ Check room exists
+          const room = await prisma.room.findUnique({
+            where: { id: roomId },
+          });
+
+          if (!room) {
+            return socket.emit("error", {
+              message: "Room not found",
+            });
+          }
+
+          // ✅ Save message
+          const message = await prisma.message.create({
+            data: {
+              roomId,
+              senderId,
+              content,
+              type: type || "TEXT",
+            },
+          });
+
+          // callback for frontend
+          callback({
+            success: true,
+            message: "Message sent successfully",
+            data: message,
+          });
+
+          // ✅ Broadcast message
+          io!.to(roomId).emit("receive_message", message);
+
+          // ================= NOTIFICATION =================
+          const receiverId =
+            room.userId === senderId ? room.workshopId : room.userId;
+
+          if (receiverId) {
+            await createAndEmitChatNotification({
+              chatRoomId: roomId,
+              messageId: message.id,
+              triggeredById: senderId,
+              title: "New Message",
+              body: content || "",
+              receiverId,
+              message,
+            });
+          }
+        } catch (error) {
+          console.error("❌ Error saving message:", error);
+
+          socket.emit("error", {
+            message: "Failed to send message",
           });
         }
-
-        // ✅ Check room exists
-        const room = await prisma.room.findUnique({
-          where: { id: roomId },
-        });
-
-        if (!room) {
-          return socket.emit("error", {
-            message: "Room not found",
-          });
-        }
-
-        // ✅ Save message
-        const message = await prisma.message.create({
-          data: {
-            roomId,
-            senderId,
-            content,
-            type: type || "TEXT",
-          },
-        });
-
-        // callback for frontend
-        callback({
-          success: true,
-          message: "Message sent successfully",
-          data: message,
-        })
-
-        // ✅ Broadcast message
-        io!.to(roomId).emit("receive_message", message);
-
-        // ================= NOTIFICATION =================
-        const receiverId =
-          room.userId === senderId ? room.workshopId : room.userId;
-
-        if (receiverId) {
-          await createAndEmitChatNotification({
-            chatRoomId: roomId,
-            messageId: message.id,
-            triggeredById: senderId,
-            title: "New Message",
-            body: content || "",
-            receiverId,
-            message,
-          });
-        }
-
-      } catch (error) {
-        console.error("❌ Error saving message:", error);
-
-        socket.emit("error", {
-          message: "Failed to send message",
-        });
-      }
-    });
+      },
+    );
 
     // ================= CREATE ROOM =================
     socket.on(
@@ -152,8 +153,8 @@ export const initSocket = (server: any) => {
 
           console.log(
             colors.blue(
-              `Room created: ${room.id} (user: ${data.userId}, workshop: ${data.workshopId})`
-            )
+              `Room created: ${room.id} (user: ${data.userId}, workshop: ${data.workshopId})`,
+            ),
           );
         } catch (error) {
           console.error("Error creating room", error);
@@ -162,7 +163,7 @@ export const initSocket = (server: any) => {
             message: "Failed to create room",
           });
         }
-      }
+      },
     );
 
     // ================= TYPING =================
@@ -170,7 +171,7 @@ export const initSocket = (server: any) => {
       "typing",
       (data: { roomId: string; senderId: string; isTyping: boolean }) => {
         socket.to(data.roomId).emit("user_typing", data);
-      }
+      },
     );
   });
 
@@ -190,7 +191,9 @@ export const getSocketIds = (id: string) => {
 
 // ================= CHAT NOTIFICATION =================
 
-export const createAndEmitNotification = async (data: Prisma.NotificationCreateInput) => {
+export const createAndEmitNotification = async (
+  data: Prisma.NotificationCreateInput,
+) => {
   const notification = await prisma.notification.create({
     data,
   });
@@ -221,7 +224,7 @@ export interface ChatNotificationData
 }
 
 export const createAndEmitChatNotification = async (
-  data: ChatNotificationData
+  data: ChatNotificationData,
 ) => {
   const { receiverId, message, ...prismaPayload } = data;
 
@@ -238,11 +241,10 @@ export const createAndEmitChatNotification = async (
 
     io.to(socketId).emit("new_message_notification", {
       roomId: notification.chatRoomId,
-      message:
-        message || {
-          id: notification.messageId,
-          content: notification.body,
-        },
+      message: message || {
+        id: notification.messageId,
+        content: notification.body,
+      },
       notification,
     });
   });

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../../helpers/prisma.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers/paginationHelper.js";
+import { createAndEmitNotification } from "helpers/socketHelper.js";
 
 const createBookings = async (payload: Prisma.BookingCreateInput) => {
   const result = await prisma.booking.create({ data: { ...payload } });
@@ -91,11 +92,23 @@ const getBookingsById = async (id: string) => {
 
 // get all bookings by user id
 const getBookingsByUserId = async (userId: string) => {
-  const result = await prisma.booking.findMany({ where: { userId }, include: {
-    workshop: {select: {workshopName: true, email:true, phone:true, address:true, id:true, ownerName:true}},
-    job: {select: {title: true, description: true, id: true}},
-    offer: {select: {price: true, id: true}}
-  } });
+  const result = await prisma.booking.findMany({
+    where: { userId },
+    include: {
+      workshop: {
+        select: {
+          workshopName: true,
+          email: true,
+          phone: true,
+          address: true,
+          id: true,
+          ownerName: true,
+        },
+      },
+      job: { select: { title: true, description: true, id: true } },
+      offer: { select: { price: true, id: true } },
+    },
+  });
   return result;
 };
 
@@ -122,7 +135,22 @@ const updateBooking = async (
   id: string,
   payload: Prisma.BookingUpdateInput,
 ) => {
-  const result = await prisma.booking.update({ where: { id }, data: payload });
+  const result = await prisma.booking.update({
+    where: { id },
+    data: payload,
+    include: {
+      job: true,
+    },
+  });
+
+  await createAndEmitNotification({
+    receiverUserId: result.userId,
+    triggeredById: result.workshopId,
+    jobId: result.jobId,
+    title: "Booking updated",
+    body: `Your booking for "${result.job.title}" has been updated!`,
+    eventType: "BOOKING_UPDATED",
+  });
   return result;
 };
 const deleteBooking = async (id: string) => {
@@ -140,6 +168,9 @@ const completeBooking = async (id: string) => {
         status: "COMPLETED",
         paymentStatus: "PAID",
       },
+      include: {
+        job: true,
+      },
     });
 
     // 2. Update job status to COMPLETED
@@ -147,6 +178,9 @@ const completeBooking = async (id: string) => {
       where: { id: updatedBooking.jobId },
       data: {
         status: "COMPLETED",
+      },
+      include: {
+        offers: true,
       },
     });
 
@@ -156,6 +190,15 @@ const completeBooking = async (id: string) => {
     });
 
     return updatedBooking;
+  });
+
+  await createAndEmitNotification({
+    receiverUserId: result.userId,
+    triggeredById: result.workshopId,
+    jobId: result.jobId,
+    title: "Booking Completed",
+    body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
+    eventType: "BOOKING_COMPLETED",
   });
 
   return result;
@@ -178,6 +221,18 @@ const rescheduleBooking = async (
       scheduleStart: payload.scheduleStart,
       scheduleEnd: payload.scheduleEnd,
     },
+    include: {
+      job: true,
+    },
+  });
+
+  await createAndEmitNotification({
+    receiverUserId: result.userId,
+    triggeredById: result.workshopId,
+    jobId: result.jobId,
+    title: "Booking Rescheduled",
+    body: `Your booking for "${result.job.title}" has been rescheduled!`,
+    eventType: "BOOKING_RESCHEDULED",
   });
   return result;
 };
@@ -201,6 +256,9 @@ const cancelBooking = async (id: string) => {
         status: "CANCELLED",
         paymentStatus: "REFUNDED",
       },
+      include: {
+        job: true,
+      },
     });
 
     // 2. Delete the room if it exists
@@ -209,6 +267,15 @@ const cancelBooking = async (id: string) => {
     });
 
     return updatedBooking;
+  });
+
+  await createAndEmitNotification({
+    receiverUserId: result.userId,
+    triggeredById: result.workshopId,
+    jobId: result.jobId,
+    title: "Booking Completed",
+    body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
+    eventType: "BOOKING_COMPLETED",
   });
 
   return result;

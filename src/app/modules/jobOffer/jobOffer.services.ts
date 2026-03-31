@@ -53,7 +53,25 @@ const createJobOffer = async (payload: any) => {
         ...payload,
         distance,
       },
+      include: {
+        job: true,
+        booking: true,
+        workshop: true,
+      },
     });
+
+    try {
+      await createAndEmitNotification({
+        receiverUserId: newOffer.job.userId,
+        triggeredById: newOffer.workshopId,
+        jobId: newOffer.jobId,
+        title: "Get New Job Offer!",
+        body: `Your've got a new offer for "${newOffer.job.title}"!`,
+        eventType: "JOB_OFFER_RECEIVED",
+      });
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
 
     // Update job to include this workshopId in workshopIds array
     await tx.job.update({
