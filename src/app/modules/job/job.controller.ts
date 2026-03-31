@@ -24,7 +24,7 @@ const createJob = catchAsync(async (req: Request, res: Response) => {
   }
   if (image?.length > 0) {
     const photos = image?.map((img) =>
-      `https://${config.ip_address}:${config.port}`.concat(img),
+      `https://${config.ip_address}`.concat(img),
     );
 
     if (photos.length > 0) {

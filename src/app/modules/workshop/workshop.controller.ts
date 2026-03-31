@@ -9,7 +9,7 @@ import pick from "../../../helpers/pick.js";
 const createWorkshop = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const image = getSingleFilePath(req.files, "image") as string;
-  const url = `https://${config.ip_address}:${config.port}`.concat(image);
+  const url = `https://${config.ip_address}`.concat(image);
 
   if (image) {
     payload.avatar = url;
@@ -77,7 +77,7 @@ const updateWorkshop = catchAsync(async (req: Request, res: Response) => {
   const image = getSingleFilePath(req.files, "image") as string;
 
   if (image) {
-    const url = `https://${config.ip_address}:${config.port}${image}`;
+    const url = `https://${config.ip_address}${image}`;
     payload.avatar = url; // 👈 using avatar field
   }
 
