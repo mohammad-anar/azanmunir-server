@@ -1,0 +1,218 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.20kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:20-slim
+#2 DONE 2.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 615B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 13.14kB 0.0s done
+#4 DONE 0.0s
+
+#5 [base 1/3] FROM docker.io/library/node:20-slim@sha256:1e85773c98c31d4fe5b545e4cb17379e617b348832fb3738b22a08f68dec30f3
+#5 resolve docker.io/library/node:20-slim@sha256:1e85773c98c31d4fe5b545e4cb17379e617b348832fb3738b22a08f68dec30f3 0.0s done
+#5 CACHED
+
+#6 [base 2/3] RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+#6 0.346 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+#6 0.377 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+#6 0.558 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+#6 0.569 Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8792 kB]
+#6 1.718 Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
+#6 1.727 Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [294 kB]
+#6 2.367 Fetched 9347 kB in 2s (4269 kB/s)
+#6 2.367 Reading package lists...
+#6 2.735 Reading package lists...
+#6 3.114 Building dependency tree...
+#6 3.191 Reading state information...
+#6 3.455 The following additional packages will be installed:
+#6 3.455   libssl3
+#6 3.470 The following NEW packages will be installed:
+#6 3.471   ca-certificates libssl3 openssl
+#6 3.499 0 upgraded, 3 newly installed, 0 to remove and 0 not upgraded.
+#6 3.499 Need to get 3617 kB of archives.
+#6 3.499 After this operation, 8928 kB of additional disk space will be used.
+#6 3.499 Get:1 http://deb.debian.org/debian-security bookworm-security/main amd64 libssl3 amd64 3.0.18-1~deb12u2 [2030 kB]
+#6 4.120 Get:2 http://deb.debian.org/debian-security bookworm-security/main amd64 openssl amd64 3.0.18-1~deb12u2 [1433 kB]
+#6 4.400 Get:3 http://deb.debian.org/debian bookworm/main amd64 ca-certificates all 20230311+deb12u1 [155 kB]
+#6 4.503 debconf: delaying package configuration, since apt-utils is not installed
+#6 4.521 Fetched 3617 kB in 1s (6865 kB/s)
+#6 4.540 Selecting previously unselected package libssl3:amd64.
+#6 4.540 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6096 files and directories currently installed.)
+#6 4.545 Preparing to unpack .../libssl3_3.0.18-1~deb12u2_amd64.deb ...
+#6 4.551 Unpacking libssl3:amd64 (3.0.18-1~deb12u2) ...
+#6 4.668 Selecting previously unselected package openssl.
+#6 4.668 Preparing to unpack .../openssl_3.0.18-1~deb12u2_amd64.deb ...
+#6 4.672 Unpacking openssl (3.0.18-1~deb12u2) ...
+#6 4.768 Selecting previously unselected package ca-certificates.
+#6 4.769 Preparing to unpack .../ca-certificates_20230311+deb12u1_all.deb ...
+#6 4.773 Unpacking ca-certificates (20230311+deb12u1) ...
+#6 4.813 Setting up libssl3:amd64 (3.0.18-1~deb12u2) ...
+#6 4.823 Setting up openssl (3.0.18-1~deb12u2) ...
+#6 4.836 Setting up ca-certificates (20230311+deb12u1) ...
+#6 4.884 debconf: unable to initialize frontend: Dialog
+#6 4.884 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#6 4.884 debconf: falling back to frontend: Readline
+#6 4.885 debconf: unable to initialize frontend: Readline
+#6 4.885 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.36.0 /usr/local/share/perl/5.36.0 /usr/lib/x86_64-linux-gnu/perl5/5.36 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.36 /usr/share/perl/5.36 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+#6 4.885 debconf: falling back to frontend: Teletype
+#6 5.189 Updating certificates in /etc/ssl/certs...
+#6 5.642 142 added, 0 removed; done.
+#6 5.662 Processing triggers for libc-bin (2.36-9+deb12u13) ...
+#6 5.675 Processing triggers for ca-certificates (20230311+deb12u1) ...
+#6 5.682 Updating certificates in /etc/ssl/certs...
+#6 6.040 0 added, 0 removed; done.
+#6 6.040 Running hooks in /etc/ca-certificates/update.d...
+#6 6.041 done.
+#6 DONE 6.1s
+
+#7 [base 3/3] RUN corepack enable && corepack prepare pnpm@latest --activate
+#7 0.496 Preparing pnpm@latest for immediate activation...
+#7 DONE 1.5s
+
+#8 [builder 1/5] WORKDIR /app
+#8 DONE 0.0s
+
+#9 [deps 2/3] COPY package.json pnpm-lock.yaml ./
+#9 DONE 0.0s
+
+#10 [deps 3/3] RUN pnpm install --frozen-lockfile --ignore-scripts
+#10 0.616 Lockfile is up to date, resolution step is skipped
+#10 0.646 Progress: resolved 1, reused 0, downloaded 0, added 0
+#10 0.698 Packages: +291
+#10 0.698 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#10 1.646 Progress: resolved 291, reused 0, downloaded 96, added 96
+#10 2.586  WARN  Tarball download average speed 5 KiB/s (size 7 KiB) is below 50 KiB/s: https://registry.npmjs.org/@prisma/debug/-/debug-7.1.0.tgz (GET)
+#10 2.646 Progress: resolved 291, reused 0, downloaded 203, added 203
+#10 2.972  WARN  Tarball download average speed 3 KiB/s (size 4 KiB) is below 50 KiB/s: https://registry.npmjs.org/@standard-schema/spec/-/spec-1.1.0.tgz (GET)
+#10 3.376  WARN  Tarball download average speed 3 KiB/s (size 5 KiB) is below 50 KiB/s: https://registry.npmjs.org/side-channel-weakmap/-/side-channel-weakmap-1.0.2.tgz (GET)
+#10 3.646 Progress: resolved 291, reused 0, downloaded 267, added 267
+#10 3.940  WARN  Tarball download average speed 3 KiB/s (size 12 KiB) is below 50 KiB/s: https://registry.npmjs.org/c12/-/c12-3.1.0.tgz (GET)
+#10 4.410  WARN  Tarball download average speed 1 KiB/s (size 1 KiB) is below 50 KiB/s: https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.1.tgz (GET)
+#10 4.640  WARN  Tarball download average speed 2 KiB/s (size 3 KiB) is below 50 KiB/s: https://registry.npmjs.org/on-headers/-/on-headers-1.1.0.tgz (GET)
+#10 4.646 Progress: resolved 291, reused 0, downloaded 277, added 277
+#10 5.233  WARN  Tarball download average speed 11 KiB/s (size 34 KiB) is below 50 KiB/s: https://registry.npmjs.org/restructure/-/restructure-3.0.2.tgz (GET)
+#10 5.307  WARN  Tarball download average speed 8 KiB/s (size 25 KiB) is below 50 KiB/s: https://registry.npmjs.org/linebreak/-/linebreak-1.1.0.tgz (GET)
+#10 5.502  WARN  Tarball download average speed 2 KiB/s (size 3 KiB) is below 50 KiB/s: https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz (GET)
+#10 5.646 Progress: resolved 291, reused 0, downloaded 284, added 284
+#10 6.646 Progress: resolved 291, reused 0, downloaded 285, added 285
+#10 7.397  WARN  Tarball download average speed 5 KiB/s (size 32 KiB) is below 50 KiB/s: https://registry.npmjs.org/http-status/-/http-status-2.1.0.tgz (GET)
+#10 7.646 Progress: resolved 291, reused 0, downloaded 287, added 287
+#10 8.646 Progress: resolved 291, reused 0, downloaded 288, added 288
+#10 12.44 Progress: resolved 291, reused 0, downloaded 289, added 288
+#10 13.44 Progress: resolved 291, reused 0, downloaded 290, added 290
+#10 14.43  WARN  Tarball download average speed 0 KiB/s (size 5 KiB) is below 50 KiB/s: https://registry.npmjs.org/pg-connection-string/-/pg-connection-string-2.9.1.tgz (GET)
+#10 14.43 Progress: resolved 291, reused 0, downloaded 291, added 291, done
+#10 14.62 
+#10 14.62 dependencies:
+#10 14.62 + @prisma/adapter-pg 7.1.0
+#10 14.62 + @prisma/client 6.19.2
+#10 14.62 + @types/colors 1.2.4
+#10 14.62 + @types/http-status 1.1.2
+#10 14.62 + @types/http-status-codes 1.2.0
+#10 14.62 + @types/jsonwebtoken 9.0.10
+#10 14.62 + @types/multer 2.0.0
+#10 14.62 + @types/nodemailer 7.0.10
+#10 14.62 + @types/redis 4.0.11
+#10 14.62 + @types/socket.io 3.0.2
+#10 14.62 + bcryptjs 3.0.3
+#10 14.62 + colors 1.4.0
+#10 14.62 + compression 1.8.1
+#10 14.62 + cors 2.8.5
+#10 14.62 + dotenv 17.2.3
+#10 14.62 + express 5.1.0
+#10 14.62 + http-status 2.1.0
+#10 14.62 + http-status-codes 2.3.0
+#10 14.62 + jsonwebtoken 9.0.3
+#10 14.62 + multer 2.0.2
+#10 14.62 + nodemailer 8.0.1
+#10 14.62 + pdfkit 0.18.0
+#10 14.62 + pg 8.16.3
+#10 14.62 + postgis 1.0.6
+#10 14.62 + redis 5.11.0
+#10 14.62 + slugify 1.6.6
+#10 14.62 + socket.io 4.8.3
+#10 14.62 + zod 4.3.6
+#10 14.62 
+#10 14.62 devDependencies:
+#10 14.62 + @types/compression 1.8.1
+#10 14.62 + @types/cors 2.8.19
+#10 14.62 + @types/dotenv 8.2.3
+#10 14.62 + @types/express 5.0.3
+#10 14.62 + @types/node 24.10.2
+#10 14.62 + @types/pdfkit 0.17.5
+#10 14.62 + @types/pg 8.15.6
+#10 14.62 + prisma 6.19.2
+#10 14.62 + ts-node-dev 2.0.0
+#10 14.62 + tsx 4.21.0
+#10 14.62 + typescript 5.9.3
+#10 14.62 
+#10 14.65 Done in 14.3s using pnpm v10.33.0
+#10 DONE 15.1s
+
+#11 [builder 2/5] COPY --from=deps /app/node_modules ./node_modules
+#11 DONE 1.3s
+
+#12 [builder 3/5] COPY . .
+#12 DONE 0.1s
+
+#13 [builder 4/5] RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate --schema ./prisma/schema
+#13 1.341 warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+#13 1.341 For more information, see: https://pris.ly/prisma-config
+#13 1.341 
+#13 1.341 Loaded Prisma config from prisma.config.ts.
+#13 1.341 
+#13 1.341 warn The Prisma config file in prisma.config.ts overrides the deprecated `package.json#prisma` property in package.json.
+#13 1.341   For more information, see: https://pris.ly/prisma-config
+#13 1.341 
+#13 5.894 Prisma config detected, skipping environment variable loading.
+#13 5.897 Prisma schema loaded from prisma/schema
+#13 6.269 
+#13 6.269 ✔ Generated Prisma Client (v6.19.2) to ./node_modules/.pnpm/@prisma+client@6.19.2_prisma@6.19.2_typescript@5.9.3__typescript@5.9.3/node_modules/@prisma/client in 206ms
+#13 6.269 
+#13 6.269 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+#13 6.269 
+#13 6.269 Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+#13 6.269 
+#13 6.286 npm notice
+#13 6.286 npm notice New major version of npm available! 10.8.2 -> 11.12.1
+#13 6.286 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+#13 6.286 npm notice To update run: npm install -g npm@11.12.1
+#13 6.286 npm notice
+#13 DONE 6.4s
+
+#14 [builder 5/5] RUN pnpm run build
+#14 1.194 
+#14 1.194 > azanmunir-server@1.0.0 build /app
+#14 1.194 > tsc
+#14 1.194 
+#14 DONE 4.9s
+
+#15 [runner 4/6] COPY --from=builder /app/prisma ./prisma
+#15 CACHED
+
+#16 [runner 3/6] COPY --from=builder /app/dist ./dist
+#16 CACHED
+
+#17 [runner 5/6] COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+#17 ERROR: failed to calculate checksum of ref 45lyp6i46uwhva8elnz937vie::qvrmsbhlfrt9yzwt93v45r1wr: "/app/node_modules/.prisma": not found
+------
+ > [runner 5/6] COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma:
+------
+Dockerfile:41
+--------------------
+  39 |     COPY --from=builder /app/prisma ./prisma
+  40 |     # Prisma client is usually in node_modules/.prisma/client, need to ensure it's copied
+  41 | >>> COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+  42 |     COPY package.json ./
+  43 |     
+--------------------
+ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref 45lyp6i46uwhva8elnz937vie::qvrmsbhlfrt9yzwt93v45r1wr: "/app/node_modules/.prisma": not found
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/vn8cqd7bxh5pji57a8n0ycr3n

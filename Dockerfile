@@ -1,29 +1,48 @@
-FROM node:20-slim
+FROM node:20-slim AS base
 
-# 1. Install OpenSSL
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+# Install system dependencies needed for native modules & Prisma
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# 2. Install pnpm
-RUN npm install -g pnpm
+# Enable corepack so pnpm is available
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# ───────────────────────────── deps stage ─────────────────────────────
+FROM base AS deps
 WORKDIR /app
 
-# 3. Install dependencies
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --ignore-scripts
+COPY package.json pnpm-lock.yaml ./
 
-# 4. Copy your project files
-COPY dist ./dist
-COPY prisma ./prisma
-COPY prisma.config.ts ./ 
+# --ignore-scripts skips the postinstall (prisma generate) hook.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# We REMOVE the "RUN npx prisma generate" from here because 
-# it crashes without the DATABASE_URL during build.
+# ───────────────────────────── builder stage ──────────────────────────
+FROM base AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Provide dummy DATABASE_URL for prisma generate
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate --schema ./prisma/schema
+
+# Compile TypeScript
+RUN pnpm run build
+
+# ───────────────────────────── runner stage ───────────────────────────
+FROM base AS runner
+WORKDIR /app
+
+# Copy EVERYTHING needed for runtime from builder
+# This includes the generated Prisma client in node_modules
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY package.json ./
 
 ENV PRISMA_CLIENT_ENGINE_TYPE="library"
-EXPOSE 3000
+ENV NODE_ENV=production
 
-# 1. Generate: Points to the FOLDER
-# 2. Migrate: Applies existing migrations from prisma/migrations
-# 3. Start: Runs the compiled JS
-CMD ["sh", "-c", "npx prisma generate --schema ./prisma/schema && npx prisma migrate deploy --schema ./prisma/schema && npx tsx dist/server.js"]
+EXPOSE 4000
+
+# Runtime migration and start
+CMD ["sh", "-c", "npx prisma migrate deploy --schema ./prisma/schema && node dist/server.js"]

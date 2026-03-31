@@ -1,7 +1,9 @@
 # Dependencies
 node_modules
 .pnpm-store
-
+dist
+.git
+.env
 # Git
 .git
 .gitignore

@@ -3,21 +3,18 @@ services:
     build: .
     container_name: azanmunir-app
     ports:
-      - "5000:5000"
+      - "4000:4000"
       - "5555:5555"
     env_file: .env
-    environment:
-      # Password 'password' matches the db service below
-      DATABASE_URL: "postgresql://postgres:password@db:5432/azanmunir?schema=public"
-      REDIS_URL: "redis://azanmunir-redis:6379"
-      NODE_ENV: "production"
-      PRISMA_CLIENT_ENGINE_TYPE: "library"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
 
   db:
-    image: postgres:15-alpine
+    image: postgis/postgis:15-3.4-alpine
     container_name: azanmunir-db
     restart: always
     environment:
@@ -28,12 +25,18 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d azanmunir"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: azanmunir-redis
     ports:
       - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   postgres_data:

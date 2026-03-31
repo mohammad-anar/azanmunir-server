@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../../helpers/prisma.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
 import { paginationHelper } from "../../../helpers/paginationHelper.js";
-import { createAndEmitNotification } from "helpers/socketHelper.js";
+import { createAndEmitNotification } from "../../../helpers/socketHelper.js";
 
 const createBookings = async (payload: Prisma.BookingCreateInput) => {
   const result = await prisma.booking.create({ data: { ...payload } });

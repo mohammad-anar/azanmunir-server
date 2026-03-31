@@ -17,7 +17,7 @@ import {
 import { emailTemplate } from "../../shared/emailTemplate.js";
 import { ILogin, IVerifyEmail } from "../auth/user.interface.js";
 import { InvoiceService } from "../invoice/invoice.service.js";
-import { createAndEmitNotification } from "helpers/socketHelper.js";
+import { createAndEmitNotification } from "../../../helpers/socketHelper.js";
 
 interface GetNearbyJobsParams {
   workshopId: string;
@@ -34,36 +34,49 @@ const createWorkshop = async (payload: Prisma.WorkshopCreateInput) => {
     payload.password,
     config.bcrypt_salt_round,
   );
-  const workshop = await prisma.workshop.create({
-    data: {
-      ...payload,
-      password: hashedPassword,
-    },
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Create workshop
+    const workshop = await tx.workshop.create({
+      data: {
+        ...payload,
+        password: hashedPassword,
+      },
+    });
+
+    // 2. Generate OTP + store in Redis
+    const otp = generateOTP();
+    await redisClient.set(`otp:${workshop.email}`, otp, { EX: 300 });
+
+    // 3. Send email
+    const template = await emailTemplate.createAccount({
+      name: workshop.workshopName,
+      otp,
+      email: workshop.email,
+    });
+
+    await emailHelper.sendEmail(template);
+
+    // 4. Find admin
+    const admin = await tx.user.findFirst({
+      where: { role: "ADMIN" },
+    });
+
+    // 6. Emit notification (real-time)
+    if (admin) {
+      await createAndEmitNotification({
+        receiverUserId: admin.id,
+        triggeredById: workshop.id,
+        title: "New Workshop Registration",
+        body: `A new workshop has been registered: ${workshop.workshopName}`,
+        eventType: "WORKSHOP_REGISTERED",
+      });
+    }
+
+    return workshop;
   });
 
-  // Generate OTP and send verification email
-  const otp = generateOTP();
-  await redisClient.set(`otp:${workshop.email}`, otp, { EX: 300 });
-
-  const template = await emailTemplate.createAccount({
-    name: workshop.workshopName,
-    otp,
-    email: workshop.email,
-  });
-
-  await emailHelper.sendEmail(template);
-
-  const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
-
-  await createAndEmitNotification({
-    receiverUserId: admin?.id,
-    triggeredById: workshop.id,
-    title: "New Workshop Registration",
-    body: `A new workshop has been registered: ${workshop.workshopName}`,
-    eventType: "WORKSHOP_REGISTERED",
-  });
-
-  return workshop;
+  return result;
 };
 
 // get all workshops ===============================================
