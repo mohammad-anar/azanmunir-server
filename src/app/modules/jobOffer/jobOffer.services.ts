@@ -222,6 +222,10 @@ const acceptOffer = async (id: string, userId: string) => {
     return { offer: updatedOffer, booking, room };
   });
 
+  const admin = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+  });
+
   // 6. Send notification to workshop
   try {
     await createAndEmitNotification({
@@ -232,6 +236,15 @@ const acceptOffer = async (id: string, userId: string) => {
       title: "Offer Accepted!",
       body: `Your offer for "${offer.job.title}" has been accepted!`,
       eventType: "OFFER_ACCEPTED",
+    });
+
+    await createAndEmitNotification({
+      receiverUserId: admin?.id,
+      triggeredById: offer.workshopId,
+      jobId: offer.jobId,
+      title: "Booking confirmed",
+      body: `Your booking for "${offer.job.title}" has been confirmed!`,
+      eventType: "BOOKING_CONFIRMED",
     });
   } catch (error) {
     console.error("Failed to send notification:", error);
