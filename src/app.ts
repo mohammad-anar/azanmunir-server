@@ -9,7 +9,7 @@ import { getIO } from "./helpers/socketHelper.js";
 const app: Application = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://10.10.7.102:3000"],
+    origin: ["http://localhost:3000", "http://10.10.7.102:3000", "https://fixmincykel-dk-frontend.vercel.app"],
     credentials: true,
   }),
 );
