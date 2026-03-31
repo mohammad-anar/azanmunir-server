@@ -143,6 +143,10 @@ const updateBooking = async (
     },
   });
 
+  const admin = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+  });
+
   await createAndEmitNotification({
     receiverUserId: result.userId,
     triggeredById: result.workshopId,
@@ -151,6 +155,15 @@ const updateBooking = async (
     body: `Your booking for "${result.job.title}" has been updated!`,
     eventType: "BOOKING_UPDATED",
   });
+  await createAndEmitNotification({
+    receiverUserId: admin?.id,
+    triggeredById: result.workshopId,
+    jobId: result.jobId,
+    title: "Booking updated",
+    body: `Your booking for "${result.job.title}" has been updated!`,
+    eventType: "BOOKING_UPDATED",
+  });
+
   return result;
 };
 const deleteBooking = async (id: string) => {
@@ -192,6 +205,10 @@ const completeBooking = async (id: string) => {
     return updatedBooking;
   });
 
+  const admin = await prisma.user.findFirst({
+    where: { role: "ADMIN" },
+  });
+
   await createAndEmitNotification({
     receiverUserId: result.userId,
     triggeredById: result.workshopId,
@@ -199,6 +216,15 @@ const completeBooking = async (id: string) => {
     title: "Booking Completed",
     body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
     eventType: "BOOKING_COMPLETED",
+  });
+
+  await createAndEmitNotification({
+    receiverUserId: admin?.id,
+    triggeredById: result.workshopId,
+    jobId: result.jobId,
+    title: "Booking updated",
+    body: `Your booking for "${result.job.title}" has been updated!`,
+    eventType: "BOOKING_UPDATED",
   });
 
   return result;

@@ -70,6 +70,18 @@ const createJob = async (userId: string, payload: any) => {
       },
     });
 
+    const admin = await tx.user.findFirst({
+      where: { role: "ADMIN" },
+    });
+
+    await createAndEmitNotification({
+      receiverUserId: admin?.id,
+      triggeredById: job.userId,
+      title: "New Job Posted",
+      body: `A new job has been posted: ${job.title}`,
+      eventType: "JOB_POSTED",
+    });
+
     // 2️⃣ Create Job Categories
     if (categories && categories.length > 0) {
       await tx.jobCategory.createMany({

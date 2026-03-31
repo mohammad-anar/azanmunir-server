@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 
-
 import bcrypt from "bcryptjs";
 import { Secret, SignOptions } from "jsonwebtoken";
 import config from "../../../config/index.js";
@@ -11,10 +10,14 @@ import { jwtHelper } from "../../../helpers/jwtHelper.js";
 import { paginationHelper } from "../../../helpers/paginationHelper.js";
 import { prisma } from "../../../helpers/prisma.js";
 import redisClient from "../../../helpers/redis.js";
-import { IPaginationOptions, IUserFilterRequest } from "../../../types/pagination.js";
+import {
+  IPaginationOptions,
+  IUserFilterRequest,
+} from "../../../types/pagination.js";
 import { emailTemplate } from "../../shared/emailTemplate.js";
 import { ILogin, IVerifyEmail } from "../auth/user.interface.js";
 import { InvoiceService } from "../invoice/invoice.service.js";
+import { createAndEmitNotification } from "helpers/socketHelper.js";
 
 interface GetNearbyJobsParams {
   workshopId: string;
@@ -49,6 +52,16 @@ const createWorkshop = async (payload: Prisma.WorkshopCreateInput) => {
   });
 
   await emailHelper.sendEmail(template);
+
+  const admin = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+
+  await createAndEmitNotification({
+    receiverUserId: admin?.id,
+    triggeredById: workshop.id,
+    title: "New Workshop Registration",
+    body: `A new workshop has been registered: ${workshop.workshopName}`,
+    eventType: "WORKSHOP_REGISTERED",
+  });
 
   return workshop;
 };
@@ -242,18 +255,18 @@ const updateWorkshop = async (
   return result;
 };
 
-const updatePlatformFees = async (id:string, platformFees:number) => {
-    const result = await prisma.workshop.update({
-        where: { id },
-        data: {
-            platformFees: platformFees,
-        },
-    });
+const updatePlatformFees = async (id: string, platformFees: number) => {
+  const result = await prisma.workshop.update({
+    where: { id },
+    data: {
+      platformFees: platformFees,
+    },
+  });
 
-    // Recalculate current month's invoice
-    await InvoiceService.recalculateWorkshopInvoice(id);
+  // Recalculate current month's invoice
+  await InvoiceService.recalculateWorkshopInvoice(id);
 
-    return result;
+  return result;
 };
 
 const deleteWorkshop = async (id: string) => {
@@ -392,7 +405,7 @@ const forgetWorkshopPassword = async (email: string) => {
   if (!workshop.isVerified) throw new ApiError(403, "Workshop not verified");
 
   const token = jwtHelper.createToken(
-    { id: workshop.id, email: workshop.email, role: workshop.role},
+    { id: workshop.id, email: workshop.email, role: workshop.role },
     config.jwt.jwt_secret as Secret,
     "15m",
   );
@@ -458,8 +471,6 @@ const changeWorkshopPassword = async (
   return null;
 };
 
-
-
 // add searching and filtering on getNearbyJobs service
 // const getNearbyJobs = async (workshopId: string) => {
 //   const workshop = await prisma.workshop.findUnique({
@@ -482,7 +493,7 @@ const changeWorkshopPassword = async (
 //     ORDER BY "createdAt" DESC
 //   `;
 
-//   // is this workshop already send exist on workshopIds then add a field that offerSend:true else false 
+//   // is this workshop already send exist on workshopIds then add a field that offerSend:true else false
 //   const result = (nearByJobs as any[])?.map((job: any) => {
 //     if (job.workshopIds.includes(workshopId)) {
 //       return { ...job, offerSend: true };
@@ -492,8 +503,6 @@ const changeWorkshopPassword = async (
 
 //   return result;
 // };
-
-
 
 // include categories in the response
 
@@ -682,5 +691,5 @@ export const WorkshopService = {
   getNearbyJobs,
   getReviewsByWorkshopId,
   getBookingsByWorkshopId,
-  updatePlatformFees
+  updatePlatformFees,
 };
