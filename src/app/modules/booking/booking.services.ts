@@ -213,6 +213,7 @@ const completeBooking = async (id: string) => {
     receiverUserId: result.userId,
     triggeredById: result.workshopId,
     jobId: result.jobId,
+    bookingId: result.id,
     title: "Booking Completed",
     body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
     eventType: "BOOKING_COMPLETED",
@@ -222,6 +223,7 @@ const completeBooking = async (id: string) => {
     receiverUserId: admin?.id,
     triggeredById: result.workshopId,
     jobId: result.jobId,
+    bookingId: result.id,
     title: "Booking updated",
     body: `Your booking for "${result.job.title}" has been updated!`,
     eventType: "BOOKING_UPDATED",
@@ -298,6 +300,7 @@ const cancelBooking = async (id: string) => {
   await createAndEmitNotification({
     receiverUserId: result.userId,
     triggeredById: result.workshopId,
+    bookingId: result.id,
     jobId: result.jobId,
     title: "Booking Completed",
     body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
