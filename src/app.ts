@@ -13,7 +13,6 @@ app.use(
     credentials: true,
   }),
 );
-
 //parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

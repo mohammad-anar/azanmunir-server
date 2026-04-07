@@ -7,6 +7,7 @@ export default {
   node_env: process.env.NODE_ENV,
   port: process.env.PORT,
   ip_address: process.env.IP_ADDRESS,
+  backend_url: process.env.BACKEND_URL,
   database_url: process.env.DATABASE_URL,
   bcrypt_salt_round: Number(process.env.BCRYPT_SALT_ROUND),
   cors_origin: process.env.CORS_ORIGIN,

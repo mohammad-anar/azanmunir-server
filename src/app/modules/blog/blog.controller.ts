@@ -17,7 +17,7 @@ const createBlog = catchAsync(async (req: Request, res: Response) => {
   )) as string[];
 
   const images = imagesData?.map((image) =>
-    `https://${config.ip_address}`.concat(image),
+    `${config.backend_url}`.concat(image),
   );
 
   if (imagesData && images?.length > 0) {
@@ -90,7 +90,7 @@ const updateBlog = catchAsync(async (req: Request, res: Response) => {
   )) as string[];
   if (imagesData?.length > 0) {
     const images = imagesData.map((img) =>
-      `https://${config.ip_address}`.concat(img),
+      `${config.backend_url}`.concat(img),
     );
     payload.images = images;
   }
