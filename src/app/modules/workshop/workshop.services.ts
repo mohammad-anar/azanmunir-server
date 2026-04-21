@@ -591,18 +591,19 @@ const getNearbyJobs = async ({
       LIMIT ${limit} OFFSET ${offset}
     `,
     prisma.$queryRaw<[{ count: bigint }]>`
-      SELECT COUNT(DISTINCT j.id)
-      FROM "Job" j
-      LEFT JOIN "JobCategory" jc ON jc."jobId" = j.id
-      LEFT JOIN "Category" c ON c.id = jc."categoryId"
-      WHERE j.status = 'OPEN'
-      ${searchClause}
-      ${categoryClause}
-      AND ST_DWithin(
-        ST_SetSRID(ST_MakePoint(j."longitude", j."latitude"), 4326)::geography,
-        ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
-        j."radius" * 1000
-      )
+      SELECT COUNT(*)
+      FROM (
+        SELECT 1
+        FROM "Job" j
+        WHERE j.status = 'OPEN'
+        ${searchClause}
+        ${categoryClause}
+        AND ST_DWithin(
+          ST_SetSRID(ST_MakePoint(j."longitude", j."latitude"), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
+          j."radius" * 1000
+        )
+      ) AS total_count
     `,
   ]);
 

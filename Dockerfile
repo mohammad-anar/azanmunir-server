@@ -44,5 +44,6 @@ ENV NODE_ENV=production
 
 EXPOSE 4000
 
-# Runtime migration and start
-CMD ["sh", "-c", "npx prisma migrate deploy --schema ./prisma/schema && node dist/server.js"]
+# Runtime database sync and start
+# We use db push as a fallback because of the multi-file schema path complexities
+CMD ["sh", "-c", "npx prisma db push --schema ./prisma/schema && node dist/server.js"]
