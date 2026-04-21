@@ -9,7 +9,7 @@ import { getIO } from "./helpers/socketHelper.js";
 const app: Application = express();
 app.use(
   cors({
-    origin: [ "https://fixmincykel.dk", "https://www.fixmincykel.dk"],
+    origin: process.env.CORS_ORIGIN || "https://fixmincykel.dk",
     credentials: true,
   }),
 );
