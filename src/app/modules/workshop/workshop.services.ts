@@ -123,11 +123,11 @@ const getAllWorkshops = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "desc",
+        },
 
     select: {
       id: true,
@@ -155,7 +155,6 @@ const getAllWorkshops = async (
           bookings: true,
           categories: true,
           jobs: true,
-          reviewsCount: true,
           rooms: true,
         },
       },
