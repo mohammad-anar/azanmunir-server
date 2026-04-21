@@ -121,6 +121,8 @@ const getPublicReviews = async () => {
       isFlagged: false, 
       isHidden: false,
     },
+    take: 10,
+    skip: 0,
     include: {
       user: {select: {id:true, name:true, avatar:true, phone:true, status:true}},
     },
