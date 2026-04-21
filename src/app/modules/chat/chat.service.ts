@@ -79,36 +79,34 @@ const getUserRooms = async (userId: string) => {
       },
       user: { select: { id: true, name: true, email: true, avatar: true } },
       lastMessage: true,
+      _count: {
+        select: {
+          messages: {
+            where: {
+              senderId: { not: userId },
+              isRead: false,
+            },
+          },
+        },
+      },
     },
     orderBy: [{ updatedAt: "desc" }],
   });
 
-  const roomsWithUnreadCount = await Promise.all(
-    rooms.map(async (room) => {
-      const unreadCount = await prisma.message.count({
-        where: {
-          roomId: room.id,
-          senderId: { not: userId },
-          isRead: false,
-        },
-      });
-
-      if (room.lastMessage) {
-        (room.lastMessage as any).sender =
-          room.lastMessage.senderId === room.userId
-            ? room.user
-            : {
-                id: room.workshop.id,
-                name: (room.workshop as any).workshopName,
-                avatar: room.workshop.avatar,
-              };
-      }
-
-      return { ...room, unreadCount };
-    }),
-  );
-
-  return roomsWithUnreadCount;
+  return rooms.map((room) => {
+    const { _count, ...rest } = room;
+    if (room.lastMessage) {
+      (room.lastMessage as any).sender =
+        room.lastMessage.senderId === room.userId
+          ? room.user
+          : {
+              id: room.workshop.id,
+              name: (room.workshop as any).workshopName,
+              avatar: room.workshop.avatar,
+            };
+    }
+    return { ...rest, unreadCount: _count.messages };
+  });
 };
 
 const getWorkshopRooms = async (workshopId: string) => {
@@ -120,36 +118,34 @@ const getWorkshopRooms = async (workshopId: string) => {
       },
       user: { select: { id: true, name: true, avatar: true } },
       lastMessage: true,
+      _count: {
+        select: {
+          messages: {
+            where: {
+              senderId: { not: workshopId },
+              isRead: false,
+            },
+          },
+        },
+      },
     },
     orderBy: [{ updatedAt: "desc" }],
   });
 
-  const roomsWithUnreadCount = await Promise.all(
-    rooms.map(async (room) => {
-      const unreadCount = await prisma.message.count({
-        where: {
-          roomId: room.id,
-          senderId: { not: workshopId },
-          isRead: false,
-        },
-      });
-
-      if (room.lastMessage) {
-        (room.lastMessage as any).sender =
-          room.lastMessage.senderId === room.userId
-            ? room.user
-            : {
-                id: room.workshop.id,
-                name: (room.workshop as any).workshopName,
-                avatar: room.workshop.avatar,
-              };
-      }
-
-      return { ...room, unreadCount };
-    }),
-  );
-
-  return roomsWithUnreadCount;
+  return rooms.map((room) => {
+    const { _count, ...rest } = room;
+    if (room.lastMessage) {
+      (room.lastMessage as any).sender =
+        room.lastMessage.senderId === room.userId
+          ? room.user
+          : {
+              id: room.workshop.id,
+              name: (room.workshop as any).workshopName,
+              avatar: room.workshop.avatar,
+            };
+    }
+    return { ...rest, unreadCount: _count.messages };
+  });
 };
 
 const getRoomMessages = async (roomId: string) => {

@@ -150,15 +150,15 @@ const getAllWorkshops = async (
       createdAt: true,
       updatedAt: true,
       state: true,
-      bookings: true,
-      categories: true,
-      workshopOpeningHours: true,
-      postalCode: true,
-      invoices: true,
-      jobs: true,
-      reviewsCount: true,
-      rooms: true,
-      _count: true,
+      _count: {
+        select: {
+          bookings: true,
+          categories: true,
+          jobs: true,
+          reviewsCount: true,
+          rooms: true,
+        },
+      },
     },
   });
 
