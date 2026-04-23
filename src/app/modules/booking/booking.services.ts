@@ -174,7 +174,7 @@ const deleteBooking = async (id: string) => {
 // delete the room when call this api
 const completeBooking = async (id: string, payload: { new_price: number, reason_for_price_increase: string }) => {
   const result = await prisma.$transaction(async (tx) => {
-    const booking = await tx.booking.findUnique({ where: { id } });
+    const booking = await tx.booking.findUnique({ where: { id }, include: { offer: true } });
     if (!booking) {
       throw new Error("Booking not found");
     }
@@ -314,9 +314,9 @@ const cancelBooking = async (id: string) => {
     triggeredById: result.workshopId,
     bookingId: result.id,
     jobId: result.jobId,
-    title: "Booking Completed",
-    body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
-    eventType: "`BOOKING_RESCHEDULED`",
+    title: "Booking Cancelled",
+    body: `Your booking for "${result.job.title}" has been cancelled!`,
+    eventType: "BOOKING_CANCELLED",
   });
 
   return result;
