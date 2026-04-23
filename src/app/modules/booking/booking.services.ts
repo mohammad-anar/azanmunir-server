@@ -53,11 +53,11 @@ const getAllBookings = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "desc",
+        },
   });
 
   const total = await prisma.booking.count({
@@ -172,14 +172,26 @@ const deleteBooking = async (id: string) => {
 };
 
 // delete the room when call this api
-const completeBooking = async (id: string) => {
+const completeBooking = async (id: string, payload: { new_price: number, reason_for_price_increase: string }) => {
   const result = await prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findUnique({ where: { id } });
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
     // 1. Update booking status and payment status
     const updatedBooking = await tx.booking.update({
       where: { id },
       data: {
         status: "COMPLETED",
         paymentStatus: "PAID",
+        priceChangeNote: payload.reason_for_price_increase,
+        oldPrice: booking.offer.price,
+        offer: {
+          update: {
+            price: payload.new_price,
+          }
+        }
       },
       include: {
         job: true,

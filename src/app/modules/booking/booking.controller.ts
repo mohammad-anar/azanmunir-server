@@ -109,7 +109,7 @@ const deleteBookings = catchAsync(async (req: Request, res: Response) => {
 
 const completeBooking = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await BookingService.completeBooking(id);
+  const result = await BookingService.completeBooking(id,req.body);
 
   // room should be deleted
   

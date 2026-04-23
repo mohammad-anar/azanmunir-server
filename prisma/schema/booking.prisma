@@ -12,6 +12,8 @@ model Booking {
     scheduleEnd   DateTime
     status        BookingStatus @default(CONFIRMED)
     paymentStatus PaymentStatus @default(PENDING)
+    oldPrice      Float?
+    priceChangeNote String?
     createdAt     DateTime      @default(now())
     updatedAt     DateTime      @updatedAt
 
