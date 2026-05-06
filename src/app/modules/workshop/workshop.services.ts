@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { EventType } from "../../../types/enum.js";
 
 import bcrypt from "bcryptjs";
 import { Secret, SignOptions } from "jsonwebtoken";
@@ -69,7 +70,7 @@ const createWorkshop = async (payload: Prisma.WorkshopCreateInput) => {
         triggeredById: workshop.id,
         title: "New Workshop Registration",
         body: `A new workshop has been registered: ${workshop.workshopName}`,
-        eventType: "WORKSHOP_REGISTERED",
+        eventType: EventType.WORKSHOP_REGISTERED,
       });
     }
 
@@ -563,6 +564,23 @@ const getNearbyJobs = async ({
     prisma.$queryRaw`
       SELECT 
         j.*,
+        ST_Distance(
+          ST_SetSRID(ST_MakePoint(j."longitude", j."latitude"), 4326)::geography,
+          ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography
+        ) / 1000 AS distance,
+        CASE 
+          WHEN b.id IS NOT NULL THEN 
+            JSON_BUILD_OBJECT(
+              'id', b.id,
+              'name', b.name,
+              'type', b.type,
+              'brand', b.brand,
+              'model', b.model,
+              'year', b.year,
+              'color', b.color
+            )
+          ELSE NULL
+        END AS bike,
         COALESCE(
           JSON_AGG(
             JSON_BUILD_OBJECT(
@@ -576,6 +594,7 @@ const getNearbyJobs = async ({
           '[]'
         ) AS categories
       FROM "Job" j
+      LEFT JOIN "Bike" b ON b.id = j."bikeId"
       LEFT JOIN "JobCategory" jc ON jc."jobId" = j.id
       LEFT JOIN "Category" c ON c.id = jc."categoryId"
       WHERE j.status = 'OPEN'
@@ -586,7 +605,7 @@ const getNearbyJobs = async ({
         ST_SetSRID(ST_MakePoint(${workshop.longitude}, ${workshop.latitude}), 4326)::geography,
         j."radius" * 1000
       )
-      GROUP BY j.id
+      GROUP BY j.id, b.id
       ${orderClause}
       LIMIT ${limit} OFFSET ${offset}
     `,
@@ -612,6 +631,7 @@ const getNearbyJobs = async ({
 
   const data = (nearByJobs as any[]).map((job: any) => ({
     ...job,
+    distance: job.distance ? Number(Number(job.distance).toFixed(2)) : 0,
     offerSend: job.workshopIds.includes(workshopId),
   }));
 
@@ -634,10 +654,12 @@ const getReviewsByWorkshopId = async (workshopId: string) => {
         workshopId: workshopId,
       },
     },
-    select: {
-      booking: {
+    include: {
+      user: {
         select: {
-          review: true,
+          id: true,
+          name: true,
+          avatar: true,
         },
       },
     },

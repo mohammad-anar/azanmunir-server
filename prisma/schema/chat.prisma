@@ -1,49 +1,53 @@
 model Room {
-  id            String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  bookingId     String?  @unique
-  booking       Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String?  @unique
+  booking   Booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
-  userId        String
-  user          User     @relation("UserRooms", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("UserRooms", fields: [userId], references: [id], onDelete: Cascade)
 
-  workshopId    String
-  workshop      Workshop @relation("WorkshopRooms", fields: [workshopId], references: [id], onDelete: Cascade)
+  workshopId String
+  workshop   Workshop @relation("WorkshopRooms", fields: [workshopId], references: [id], onDelete: Cascade)
 
-  name          String?
+  name String?
+
+  tag RoomTag @default(ONGOING)
 
   lastMessageId String?
   lastMessage   Message? @relation("LastMessage", fields: [lastMessageId], references: [id])
 
   lastMessageAt DateTime?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  messages      Message[]
+  messages Message[]
 
   @@index([userId])
-
   @@index([workshopId])
   @@index([lastMessageAt])
   @@map("rooms")
 }
 
-
+enum RoomTag {
+  ONGOING
+  COMPLETED
+}
 
 model Message {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  roomId    String
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  senderId  String
+  senderId String
 
-  content   String?
+  content String?
 
-  type      MessageType @default(TEXT)
+  type MessageType @default(TEXT)
 
-  isRead    Boolean  @default(false)
+  isRead Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

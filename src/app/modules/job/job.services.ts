@@ -172,11 +172,11 @@ const getAllJobs = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "desc",
+        },
     select: {
       id: true,
       title: true,
@@ -191,7 +191,14 @@ const getAllJobs = async (
       categories: {
         select: {
           description: true,
-          category: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          },
         },
       },
       latitude: true,
@@ -240,7 +247,17 @@ const getJobById = async (id: string) => {
     where: { id },
     include: {
       user: true,
-      categories: true,
+      categories: {
+        select: {
+          description: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+            }
+          },
+        },
+      },
       offers: true,
       bookings: true,
       bike: true,

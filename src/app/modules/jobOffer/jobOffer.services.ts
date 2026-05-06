@@ -109,8 +109,54 @@ const getJobOffersByUserId = async (
       createdAt: "desc",
     },
     include: {
-      workshop: { select: { id: true, workshopName: true } },
+      workshop: {
+        select: {
+          id: true,
+          workshopName: true,
+          latitude: true,
+          longitude: true,
+        },
+      },
+      job: {
+        select: {
+          latitude: true,
+          longitude: true,
+          categories: {
+            select: {
+              category: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
+  });
+
+  const dataWithDistance = result.map((offer) => {
+    let distance = offer.distance;
+
+    if (
+      offer.job.latitude &&
+      offer.job.longitude &&
+      offer.workshop.latitude &&
+      offer.workshop.longitude
+    ) {
+      distance = calculateDistance(
+        offer.job.latitude,
+        offer.job.longitude,
+        offer.workshop.latitude,
+        offer.workshop.longitude,
+      );
+    }
+
+    return {
+      ...offer,
+      distance: distance ? parseFloat(distance.toFixed(2)) : distance,
+    };
   });
 
   const total = await prisma.jobOffer.count({
@@ -126,7 +172,7 @@ const getJobOffersByUserId = async (
       total,
       totalPage,
     },
-    data: result,
+    data: dataWithDistance,
   };
 };
 

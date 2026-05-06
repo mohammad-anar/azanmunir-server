@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io";
 import { prisma } from "./prisma.js";
 import { Prisma } from "@prisma/client";
 import { ChatService } from "../app/modules/chat/chat.service.js";
+import { EventType } from "../types/enum.js";
 
 let io: Server | null = null;
 
@@ -106,18 +107,30 @@ export const initSocket = (server: any) => {
           io!.to(roomId).emit("receive_message", message);
 
           // ================= NOTIFICATION =================
-          const receiverId =
-            room.userId === senderId ? room.workshopId : room.userId;
+          const isUserSender = room.userId === senderId;
+          const receiverUserId = isUserSender ? null : room.userId;
+          const receiverWorkshopId = isUserSender ? room.workshopId : null;
+          const receiverId = isUserSender ? room.workshopId : room.userId;
 
+          const notification = await createAndEmitNotification({
+            title: "New Message",
+            body: content || "You have a new message",
+            receiverUserId,
+            receiverWorkshopId,
+            triggeredById: senderId,
+            bookingId: room.bookingId,
+            eventType: EventType.NEW_MESSAGE,
+          });
+
+          // Also emit a specific chat notification for the room list update
           if (receiverId) {
-            await createAndEmitChatNotification({
-              chatRoomId: roomId,
-              messageId: message.id,
-              triggeredById: senderId,
-              title: "New Message",
-              body: content || "",
-              receiverId,
-              message,
+            const socketIds = getSocketIds(receiverId);
+            socketIds.forEach((socketId) => {
+              io!.to(socketId).emit("new_message_notification", {
+                roomId: room.id,
+                message,
+                notification,
+              });
             });
           }
         } catch (error) {

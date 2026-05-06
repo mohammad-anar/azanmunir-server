@@ -1,10 +1,10 @@
 model PlatformData {
-    id               String  @id @default(uuid())
-    platformFee      Float   @default(0)
-    maximumJobRadius Float   @default(0)
+  id               String @id @default(uuid())
+  platformFee      Float  @default(0)
+  maximumJobRadius Float  @default(0)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("platform_data")
+  @@map("platform_data")
 }

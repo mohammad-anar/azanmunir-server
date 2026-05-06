@@ -209,9 +209,10 @@ const completeBooking = async (id: string, payload: { new_price: number, reason_
       },
     });
 
-    // 3. Delete the room if it exists (using deleteMany to avoid error if not found)
-    await tx.room.deleteMany({
+    // 3. Update the room tag to COMPLETED if it exists
+    await tx.room.updateMany({
       where: { bookingId: id },
+      data: { tag: "COMPLETED" },
     });
 
     return updatedBooking;

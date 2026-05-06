@@ -2,10 +2,65 @@ import { Prisma } from "@prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper.js";
 import { prisma } from "../../../helpers/prisma.js";
 import { IPaginationOptions } from "../../../types/pagination.js";
+import { EventType } from "../../../types/enum.js";
+import { createAndEmitNotification } from "../../../helpers/socketHelper.js";
 
-const createReview = async (payload: Prisma.ReviewCreateInput) => {
-  const result = await prisma.review.create({
-    data: payload,
+const updateWorkshopStats = async (tx: any, workshopId: string) => {
+  const stats = await tx.review.aggregate({
+    where: {
+      booking: {
+        workshopId,
+      },
+    },
+    _avg: { rating: true },
+    _count: { _all: true },
+  });
+
+  await tx.workshop.update({
+    where: { id: workshopId },
+    data: {
+      avgRating: stats._avg.rating || 0,
+      reviewsCount: stats._count._all || 0,
+    },
+  });
+};
+
+const createReview = async (payload: any) => {
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Create the review
+    const review = await tx.review.create({
+      data: payload,
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    // 2. Find the workshopId from the booking
+    const booking = await tx.booking.findUnique({
+      where: { id: payload.bookingId },
+      select: { workshopId: true },
+    });
+
+    if (booking?.workshopId) {
+      // 3. Update workshop stats
+      await updateWorkshopStats(tx, booking.workshopId);
+
+      // 4. Send notification to workshop
+      await createAndEmitNotification({
+        receiverWorkshopId: booking.workshopId,
+        triggeredById: payload.userId,
+        title: "New Review Received",
+        body: `${review.user.name} gave you a ${payload.rating}-star review.`,
+        eventType: EventType.NEW_REVIEW,
+        bookingId: payload.bookingId,
+      });
+    }
+
+    return review;
   });
 
   return result;
@@ -146,17 +201,54 @@ const getReviewById = async (id: string) => {
 };
 
 const updateReview = async (id: string, payload: Prisma.ReviewUpdateInput) => {
-  const result = await prisma.review.update({
-    where: { id },
-    data: payload,
+  const result = await prisma.$transaction(async (tx) => {
+    const review = await tx.review.update({
+      where: { id },
+      data: payload,
+      include: {
+        booking: {
+          select: { workshopId: true },
+        },
+      },
+    });
+
+    if (review.booking?.workshopId) {
+      await updateWorkshopStats(tx, review.booking.workshopId);
+    }
+
+    return review;
   });
 
   return result;
 };
 
 const deleteReview = async (id: string) => {
-  const result = await prisma.review.delete({
-    where: { id },
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Get the review with workshopId before deleting
+    const review = await tx.review.findUnique({
+      where: { id },
+      include: {
+        booking: {
+          select: { workshopId: true },
+        },
+      },
+    });
+
+    if (!review) {
+      throw new Error("Review not found");
+    }
+
+    // 2. Delete the review
+    const deletedReview = await tx.review.delete({
+      where: { id },
+    });
+
+    if (review.booking?.workshopId) {
+      // 3. Update workshop stats
+      await updateWorkshopStats(tx, review.booking.workshopId);
+    }
+
+    return deletedReview;
   });
 
   return result;

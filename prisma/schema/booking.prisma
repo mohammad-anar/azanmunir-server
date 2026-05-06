@@ -1,22 +1,22 @@
 model Booking {
-    id            String        @id @default(uuid())
-    jobId         String
-    job           Job           @relation(fields: [jobId], references: [id])
-    offerId       String        @unique
-    offer         JobOffer      @relation(fields: [offerId], references: [id])
-    userId        String
-    user          User          @relation(fields: [userId], references: [id])
-    workshopId    String
-    workshop      Workshop      @relation(fields: [workshopId], references: [id])
-    scheduleStart DateTime
-    scheduleEnd   DateTime
-    status        BookingStatus @default(CONFIRMED)
-    paymentStatus PaymentStatus @default(PENDING)
-    oldPrice      Float?
-    priceChangeNote String?
-    createdAt     DateTime      @default(now())
-    updatedAt     DateTime      @updatedAt
+  id              String        @id @default(uuid())
+  jobId           String
+  job             Job           @relation(fields: [jobId], references: [id])
+  offerId         String        @unique
+  offer           JobOffer      @relation(fields: [offerId], references: [id])
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  workshopId      String
+  workshop        Workshop      @relation(fields: [workshopId], references: [id])
+  scheduleStart   DateTime
+  scheduleEnd     DateTime
+  status          BookingStatus @default(CONFIRMED)
+  paymentStatus   PaymentStatus @default(PENDING)
+  oldPrice        Float?
+  priceChangeNote String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-    review        Review?
-    room          Room?
+  review Review?
+  room   Room?
 }

@@ -1,68 +1,68 @@
 model Workshop {
-    id           String  @id @default(uuid())
-    email        String  @unique
-    password     String
-    phone        String? @unique
-    role         Role    @default(WORKSHOP)
-    avatar       String?
-    workshopName String
-    ownerName    String
-    cvrNumber    String
-    description  String?
-    address      String?
-    country      String?
-    state        String?
-    city         String
-    postalCode   String
-    latitude     Float?
-    longitude    Float?
-    isVerified   Boolean @default(false)
-    platformFees Float?
+  id           String  @id @default(uuid())
+  email        String  @unique
+  password     String
+  phone        String? @unique
+  role         Role    @default(WORKSHOP)
+  avatar       String?
+  workshopName String
+  ownerName    String
+  cvrNumber    String
+  description  String?
+  address      String?
+  country      String?
+  state        String?
+  city         String
+  postalCode   String
+  latitude     Float?
+  longitude    Float?
+  isVerified   Boolean @default(false)
+  platformFees Float?
 
-    approvalStatus WorkshopApprovalStatus @default(PENDING)
-    avgRating      Float                  @default(0)
-    reviewsCount   Int                    @default(0)
+  approvalStatus WorkshopApprovalStatus @default(PENDING)
+  avgRating      Float                  @default(0)
+  reviewsCount   Int                    @default(0)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    categories           WorkshopCategory[]
-    bookings             Booking[]
-    jobs                 JobOffer[]
-    invoices             Invoice[]
-    rooms                Room[] @relation("WorkshopRooms")
-    workshopOpeningHours WorkshopOpeningHour[]
+  categories           WorkshopCategory[]
+  bookings             Booking[]
+  jobs                 JobOffer[]
+  invoices             Invoice[]
+  rooms                Room[]                @relation("WorkshopRooms")
+  workshopOpeningHours WorkshopOpeningHour[]
 
-    @@index([approvalStatus])
+  @@index([approvalStatus])
 }
 
 model WorkshopOpeningHour {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    workshopId String
-    workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+  workshopId String
+  workshop   Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
 
-    day       WeekDay
-    openTime  String?
-    closeTime String?
-    isClosed  Boolean @default(false)
+  day       WeekDay
+  openTime  String?
+  closeTime String?
+  isClosed  Boolean @default(false)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@unique([workshopId, day])
+  @@unique([workshopId, day])
 }
 
 model WorkshopCategory {
-    id         String   @id @default(uuid())
-    workshopId String
-    categoryId String
+  id         String @id @default(uuid())
+  workshopId String
+  categoryId String
 
-    workshop   Workshop @relation(fields: [workshopId], references: [id])
-    category   Category @relation(fields: [categoryId], references: [id])
+  workshop Workshop @relation(fields: [workshopId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@unique([workshopId, categoryId])
+  @@unique([workshopId, categoryId])
 }

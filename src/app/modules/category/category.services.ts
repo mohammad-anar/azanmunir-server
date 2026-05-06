@@ -51,11 +51,11 @@ const getAllCategories = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "asc",
+        },
     select: {
       id: true,
       name: true,

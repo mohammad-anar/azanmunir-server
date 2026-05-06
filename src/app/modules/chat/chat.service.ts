@@ -1,7 +1,7 @@
-import { MessageType } from "../../../types/enum.js";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../helpers/prisma.js";
 import ApiError from "../../../errors/ApiError.js";
+import { prisma } from "../../../helpers/prisma.js";
+import { MessageType } from "../../../types/enum.js";
 
 const createRoom = async (
   payload: {
@@ -61,10 +61,10 @@ const getRoomById = async (id: string) => {
       result.lastMessage.senderId === result.userId
         ? result.user
         : {
-            id: result.workshop.id,
-            name: (result.workshop as any).workshopName,
-            avatar: result.workshop.avatar,
-          };
+          id: result.workshop.id,
+          name: (result.workshop as any).workshopName,
+          avatar: result.workshop.avatar,
+        };
   }
 
   return result;
@@ -76,6 +76,24 @@ const getUserRooms = async (userId: string) => {
     include: {
       workshop: {
         select: { id: true, workshopName: true, email: true, avatar: true },
+      },
+      booking: {
+        select: {
+          job: {
+            select: {
+              categories: {
+                select: {
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       user: { select: { id: true, name: true, email: true, avatar: true } },
       lastMessage: true,
@@ -100,10 +118,10 @@ const getUserRooms = async (userId: string) => {
         room.lastMessage.senderId === room.userId
           ? room.user
           : {
-              id: room.workshop.id,
-              name: (room.workshop as any).workshopName,
-              avatar: room.workshop.avatar,
-            };
+            id: room.workshop.id,
+            name: (room.workshop as any).workshopName,
+            avatar: room.workshop.avatar,
+          };
     }
     return { ...rest, unreadCount: _count.messages };
   });
@@ -115,6 +133,24 @@ const getWorkshopRooms = async (workshopId: string) => {
     include: {
       workshop: {
         select: { id: true, workshopName: true, avatar: true },
+      },
+      booking: {
+        select: {
+          job: {
+            select: {
+              categories: {
+                select: {
+                  category: {
+                    select: {
+                      id: true,
+                      name: true,
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       user: { select: { id: true, name: true, avatar: true } },
       lastMessage: true,
@@ -139,10 +175,10 @@ const getWorkshopRooms = async (workshopId: string) => {
         room.lastMessage.senderId === room.userId
           ? room.user
           : {
-              id: room.workshop.id,
-              name: (room.workshop as any).workshopName,
-              avatar: room.workshop.avatar,
-            };
+            id: room.workshop.id,
+            name: (room.workshop as any).workshopName,
+            avatar: room.workshop.avatar,
+          };
     }
     return { ...rest, unreadCount: _count.messages };
   });
@@ -168,10 +204,10 @@ const getRoomMessages = async (roomId: string) => {
       msg.senderId === room.userId
         ? room.user
         : {
-            id: room.workshop.id,
-            name: (room.workshop as any).workshopName,
-            avatar: room.workshop.avatar,
-          },
+          id: room.workshop.id,
+          name: (room.workshop as any).workshopName,
+          avatar: room.workshop.avatar,
+        },
   }));
 };
 
@@ -213,13 +249,13 @@ const saveMessage = async (payload: {
       sender:
         msg.senderId === room.userId
           ? await prisma.user.findUnique({
-              where: { id: room.userId },
-              select: { id: true, name: true, avatar: true },
-            })
+            where: { id: room.userId },
+            select: { id: true, name: true, avatar: true },
+          })
           : await prisma.workshop.findUnique({
-              where: { id: room.workshopId },
-              select: { id: true, workshopName: true, avatar: true },
-            }),
+            where: { id: room.workshopId },
+            select: { id: true, workshopName: true, avatar: true },
+          }),
     };
   });
 
@@ -263,10 +299,10 @@ const getRoomByBookingId = async (bookingId: string) => {
       result.lastMessage.senderId === result.userId
         ? result.user
         : {
-            id: result.workshop.id,
-            name: (result.workshop as any).workshopName,
-            avatar: result.workshop.avatar,
-          };
+          id: result.workshop.id,
+          name: (result.workshop as any).workshopName,
+          avatar: result.workshop.avatar,
+        };
   }
 
   return result;

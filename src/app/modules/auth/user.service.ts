@@ -121,11 +121,11 @@ const getAllUsers = async (
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "desc",
+        },
     select: {
       id: true,
       name: true,
@@ -591,14 +591,21 @@ const getUserJobs = async (
     },
     skip,
     take: limit,
+    include: {
+      categories: {
+        include: {
+          category: true
+        }
+      }
+    },
     orderBy:
       options.sortBy && options.sortOrder
         ? {
-            [options.sortBy]: options.sortOrder,
-          }
+          [options.sortBy]: options.sortOrder,
+        }
         : {
-            createdAt: "desc",
-          },
+          createdAt: "desc",
+        },
   });
 
   const total = await prisma.job.count({

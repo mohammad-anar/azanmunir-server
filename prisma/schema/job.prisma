@@ -1,77 +1,76 @@
 model Job {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    userId String
-    user   User   @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-    title       String
-    description String
+  title       String?
+  description String?
 
-    address    String
-    city       String
-    postalCode String
+  address    String?
+  city       String?
+  postalCode String?
 
-    latitude  Float
-    longitude Float
-    radius    Int
+  latitude  Float
+  longitude Float
+  radius    Int
 
-    bikeName  String
-    bikeType  BikeType
-    bikeBrand String?
+  bikeName  String
+  bikeType  BikeType
+  bikeBrand String?
 
-    photos String[]
+  photos String[]
 
-    preferredTime DateTime
+  preferredTime DateTime
 
-    urgency Urgency   @default(MEDIUM)
-    status  JobStatus @default(PENDING)
-    workshopIds String[] @default([])
+  urgency     Urgency   @default(MEDIUM)
+  status      JobStatus @default(PENDING)
+  workshopIds String[]  @default([])
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  bikeId String?
+  bike   Bike?   @relation(fields: [bikeId], references: [id])
 
-    bike   Bike?   @relation(fields: [bikeId], references: [id])
-    bikeId String?
+  offers   JobOffer[]
+  bookings Booking[]
 
-    offers   JobOffer[]
-    bookings Booking[]
-
-    categories JobCategory[]
+  categories JobCategory[]
 }
 
 model JobCategory {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    jobId String
-    job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId String
+  job   Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
-    categoryId String
-    category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-    description String // user description for this category
+  description String // user description for this category
 
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-    @@unique([jobId, categoryId])
+  @@unique([jobId, categoryId])
 }
 
 model JobOffer {
-    id            String      @id @default(uuid())
-    jobId         String
-    job           Job         @relation(fields: [jobId], references: [id])
-    workshopId    String
-    workshop      Workshop    @relation(fields: [workshopId], references: [id])
-    price         Float
-    estimatedTime String
-    message       String?
-    status        OfferStatus @default(PENDING)
-    distance      Float?
-    isBestValue   Boolean     @default(false)
-    createdAt     DateTime    @default(now())
-    updatedAt     DateTime    @updatedAt
+  id            String      @id @default(uuid())
+  jobId         String
+  job           Job         @relation(fields: [jobId], references: [id])
+  workshopId    String
+  workshop      Workshop    @relation(fields: [workshopId], references: [id])
+  price         Float
+  estimatedTime String
+  message       String?
+  status        OfferStatus @default(PENDING)
+  distance      Float?
+  isBestValue   Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
-    booking Booking?
+  booking Booking?
 
-    @@unique([jobId, workshopId])
+  @@unique([jobId, workshopId])
 }

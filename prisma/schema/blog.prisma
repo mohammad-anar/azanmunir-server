@@ -1,20 +1,20 @@
 model Blog {
-  id         String        @id @default(uuid())
-  title      String
-  slug       String        @unique
-  subTitle   String
-  readTime   DateTime
-  images     String[]
+  id       String   @id @default(uuid())
+  title    String
+  slug     String   @unique
+  subTitle String
+  readTime DateTime
+  images   String[]
 
   authorId   String
   categoryId String
 
-  author     User          @relation(fields: [authorId], references: [id])
-  category   BlogCategory  @relation(fields: [categoryId], references: [id])
-  contents   BlogContent[]
+  author   User          @relation(fields: [authorId], references: [id])
+  category BlogCategory  @relation(fields: [categoryId], references: [id])
+  contents BlogContent[]
 
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model BlogContent {
@@ -23,14 +23,14 @@ model BlogContent {
   heading String
   details String
 
-  blog    Blog   @relation(fields: [blogId], references: [id])
+  blog Blog @relation(fields: [blogId], references: [id])
 }
 
 model BlogCategory {
-  id        String  @id @default(uuid())
-  name      String
+  id   String @id @default(uuid())
+  name String
 
-  blogs     Blog[]
+  blogs Blog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
