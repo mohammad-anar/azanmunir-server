@@ -16,10 +16,10 @@ router.post(
   InvoiceController.generateMonthlyInvoices,
 );
 
-// GET /invoices/monthly?month=YYYY-MM  →  list all invoices for the month
+// GET /invoices/monthly?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD  →  list all invoices for the range
 router.get("/monthly", auth(Role.ADMIN), InvoiceController.getMonthlyInvoices);
 
-// GET /invoices/monthly/download?month=YYYY-MM  →  download all invoices as a single PDF
+// GET /invoices/monthly/download?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD  →  download all invoices as a single PDF
 router.get(
   "/monthly/download",
   auth(Role.ADMIN),

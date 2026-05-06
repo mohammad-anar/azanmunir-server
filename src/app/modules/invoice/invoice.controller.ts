@@ -14,20 +14,17 @@ const generateMonthlyInvoices = catchAsync(
     sendResponse(res, {
       statusCode: 201,
       success: true,
-      message: "Monthly invoices generated successfully",
-      data: null,
+      message: result.message,
+      data: result,
     });
   },
 );
 
-// GET /invoices/monthly?month=YYYY-MM
 const getMonthlyInvoices = catchAsync(async (req: Request, res: Response) => {
-  const filters = pick(req.query, ["searchTerm", "status"]);
+  const filters = pick(req.query, ["searchTerm", "status", "startDate", "endDate", "month"]);
   const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
-  const { month } = req.query;
 
-  const result = await InvoiceService.getMonthlyInvoices(
-    month as string,
+  const result = await InvoiceService.getAllInvoices(
     filters,
     options,
   );
@@ -35,21 +32,23 @@ const getMonthlyInvoices = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Monthly invoices retrieved successfully",
+    message: "Invoices retrieved successfully",
     meta: result.meta,
     data: result.data,
   });
 });
 
-// GET /invoices/monthly/download?month=YYYY-MM
+// GET /invoices/monthly/download?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
 const downloadMonthlyInvoicesPDF = catchAsync(
   async (req: Request, res: Response) => {
-    const { month } = req.query;
+    const { startDate, endDate, month } = req.query;
     const buffer = await InvoiceService.downloadMonthlyInvoicesPDF(
+      startDate as string,
+      endDate as string,
       month as string,
     );
 
-    const filename = `invoices-${month}.pdf`;
+    const filename = `invoices-${startDate || "all"}-to-${endDate || "all"}.pdf`;
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=${filename}`);
     res.status(200).send(buffer);

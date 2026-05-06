@@ -66,7 +66,7 @@ const createJobOffer = async (payload: any) => {
         triggeredById: newOffer.workshopId,
         jobId: newOffer.jobId,
         title: "Get New Job Offer!",
-        body: `Your've got a new offer for "${newOffer.job.title}"!`,
+        body: `You've got a new job offer!`,
         eventType: "JOB_OFFER_RECEIVED",
       });
     } catch (error) {
@@ -280,7 +280,7 @@ const acceptOffer = async (id: string, userId: string) => {
       jobId: offer.jobId,
       bookingId: result.booking.id,
       title: "Offer Accepted!",
-      body: `Your offer for "${offer.job.title}" has been accepted!`,
+      body: `Your job offer has been accepted!`,
       eventType: "OFFER_ACCEPTED",
     });
 
@@ -290,7 +290,7 @@ const acceptOffer = async (id: string, userId: string) => {
       jobId: offer.jobId,
       bookingId: result.booking.id,
       title: "Booking confirmed",
-      body: `Your booking for "${offer.job.title}" has been confirmed!`,
+      body: `A booking has been confirmed!`,
       eventType: "BOOKING_CONFIRMED",
     });
   } catch (error) {

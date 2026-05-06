@@ -84,8 +84,8 @@ const getActivityFeed = async (date?: string) => {
     activities.push({
       type: "JOB_POSTED",
       timestamp: j.createdAt,
-      message: `New job posted: "${j.title}" for ${j.bikeName}.`,
-      details: { id: j.id, title: j.title },
+      message: `A new job was posted for ${j.bikeName}.`,
+      details: { id: j.id },
     });
   });
 
@@ -164,8 +164,8 @@ const getMyActivities = async (userId: string) => {
     activities.push({
       type: "JOB_POSTED",
       timestamp: j.createdAt,
-      message: `You posted a new job: "${j.title}".`,
-      details: { id: j.id, title: j.title },
+      message: `You posted a new job.`,
+      details: { id: j.id },
     });
   });
 
@@ -200,7 +200,7 @@ const getMyActivities = async (userId: string) => {
     activities.push({
       type: "OFFER_RECEIVED",
       timestamp: o.createdAt,
-      message: `You received an offer of $${o.price} from "${o.workshop.workshopName}" for "${o.job.title}".`,
+      message: `You received an offer of $${o.price} from "${o.workshop.workshopName}".`,
       details: { id: o.id, price: o.price, workshopName: o.workshop.workshopName },
     });
   });
@@ -252,8 +252,8 @@ const getWorkshopActivities = async (workshopId: string) => {
     activities.push({
       type: "JOB_AVAILABLE",
       timestamp: j.createdAt,
-      message: `New job available in ${j.city}: "${j.title}".`,
-      details: { id: j.id, title: j.title },
+      message: `New job available in ${j.city}.`,
+      details: { id: j.id },
     });
   });
 
@@ -261,7 +261,7 @@ const getWorkshopActivities = async (workshopId: string) => {
     activities.push({
       type: "OFFER_SENT",
       timestamp: o.createdAt,
-      message: `You sent an offer for "${o.job.title}".`,
+      message: `You sent a job offer.`,
       details: { id: o.id, price: o.price },
     });
   });
@@ -271,14 +271,14 @@ const getWorkshopActivities = async (workshopId: string) => {
       activities.push({
         type: "OFFER_ACCEPTED",
         timestamp: b.createdAt,
-        message: `Your offer for "${b.job.title}" was accepted by ${b.user.name}.`,
+        message: `Your offer was accepted by ${b.user.name}.`,
         details: { id: b.id, userName: b.user.name },
       });
     } else if (b.status === "COMPLETED") {
       activities.push({
         type: "BOOKING_COMPLETED",
         timestamp: b.updatedAt,
-        message: `Booking for "${b.job.title}" with ${b.user.name} has been completed.`,
+        message: `Booking with ${b.user.name} has been completed.`,
         details: { id: b.id, userName: b.user.name },
       });
     }

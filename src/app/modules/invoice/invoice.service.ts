@@ -15,20 +15,21 @@ const generateMonthlyInvoices = async (month?: string) => {
     if (!yearPart || !monthPart || monthPart < 1 || monthPart > 12) {
       throw new Error("Invalid month format. Please use YYYY-MM.");
     }
-    startOfMonth = new Date(yearPart, monthPart - 1, 1);
-    endOfMonth = new Date(yearPart, monthPart, 0, 23, 59, 59, 999);
+    // Force to UTC midnight on the 1st
+    startOfMonth = new Date(Date.UTC(yearPart, monthPart - 1, 1));
+    endOfMonth = new Date(Date.UTC(yearPart, monthPart, 0, 23, 59, 59, 999));
   } else {
     // Default to the previous month
-    let previousMonth = now.getMonth() - 1;
-    let year = now.getFullYear();
+    let previousMonth = now.getUTCMonth() - 1;
+    let year = now.getUTCFullYear();
 
     if (previousMonth < 0) {
       previousMonth = 11;
       year -= 1;
     }
 
-    startOfMonth = new Date(year, previousMonth, 1);
-    endOfMonth = new Date(year, previousMonth + 1, 0, 23, 59, 59, 999);
+    startOfMonth = new Date(Date.UTC(year, previousMonth, 1));
+    endOfMonth = new Date(Date.UTC(year, previousMonth + 1, 0, 23, 59, 59, 999));
   }
 
   // Fetch platform data for default platform fee
@@ -42,7 +43,7 @@ const generateMonthlyInvoices = async (month?: string) => {
     where: {
       status: "COMPLETED",
       paymentStatus: "PAID",
-      scheduleEnd: {
+      updatedAt: {
         gte: startOfMonth,
         lte: endOfMonth,
       },
@@ -56,6 +57,9 @@ const generateMonthlyInvoices = async (month?: string) => {
       },
     },
   });
+
+  console.log(`[InvoiceGen] Range: ${startOfMonth.toISOString()} to ${endOfMonth.toISOString()}`);
+  console.log(`[InvoiceGen] Found ${completedBookings.length} qualifying bookings.`);
 
   // Group bookings by workshopId
   const workshopInvoiceData: Record<
@@ -83,22 +87,50 @@ const generateMonthlyInvoices = async (month?: string) => {
     workshopInvoiceData[workshopId].platformFee += fee;
   });
 
+  console.log(`[InvoiceGen] Workshop Data:`, JSON.stringify(workshopInvoiceData, null, 2));
+
   // Build title and due date
   const monthNames = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
   ];
-  const billingMonthName = monthNames[startOfMonth.getMonth()];
-  const billingYear = startOfMonth.getFullYear();
+  const billingMonthName = monthNames[startOfMonth.getUTCMonth()];
+  const billingYear = startOfMonth.getUTCFullYear();
   const title = `Invoice for ${billingMonthName} ${billingYear}`;
-  const dueDate = new Date(now.getFullYear(), now.getMonth(), 15);
+  // Due date is the 15th of the CURRENT month
+  const dueDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 15));
 
   const invoicesCreated = [];
+
+  if (completedBookings.length === 0) {
+    return {
+      message: `No COMPLETED and PAID bookings found for ${billingMonthName} ${billingYear}. No invoices were generated.`,
+      month: `${billingMonthName} ${billingYear}`,
+      totalInvoices: 0,
+      invoices: [],
+    };
+  }
 
   for (const workshopId in workshopInvoiceData) {
     const data = workshopInvoiceData[workshopId];
     const workshopRevenue = data.totalJobAmount - data.platformFee;
 
+    // 1. Check if an invoice already exists for this workshop and month
+    const existingInvoice = await prisma.invoice.findUnique({
+      where: {
+        workshopId_billingMonth: {
+          workshopId,
+          billingMonth: startOfMonth,
+        },
+      },
+    });
+
+    // 2. If it's already PAID, we skip it to prevent overwriting payment data
+    if (existingInvoice?.status === "PAID") {
+      continue;
+    }
+
+    // 3. Upsert the invoice (it will update if SENT/CANCELLED/DRAFT, create if new)
     const result = await prisma.invoice.upsert({
       where: {
         workshopId_billingMonth: {
@@ -114,7 +146,8 @@ const generateMonthlyInvoices = async (month?: string) => {
         workshopRevenue,
         totalAmount: data.platformFee,
         dueDate,
-        status: "SENT",
+        // Preserve existing status if it exists, otherwise set to SENT
+        status: existingInvoice?.status || "SENT",
       },
       create: {
         title,
@@ -145,35 +178,56 @@ const generateMonthlyInvoices = async (month?: string) => {
   }
 
   return {
+    message: `${invoicesCreated.length} invoices generated successfully for ${billingMonthName} ${billingYear}.`,
     month: `${billingMonthName} ${billingYear}`,
     totalInvoices: invoicesCreated.length,
     invoices: invoicesCreated,
   };
 };
 
-const getMonthlyInvoices = async (
-  month: string,
-  filters: { searchTerm?: string; status?: string },
+const getAllInvoices = async (
+  filters: { searchTerm?: string; status?: string; month?: string; startDate?: string; endDate?: string },
   options: IPaginationOptions,
 ) => {
-  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
-    throw new Error("Invalid month format. Please use YYYY-MM.");
-  }
-
-  const { searchTerm, status } = filters;
+  let { searchTerm, status, month, startDate, endDate } = filters;
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelper.calculatePagination(options);
 
-  const [year, monthPart] = month.split("-").map(Number);
-  const startDate = new Date(year, monthPart - 1, 1);
-  const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
+  const where: Prisma.InvoiceWhereInput = {};
 
-  const where: Prisma.InvoiceWhereInput = {
-    billingMonth: {
-      gte: startDate,
-      lte: endDate,
-    },
-  };
+  // Default to current month if no filters are provided
+  if (!month && !startDate && !endDate) {
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+    
+    where.billingMonth = {
+      gte: start,
+      lte: end,
+    };
+  } else if (month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    // Handle month filter (YYYY-MM)
+    const [year, monthPart] = month.split("-").map(Number);
+    const start = new Date(Date.UTC(year, monthPart - 1, 1));
+    const end = new Date(Date.UTC(year, monthPart, 0, 23, 59, 59, 999));
+    
+    where.billingMonth = {
+      gte: start,
+      lte: end,
+    };
+  } else if (startDate || endDate) {
+    // Handle explicit date range
+    where.billingMonth = {};
+    if (startDate) {
+      const start = new Date(startDate);
+      where.billingMonth.gte = start;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setUTCHours(23, 59, 59, 999);
+      where.billingMonth.lte = end;
+    }
+  }
 
   if (status) {
     where.status = status as any;
@@ -233,22 +287,46 @@ const getMonthlyInvoices = async (
   };
 };
 
-const downloadMonthlyInvoicesPDF = async (month: string): Promise<Buffer> => {
-  if (!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
-    throw new Error("Invalid month format. Please use YYYY-MM.");
+const downloadMonthlyInvoicesPDF = async (
+  startDate?: string,
+  endDate?: string,
+  month?: string,
+): Promise<Buffer> => {
+  const where: Prisma.InvoiceWhereInput = {};
+
+  // Default to current month if no filters are provided
+  if (!month && !startDate && !endDate) {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    where.billingMonth = {
+      gte: start,
+      lte: end,
+    };
+  } else if (month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+    const [year, monthPart] = month.split("-").map(Number);
+    const start = new Date(year, monthPart - 1, 1);
+    const end = new Date(year, monthPart, 0, 23, 59, 59, 999);
+    where.billingMonth = {
+      gte: start,
+      lte: end,
+    };
+  } else if (startDate || endDate) {
+    where.billingMonth = {};
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      where.billingMonth.gte = start;
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      where.billingMonth.lte = end;
+    }
   }
 
-  const [year, monthPart] = month.split("-").map(Number);
-  const startDate = new Date(year, monthPart - 1, 1);
-  const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
-
   const invoices = await prisma.invoice.findMany({
-    where: {
-      billingMonth: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
+    where,
     include: {
       workshop: {
         select: {
@@ -262,7 +340,7 @@ const downloadMonthlyInvoicesPDF = async (month: string): Promise<Buffer> => {
   });
 
   if (invoices.length === 0) {
-    throw new Error(`No invoices found for month: ${month}.`);
+    throw new Error(`No invoices found for the specified range.`);
   }
 
   const pdfDataList: IInvoicePDFData[] = invoices.map((invoice) => ({
@@ -333,8 +411,8 @@ const getWorkshopInvoicePDF = async (workshopId: string, month: string): Promise
   }
 
   const [year, monthPart] = month.split("-").map(Number);
-  const startDate = new Date(year, monthPart - 1, 1);
-  const endDate = new Date(year, monthPart, 0, 23, 59, 59, 999);
+  const startDate = new Date(Date.UTC(year, monthPart - 1, 1));
+  const endDate = new Date(Date.UTC(year, monthPart, 0, 23, 59, 59, 999));
 
   const invoice = await prisma.invoice.findFirst({
     where: {
@@ -388,12 +466,12 @@ const recalculateWorkshopInvoice = async (workshopId: string, month?: string) =>
     if (!yearPart || !monthPart || monthPart < 1 || monthPart > 12) {
       throw new Error("Invalid month format. Please use YYYY-MM.");
     }
-    startOfMonth = new Date(yearPart, monthPart - 1, 1);
-    endOfMonth = new Date(yearPart, monthPart, 0, 23, 59, 59, 999);
+    startOfMonth = new Date(Date.UTC(yearPart, monthPart - 1, 1));
+    endOfMonth = new Date(Date.UTC(yearPart, monthPart, 0, 23, 59, 59, 999));
   } else {
     // Default to the current month for "this month" requirement
-    startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    endOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
   }
 
   // Fetch platform data for default platform fee
@@ -418,7 +496,7 @@ const recalculateWorkshopInvoice = async (workshopId: string, month?: string) =>
       workshopId,
       status: "COMPLETED",
       paymentStatus: "PAID",
-      scheduleEnd: {
+      updatedAt: {
         gte: startOfMonth,
         lte: endOfMonth,
       },
@@ -472,7 +550,7 @@ const recalculateWorkshopInvoice = async (workshopId: string, month?: string) =>
 
 export const InvoiceService = {
   generateMonthlyInvoices,
-  getMonthlyInvoices,
+  getAllInvoices,
   downloadMonthlyInvoicesPDF,
   updateInvoiceStatus,
   getInvoicePDFById,

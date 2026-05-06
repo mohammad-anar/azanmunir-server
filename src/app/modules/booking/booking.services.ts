@@ -152,7 +152,7 @@ const updateBooking = async (
     triggeredById: result.workshopId,
     jobId: result.jobId,
     title: "Booking updated",
-    body: `Your booking for "${result.job.title}" has been updated!`,
+    body: `Your booking has been updated!`,
     eventType: "BOOKING_UPDATED",
   });
   await createAndEmitNotification({
@@ -160,7 +160,7 @@ const updateBooking = async (
     triggeredById: result.workshopId,
     jobId: result.jobId,
     title: "Booking updated",
-    body: `Your booking for "${result.job.title}" has been updated!`,
+    body: `A booking has been updated!`,
     eventType: "BOOKING_UPDATED",
   });
 
@@ -228,7 +228,7 @@ const completeBooking = async (id: string, payload: { new_price: number, reason_
     jobId: result.jobId,
     bookingId: result.id,
     title: "Booking Completed",
-    body: `Your booking for "${result.job.title}" has been updated to COMPLETED!`,
+    body: `Your booking has been updated to COMPLETED!`,
     eventType: "BOOKING_COMPLETED",
   });
 
@@ -238,7 +238,7 @@ const completeBooking = async (id: string, payload: { new_price: number, reason_
     jobId: result.jobId,
     bookingId: result.id,
     title: "Booking updated",
-    body: `Your booking for "${result.job.title}" has been updated!`,
+    body: `A booking has been updated to COMPLETED!`,
     eventType: "BOOKING_UPDATED",
   });
 
@@ -272,7 +272,7 @@ const rescheduleBooking = async (
     triggeredById: result.workshopId,
     jobId: result.jobId,
     title: "Booking Rescheduled",
-    body: `Your booking for "${result.job.title}" has been rescheduled!`,
+    body: `Your booking has been rescheduled!`,
     eventType: "BOOKING_RESCHEDULED",
   });
   return result;
@@ -316,7 +316,7 @@ const cancelBooking = async (id: string) => {
     bookingId: result.id,
     jobId: result.jobId,
     title: "Booking Cancelled",
-    body: `Your booking for "${result.job.title}" has been cancelled!`,
+    body: `Your booking has been cancelled!`,
     eventType: "BOOKING_CANCELLED",
   });
 

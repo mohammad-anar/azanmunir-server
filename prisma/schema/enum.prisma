@@ -59,7 +59,7 @@ enum PriceType {
 }
 
 enum InvoiceStatus {
-  DRAFT
+  PENDING
   SENT
   PAID
   OVERDUE
